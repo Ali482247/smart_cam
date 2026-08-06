@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from tkinter import BOTH, DISABLED, NORMAL, BooleanVar, IntVar, StringVar, Tk, Text, filedialog, messagebox, ttk
+from tkinter import font as tkfont
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -37,6 +38,7 @@ except Exception as error:  # noqa: BLE001 - legacy HTTP dashboard must still op
 CONFIG_NAME = "three_cam_controller_config.json"
 DATASET_STATE_NAME = "three_cam_dataset_state.json"
 SESSION_HISTORY_NAME = "three_cam_session_history.json"
+RECORDING_LOG_DIR_NAME = "recording_logs"
 SESSION_HISTORY_LIMIT = 200
 DISCOVERY_MESSAGE = "THREE_CAM_DISCOVER"
 BACKGROUND_WORD = "background"
@@ -177,6 +179,12 @@ def save_session_history(history: list[dict]) -> None:
     path = app_dir() / SESSION_HISTORY_NAME
     with path.open("w", encoding="utf-8") as f:
         json.dump(history[-SESSION_HISTORY_LIMIT:], f, indent=2, ensure_ascii=False)
+
+
+def recording_log_dir() -> Path:
+    path = app_dir() / RECORDING_LOG_DIR_NAME
+    path.mkdir(exist_ok=True)
+    return path
 
 
 def safe_int(value, fallback: int | None = None) -> int | None:
@@ -709,6 +717,11 @@ def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: di
     session_id = f"{now.strftime('%Y%m%d')}_{time_stamp}_{record_index}"
     config["next_index"] = record_index + 1
     save_config(config)
+    if task is not None:
+        task["session_id"] = session_id
+        task["record_index"] = record_index
+        task["date"] = date_stamp
+        task["time"] = time_stamp
 
     endpoints = {}
     for phone in phones:
@@ -733,6 +746,7 @@ def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: di
                     "mode": str(task.get("mode", "word")),
                     "word": str(task.get("word", "")),
                     "word_id": str(task.get("word_id", "")),
+                    "list": str(task.get("list", "")),
                     "word_dir": str(task.get("word_dir", "")),
                     "take_label": str(task.get("take_label", "")),
                     "take_number": str(task.get("take_number", "")),
@@ -874,14 +888,27 @@ def list_videos_all(config: dict) -> list[dict]:
     return videos
 
 
-def mark_video_error(config: dict, video: dict) -> tuple[str, str]:
+def mark_video_error(config: dict, video: dict, *, superseded: bool = False) -> tuple[str, str]:
     phone_url = video.get("phone_url")
     if not phone_url:
         raise RuntimeError("Selected video has no phone URL")
     timeout = float(config.get("timeout_seconds", 3))
     phone = {"url": phone_url, "name": video.get("phone_name") or phone_url}
     relative_path = str(video.get("relativePath") or video.get("relative_path") or video.get("name") or "")
-    endpoint = "/mark-video-error?" + urllib.parse.urlencode({"path": relative_path})
+    endpoint = "/mark-video-error?" + urllib.parse.urlencode(
+        {"path": relative_path, "superseded": "1" if superseded else "0"}
+    )
+    return request_phone(phone, endpoint, timeout, method="POST")
+
+
+def mark_video_superseded(config: dict, video: dict) -> tuple[str, str]:
+    phone_url = video.get("phone_url")
+    if not phone_url:
+        raise RuntimeError("Selected video has no phone URL")
+    timeout = float(config.get("timeout_seconds", 3))
+    phone = {"url": phone_url, "name": video.get("phone_name") or phone_url}
+    relative_path = str(video.get("relativePath") or video.get("relative_path") or video.get("name") or "")
+    endpoint = "/mark-video-superseded?" + urllib.parse.urlencode({"path": relative_path})
     return request_phone(phone, endpoint, timeout, method="POST")
 
 
@@ -994,6 +1021,7 @@ class ControllerApp:
         self.device_status_cache: dict[str, dict] = {}
         self.session_history = load_session_history()
         self._session_started_at: dict[str, float] = {}
+        self.recording_log_entries: list[str] = []
 
         # New WS+Scheduler networking core (network_architecture.md), run alongside the
         # legacy HTTP path above - per the migration rules this is additive: the
@@ -1019,6 +1047,9 @@ class ControllerApp:
         root.geometry("1180x760")
         root.minsize(980, 650)
         root.protocol("WM_DELETE_WINDOW", self.on_close)
+        style = ttk.Style(root)
+        record_font = tkfont.Font(root=root, family="Segoe UI", size=16, weight="bold")
+        style.configure("Record.TButton", font=record_font, padding=(24, 12))
 
         frame = ttk.Frame(root, padding=14)
         frame.pack(fill=BOTH, expand=True)
@@ -1067,9 +1098,16 @@ class ControllerApp:
         ttk.Label(word_text, textvariable=self.progress_var, anchor="center").pack(fill="x", pady=(2, 0))
 
         record_action = ttk.Frame(word_row)
-        record_action.grid(row=0, column=2, sticky="n", padx=(12, 220), pady=(18, 0))
-        self.record_button = ttk.Button(record_action, text="START REC", command=self.toggle_clicked)
+        record_action.grid(row=0, column=2, sticky="n", padx=(12, 170), pady=(16, 0))
+        self.record_button = ttk.Button(
+            record_action,
+            text="START REC",
+            command=self.toggle_clicked,
+            style="Record.TButton",
+            width=14,
+        )
         self.record_button.pack()
+        ttk.Label(record_action, textvariable=self.timer_var, font=("Segoe UI", 22, "bold")).pack(pady=(8, 0))
 
         nav_row = ttk.Frame(dataset_frame)
         nav_row.pack(fill="x", pady=(8, 0))
@@ -1091,17 +1129,15 @@ class ControllerApp:
 
         self.download_button = ttk.Button(buttons, text="Скачать видео", command=self.download_clicked)
         self.download_button.pack(side="left", padx=(0, 8))
+        self.save_recording_log_button = ttk.Button(buttons, text="Save logs", command=self.save_recording_log_clicked)
+        self.save_recording_log_button.pack(side="left", padx=(0, 8))
 
         self.history_button = ttk.Button(buttons, text="История", command=self.history_clicked)
         self.history_button.pack(side="left")
 
         timer_frame = ttk.Frame(frame)
         timer_frame.pack(fill="x", pady=(0, 12))
-        ttk.Label(timer_frame, text="Таймер записи:").pack(side="left")
-        ttk.Label(
-            timer_frame, textvariable=self.timer_var, font=("Segoe UI", 14, "bold")
-        ).pack(side="left", padx=(6, 20))
-        ttk.Label(timer_frame, text="Автостоп через (мин, пусто = выкл):").pack(side="left")
+        ttk.Label(timer_frame, text="Auto stop minutes:").pack(side="left")
         ttk.Entry(timer_frame, textvariable=self.auto_stop_var, width=6).pack(side="left", padx=(6, 0))
 
         ws_frame = ttk.LabelFrame(frame, text="New networking (WS + Scheduler, synchronized)", padding=8)
@@ -1125,7 +1161,7 @@ class ControllerApp:
             devices,
             columns=("slot", "camera", "device", "url", "free", "battery"),
             show="headings",
-            height=5,
+            height=4,
             selectmode="browse",
         )
         self.devices_tree.heading("slot", text="Slot")
@@ -1156,11 +1192,17 @@ class ControllerApp:
 
         videos = ttk.LabelFrame(frame, text="Saved videos", padding=8)
         videos.pack(fill="x", pady=(0, 12))
+        video_top_actions = ttk.Frame(videos)
+        video_top_actions.pack(fill="x", pady=(0, 8))
+        ttk.Label(video_top_actions, text="Select a video row, then choose:").pack(side="left", padx=(0, 10))
+        ttk.Button(video_top_actions, text="BAD VIDEO", command=self.mark_selected_video_error_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(video_top_actions, text="BAD + RETAKE", command=self.mark_error_and_retake_selected_video_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(video_top_actions, text="RETAKE", command=self.retake_selected_video_clicked).pack(side="left", padx=(0, 8))
         self.videos_tree = ttk.Treeview(
             videos,
             columns=("status", "signer", "word", "take", "device", "name", "size"),
             show="headings",
-            height=6,
+            height=3,
             selectmode="browse",
         )
         for col, title, width in (
@@ -1175,16 +1217,25 @@ class ControllerApp:
             self.videos_tree.heading(col, text=title)
             self.videos_tree.column(col, width=width, stretch=col == "name")
         self.videos_tree.tag_configure("error", foreground="#c0392b")
+        self.videos_tree.tag_configure("superseded", foreground="#7f8c8d")
         self.videos_tree.tag_configure("warning", foreground="#b9770e")
         self.videos_tree.pack(fill="x")
         self.videos_tree.bind("<Double-1>", self.video_double_clicked)
-        video_actions = ttk.Frame(videos)
-        video_actions.pack(fill="x", pady=(8, 0))
-        ttk.Button(video_actions, text="Mark error", command=self.mark_selected_video_error_clicked).pack(side="left", padx=(0, 8))
-        ttk.Button(video_actions, text="Retake", command=self.retake_selected_video_clicked).pack(side="left")
+        logs_frame = ttk.Frame(frame)
+        logs_frame.pack(fill="x", expand=False)
+        logs_frame.columnconfigure(0, weight=1)
+        logs_frame.columnconfigure(1, weight=1)
+        logs_frame.rowconfigure(0, weight=1)
 
-        self.log = Text(frame, height=18, wrap="word")
+        command_log_frame = ttk.LabelFrame(logs_frame, text="Command log", padding=6)
+        command_log_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        self.log = Text(command_log_frame, height=3, wrap="word")
         self.log.pack(fill=BOTH, expand=True)
+
+        recording_log_frame = ttk.LabelFrame(logs_frame, text="Recording log", padding=6)
+        recording_log_frame.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        self.recording_log = Text(recording_log_frame, height=3, wrap="word")
+        self.recording_log.pack(fill=BOTH, expand=True)
 
         self.write("1) Открой Three Cam на всех телефонах, которые хочешь подключить.")
         self.write("2) Нажми Авто поиск. Сколько телефонов найдено, столько и будет управляться.")
@@ -1197,6 +1248,68 @@ class ControllerApp:
     def write(self, message: str) -> None:
         self.log.insert("end", message + "\n")
         self.log.see("end")
+
+    def recording_log_write(self, message: str) -> None:
+        line = f"{datetime.now().isoformat(timespec='seconds')} | {message}"
+        self.recording_log_entries.append(line)
+        if hasattr(self, "recording_log"):
+            self.recording_log.insert("end", line + "\n")
+            self.recording_log.see("end")
+
+    def save_recording_log_file(self, path: Path | None = None) -> Path:
+        if path is None:
+            stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            path = recording_log_dir() / f"recording_log_{stamp}.txt"
+        content = "\n".join(self.recording_log_entries)
+        if content:
+            content += "\n"
+        path.write_text(content, encoding="utf-8")
+        return path
+
+    def save_recording_log_clicked(self) -> None:
+        initial = recording_log_dir() / f"recording_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        path = filedialog.asksaveasfilename(
+            title="Save recording log",
+            initialdir=str(initial.parent),
+            initialfile=initial.name,
+            defaultextension=".txt",
+            filetypes=(("Text log", "*.txt"), ("All files", "*.*")),
+        )
+        if not path:
+            return
+        saved = self.save_recording_log_file(Path(path))
+        self.write(f"Recording log saved: {saved}")
+
+    def task_log_text(self, task: dict | None) -> str:
+        if not task:
+            return "task=unknown"
+        return (
+            f"session={task.get('session_id', '?')} index={task.get('record_index', '?')} "
+            f"signer={task.get('signer_id', '?')} word_id={task.get('word_id', '?')} "
+            f"word={task.get('word', '')} take={task.get('take_label', '?')}"
+        )
+
+    def log_phone_results(self, event: str, results: list[tuple[str, str]]) -> None:
+        for name, body in results:
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError:
+                self.root.after(0, lambda n=name, b=body: self.recording_log_write(f"{event} {n}: {b}"))
+                continue
+            if not payload.get("ok", True):
+                self.root.after(
+                    0,
+                    lambda n=name, p=payload: self.recording_log_write(f"{event} {n}: ERROR {p.get('error', p)}"),
+                )
+                continue
+            details = [f"{event} {name}: ok"]
+            if payload.get("sessionId"):
+                details.append(f"session={payload.get('sessionId')}")
+            if payload.get("lastVideoName"):
+                details.append(f"video={payload.get('lastVideoName')}")
+            if payload.get("lastVideoSizeBytes") is not None:
+                details.append(f"size={format_bytes(payload.get('lastVideoSizeBytes'))}")
+            self.root.after(0, lambda text=" ".join(details): self.recording_log_write(text))
 
     def save_dataset(self) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
@@ -1298,9 +1411,10 @@ class ControllerApp:
                 "signer_name": signer_name,
                 "signer_dir": signer_dir_name(signer_id),
                 "mode": "background",
-                "word": BACKGROUND_WORD,
-                "word_id": "",
-                "word_dir": BACKGROUND_WORD,
+            "word": BACKGROUND_WORD,
+            "word_id": "",
+            "list": "",
+            "word_dir": BACKGROUND_WORD,
                 "take_number": 1,
                 "take_label": take_label(1),
                 "gesture_count": gesture_count,
@@ -1318,6 +1432,7 @@ class ControllerApp:
             "mode": "word",
             "word": word.get("uzbek", ""),
             "word_id": word.get("word_id", ""),
+            "list": word.get("source_set", ""),
             "word_dir": word_dir_name(word),
             "take_number": take_number,
             "take_label": take_label(take_number),
@@ -1382,7 +1497,11 @@ class ControllerApp:
         for index, video in enumerate(videos):
             iid = str(index)
             status = str(video.get("status") or ("error" if video.get("isError") else "ok"))
-            tags = ("error",) if status == "error" else (("warning",) if status == "warning" else ())
+            tags = (
+                ("error",)
+                if status == "error"
+                else (("superseded",) if status == "superseded" else (("warning",) if status == "warning" else ()))
+            )
             values = (
                 status.upper(),
                 video.get("signerName") or video.get("signer_name") or "",
@@ -1430,19 +1549,68 @@ class ControllerApp:
             name, body = mark_video_error(self.config, video)
             videos = list_videos_all(self.config)
             self.root.after(0, lambda: self.refresh_videos_table(videos))
+            self.root.after(0, lambda: self.recording_log_write(f"MARK_ERROR device={name} video={video.get('name')}"))
             return f"{name}: {body}"
 
         self.run_background("Marking video error...", action)
+
+    def mark_error_and_retake_selected_video_clicked(self) -> None:
+        video = self.selected_video()
+        if not video:
+            self.write("Select a video first.")
+            return
+        if not messagebox.askyesno(
+            "Ошибка + переснять",
+            f"Пометить это видео как ERROR и перейти на пересъём?\n{video.get('name')}",
+        ):
+            return
+        if not self.prepare_retake_from_video(video, write_message=False):
+            return
+
+        def action() -> str:
+            name, body = mark_video_error(self.config, video, superseded=True)
+            videos = list_videos_all(self.config)
+            self.root.after(0, lambda: self.refresh_videos_table(videos))
+            self.root.after(
+                0,
+                lambda: self.recording_log_write(f"MARK_ERROR_RETAKE device={name} video={video.get('name')}"),
+            )
+            return f"{name}: marked ERROR. Ready to retake."
+
+        self.run_background("Marking error and preparing retake...", action)
 
     def retake_selected_video_clicked(self) -> None:
         video = self.selected_video()
         if not video:
             self.write("Select a video first.")
             return
+        if not self.prepare_retake_from_video(video):
+            return
+
+        def action() -> str:
+            name, _body = mark_video_superseded(self.config, video)
+            videos = list_videos_all(self.config)
+            self.root.after(0, lambda: self.refresh_videos_table(videos))
+            self.root.after(0, lambda: self.recording_log_write(f"MARK_SUPERSEDED device={name} video={video.get('name')}"))
+            return f"{name}: previous take marked SUPERSEDED. Ready to retake."
+
+        self.run_background("Preparing retake...", action)
+
+    def prepare_retake_from_video(self, video: dict, write_message: bool = True) -> bool:
         word_value = str(video.get("word") or "")
         if not word_value:
             self.write("Selected video has no word metadata.")
-            return
+            return False
+        if word_value.lower() == BACKGROUND_WORD or str(video.get("mode") or "").lower() == "background":
+            self.background_var.set(True)
+            self.dataset_state["background_mode"] = True
+            self.dataset_state["manual_back_mode"] = False
+            self.dataset_state["retake_mode"] = True
+            self.save_dataset()
+            self.refresh_dataset_labels()
+            if write_message:
+                self.write("Retake selected: background")
+            return True
         words = self.dataset_state.get("words", [])
         for index, word in enumerate(words):
             if str(word.get("uzbek")) == word_value or str(word.get("word_id")) == str(video.get("wordId") or video.get("word_id")):
@@ -1451,9 +1619,11 @@ class ControllerApp:
                 self.dataset_state["retake_mode"] = True
                 self.save_dataset()
                 self.refresh_dataset_labels()
-                self.write(f"Retake selected: {word_value}")
-                return
+                if write_message:
+                    self.write(f"Retake selected: {word_value}")
+                return True
         self.write(f"Retake word not found in imported list: {word_value}")
+        return False
 
     def reset_index_clicked(self) -> None:
         if not messagebox.askyesno("Reset index", "Reset future video indexes on controller and phones?"):
@@ -1481,6 +1651,7 @@ class ControllerApp:
         self.record_button.configure(state=state)
         self.status_button.configure(state=state)
         self.download_button.configure(state=state)
+        self.save_recording_log_button.configure(state=state)
         self.history_button.configure(state=state)
         self.ws_record_button.configure(state=state)
         self.ws_status_button.configure(state=state)
@@ -1704,6 +1875,8 @@ class ControllerApp:
             self.root.after(0, self.start_timer if self.recording else self.stop_timer)
             if self.recording:
                 self._session_started_at["http"] = time.time()
+                self.root.after(0, lambda t=task: self.recording_log_write(f"START {self.task_log_text(t)}"))
+                self.log_phone_results("START_ACK", results)
                 if self.active_task:
                     task_text = (
                         f"{self.active_task.get('mode')} / {self.active_task.get('word')} "
@@ -1715,6 +1888,10 @@ class ControllerApp:
                 videos = list_videos_all(self.config)
                 self.root.after(0, lambda: self.refresh_videos_table(videos))
                 self.root.after(0, lambda: self.record_session_history("http"))
+                self.root.after(0, lambda t=self.active_task: self.recording_log_write(f"STOP {self.task_log_text(t)}"))
+                self.log_phone_results("STOP_SAVE", results)
+                saved_log = self.save_recording_log_file()
+                self.root.after(0, lambda p=saved_log: self.recording_log_write(f"LOG_SAVED path={p}"))
             return format_results("Команда отправлена:", results)
 
         self.run_background(title, action)

@@ -1,0 +1,20 @@
+2026-08-06T17:32:34 | START session=20260806_173233_0 index=0 signer=signer_2 word_id= word=background take=a
+2026-08-06T17:32:34 | START_ACK device_3: ok
+2026-08-06T17:32:34 | START_ACK device_2: ok
+2026-08-06T17:32:34 | START_ACK device_1: ok
+2026-08-06T17:32:45 | STOP session=20260806_173233_0 index=0 signer=signer_2 word_id= word=background take=a
+2026-08-06T17:32:45 | STOP_SAVE device_2: ok session=20260806_173233_0
+2026-08-06T17:32:45 | STOP_SAVE device_1: ok session=20260806_173233_0
+2026-08-06T17:32:45 | STOP_SAVE device_3: ok session=20260806_173233_0
+2026-08-06T17:32:45 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_173245.txt
+2026-08-06T17:33:14 | MARK_ERROR device=device_1 video=background_a_device_1_20260806_173233_0.mp4
+2026-08-06T17:33:22 | MARK_ERROR device=device_2 video=background_a_device_2_20260806_173233_0.mp4
+2026-08-06T17:33:26 | MARK_ERROR device=device_3 video=background_a_device_3_20260806_173233_0.mp4
+2026-08-06T17:33:30 | START session=20260806_173329_1 index=1 signer=signer_2 word_id= word=background take=a
+2026-08-06T17:33:30 | START_ACK device_2: ok
+2026-08-06T17:33:30 | START_ACK device_3: ok
+2026-08-06T17:33:30 | START_ACK device_1: ok
+2026-08-06T17:33:34 | STOP session=20260806_173329_1 index=1 signer=signer_2 word_id= word=background take=a
+2026-08-06T17:33:34 | STOP_SAVE device_3: ok session=20260806_173329_1 video=background_a_device_3_20260806_173233_0.mp4 size=3.6 MB
+2026-08-06T17:33:34 | STOP_SAVE device_1: ok session=20260806_173329_1 video=background_a_device_1_20260806_173233_0.mp4 size=7.5 MB
+2026-08-06T17:33:34 | STOP_SAVE device_2: ok session=20260806_173329_1 video=background_a_device_2_20260806_173233_0.mp4 size=5.5 MB

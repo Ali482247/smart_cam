@@ -1,0 +1,44 @@
+2026-08-06T17:25:35 | START session=20260806_172534_1 index=1 signer=signer_9 word_id= word=background take=a
+2026-08-06T17:25:35 | START_ACK device_3: ok
+2026-08-06T17:25:35 | START_ACK device_1: ok
+2026-08-06T17:25:35 | START_ACK device_2: ok
+2026-08-06T17:25:46 | STOP session=20260806_172534_1 index=1 signer=signer_9 word_id= word=background take=a
+2026-08-06T17:25:46 | STOP_SAVE device_1: ok session=20260806_172534_1 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_171443_0.mp4 size=2.4 MB
+2026-08-06T17:25:46 | STOP_SAVE device_3: ok session=20260806_172534_1 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_171443_0.mp4 size=1.3 MB
+2026-08-06T17:25:46 | STOP_SAVE device_2: ok session=20260806_172534_1 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_171443_0.mp4 size=1.9 MB
+2026-08-06T17:25:46 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_172546.txt
+2026-08-06T17:29:12 | START session=20260806_172912_0 index=0 signer=signer_9 word_id= word=background take=a
+2026-08-06T17:29:12 | START_ACK device_3: ok
+2026-08-06T17:29:12 | START_ACK device_1: ok
+2026-08-06T17:29:12 | START_ACK device_2: ok
+2026-08-06T17:29:22 | STOP session=20260806_172912_0 index=0 signer=signer_9 word_id= word=background take=a
+2026-08-06T17:29:22 | STOP_SAVE device_2: ok session=20260806_172912_0
+2026-08-06T17:29:22 | STOP_SAVE device_1: ok session=20260806_172912_0
+2026-08-06T17:29:22 | STOP_SAVE device_3: ok session=20260806_172912_0
+2026-08-06T17:29:22 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_172922.txt
+2026-08-06T17:29:45 | START session=20260806_172945_1 index=1 signer=signer_9 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T17:29:45 | START_ACK device_3: ok
+2026-08-06T17:29:45 | START_ACK device_1: ok
+2026-08-06T17:29:45 | START_ACK device_2: ok
+2026-08-06T17:29:52 | STOP session=20260806_172945_1 index=1 signer=signer_9 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T17:29:52 | STOP_SAVE device_1: ok session=20260806_172945_1 video=background_a_device_1_20260806_172912_0.mp4 size=6.1 MB
+2026-08-06T17:29:52 | STOP_SAVE device_2: ok session=20260806_172945_1 video=background_a_device_2_20260806_172912_0.mp4 size=4.5 MB
+2026-08-06T17:29:52 | STOP_SAVE device_3: ok session=20260806_172945_1 video=background_a_device_3_20260806_172912_0.mp4 size=3.6 MB
+2026-08-06T17:29:52 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_172952.txt
+2026-08-06T17:29:56 | START session=20260806_172955_2 index=2 signer=signer_9 word_id=1 word=Tashakkur, minnatdorchilik take=b
+2026-08-06T17:29:56 | START_ACK device_3: ok
+2026-08-06T17:29:56 | START_ACK device_1: ok
+2026-08-06T17:29:56 | START_ACK device_2: ok
+2026-08-06T17:30:02 | STOP session=20260806_172955_2 index=2 signer=signer_9 word_id=1 word=Tashakkur, minnatdorchilik take=b
+2026-08-06T17:30:02 | STOP_SAVE device_2: ok session=20260806_172955_2 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_172945_1.mp4 size=3.4 MB
+2026-08-06T17:30:02 | STOP_SAVE device_1: ok session=20260806_172955_2 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_172945_1.mp4 size=3.8 MB
+2026-08-06T17:30:02 | STOP_SAVE device_3: ok session=20260806_172955_2 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_172945_1.mp4 size=2.2 MB
+2026-08-06T17:30:02 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_173002.txt
+2026-08-06T17:30:14 | START session=20260806_173013_3 index=3 signer=signer_9 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T17:30:14 | START_ACK device_1: ok
+2026-08-06T17:30:14 | START_ACK device_3: ok
+2026-08-06T17:30:14 | START_ACK device_2: ok
+2026-08-06T17:30:19 | STOP session=20260806_173013_3 index=3 signer=signer_9 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T17:30:19 | STOP_SAVE device_1: ok session=20260806_173013_3 video=001_Tashakkur_minnatdorchilik_b_device_1_20260806_172955_2.mp4 size=4.8 MB
+2026-08-06T17:30:19 | STOP_SAVE device_2: ok session=20260806_173013_3 video=001_Tashakkur_minnatdorchilik_b_device_2_20260806_172955_2.mp4 size=3.7 MB
+2026-08-06T17:30:19 | STOP_SAVE device_3: ok session=20260806_173013_3 video=001_Tashakkur_minnatdorchilik_b_device_3_20260806_172955_2.mp4 size=1.9 MB

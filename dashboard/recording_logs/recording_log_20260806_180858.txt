@@ -1,0 +1,8 @@
+2026-08-06T18:03:36 | START session=20260806_180335_0 index=0 signer=signer_1 word_id= word=background take=a
+2026-08-06T18:03:36 | START_ACK device_2: ok
+2026-08-06T18:03:36 | START_ACK device_1: ok
+2026-08-06T18:03:36 | START_ACK device_3: ok
+2026-08-06T18:08:58 | STOP session=20260806_180335_0 index=0 signer=signer_1 word_id= word=background take=a
+2026-08-06T18:08:58 | STOP_SAVE device_2: ERROR: timeout
+2026-08-06T18:08:58 | STOP_SAVE device_1: ERROR: timeout
+2026-08-06T18:08:58 | STOP_SAVE device_3: ERROR: timeout

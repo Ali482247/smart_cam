@@ -1,5 +1,5 @@
 {
-  "selected_signer_id": "signer_14",
+  "selected_signer_id": "signer_4",
   "words": [
     {
       "word_id": 1,
@@ -702,11 +702,14 @@
       "source_set": "set_01"
     }
   ],
-  "main_word_index": 1,
-  "view_word_index": 1,
-  "gesture_count": 1,
+  "main_word_index": 4,
+  "view_word_index": 4,
+  "gesture_count": 3,
   "takes_done_by_word": {
-    "1": 1
+    "1": 4,
+    "2": 4,
+    "3": 1,
+    "4": 1
   },
   "background_mode": false,
   "manual_back_mode": false,

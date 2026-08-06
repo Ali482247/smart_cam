@@ -1,0 +1,98 @@
+2026-08-06T18:03:36 | START session=20260806_180335_0 index=0 signer=signer_1 word_id= word=background take=a
+2026-08-06T18:03:36 | START_ACK device_2: ok
+2026-08-06T18:03:36 | START_ACK device_1: ok
+2026-08-06T18:03:36 | START_ACK device_3: ok
+2026-08-06T18:08:58 | STOP session=20260806_180335_0 index=0 signer=signer_1 word_id= word=background take=a
+2026-08-06T18:08:58 | STOP_SAVE device_2: ERROR: timeout
+2026-08-06T18:08:58 | STOP_SAVE device_1: ERROR: timeout
+2026-08-06T18:08:58 | STOP_SAVE device_3: ERROR: timeout
+2026-08-06T18:08:58 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_180858.txt
+2026-08-06T18:09:47 | START session=20260806_180947_1 index=1 signer=signer_1 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T18:09:47 | START_ACK device_1: ok
+2026-08-06T18:09:47 | START_ACK device_3: ok
+2026-08-06T18:09:47 | START_ACK device_2: ok
+2026-08-06T18:09:54 | STOP session=20260806_180947_1 index=1 signer=signer_1 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T18:09:54 | STOP_SAVE device_1: ok session=20260806_180947_1 video=background_a_device_1_20260806_180335_0.mp4 size=770.1 MB
+2026-08-06T18:09:54 | STOP_SAVE device_3: ok session=20260806_180947_1 video=background_a_device_3_20260806_180335_0.mp4 size=769.6 MB
+2026-08-06T18:09:54 | STOP_SAVE device_2: ok session=20260806_180947_1 video=background_a_device_2_20260806_180335_0.mp4 size=770.4 MB
+2026-08-06T18:09:54 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_180954.txt
+2026-08-06T18:10:05 | START session=20260806_181004_2 index=2 signer=signer_1 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T18:10:05 | START_ACK device_3: ok
+2026-08-06T18:10:05 | START_ACK device_1: ok
+2026-08-06T18:10:05 | START_ACK device_2: ok
+2026-08-06T18:10:11 | STOP session=20260806_181004_2 index=2 signer=signer_1 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T18:10:11 | STOP_SAVE device_3: ok session=20260806_181004_2 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_180947_1.mp4 size=12.8 MB
+2026-08-06T18:10:11 | STOP_SAVE device_2: ok session=20260806_181004_2 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_180947_1.mp4 size=13.1 MB
+2026-08-06T18:10:11 | STOP_SAVE device_1: ok session=20260806_181004_2 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_180947_1.mp4 size=13.1 MB
+2026-08-06T18:10:11 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181011.txt
+2026-08-06T18:10:15 | START session=20260806_181014_3 index=3 signer=signer_1 word_id=3 word=Birdan, to'satdan (vo-qea, tasodif) take=a
+2026-08-06T18:10:15 | START_ACK device_1: ok
+2026-08-06T18:10:15 | START_ACK device_3: ok
+2026-08-06T18:10:15 | START_ACK device_2: ok
+2026-08-06T18:10:21 | STOP session=20260806_181014_3 index=3 signer=signer_1 word_id=3 word=Birdan, to'satdan (vo-qea, tasodif) take=a
+2026-08-06T18:10:21 | STOP_SAVE device_2: ok session=20260806_181014_3 video=002_Sizning_sening_uning_ularning_a_device_2_20260806_181004_2.mp4 size=13.2 MB
+2026-08-06T18:10:21 | STOP_SAVE device_1: ok session=20260806_181014_3 video=002_Sizning_sening_uning_ularning_a_device_1_20260806_181004_2.mp4 size=13.2 MB
+2026-08-06T18:10:21 | STOP_SAVE device_3: ok session=20260806_181014_3 video=002_Sizning_sening_uning_ularning_a_device_3_20260806_181004_2.mp4 size=12.7 MB
+2026-08-06T18:10:21 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181021.txt
+2026-08-06T18:10:25 | START session=20260806_181024_4 index=4 signer=signer_1 word_id=4 word=To'g'ri (haq, rost) take=a
+2026-08-06T18:10:25 | START_ACK device_3: ok
+2026-08-06T18:10:25 | START_ACK device_1: ok
+2026-08-06T18:10:25 | START_ACK device_2: ok
+2026-08-06T18:10:31 | STOP session=20260806_181024_4 index=4 signer=signer_1 word_id=4 word=To'g'ri (haq, rost) take=a
+2026-08-06T18:10:31 | STOP_SAVE device_3: ok session=20260806_181024_4 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_3_20260806_181014_3.mp4 size=12.7 MB
+2026-08-06T18:10:31 | STOP_SAVE device_2: ok session=20260806_181024_4 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_2_20260806_181014_3.mp4 size=13.0 MB
+2026-08-06T18:10:31 | STOP_SAVE device_1: ok session=20260806_181024_4 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_1_20260806_181014_3.mp4 size=13.1 MB
+2026-08-06T18:10:31 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181031.txt
+2026-08-06T18:11:41 | START session=20260806_181141_5 index=5 signer=signer_1 word_id=5 word=Birgalikda (birga) take=a
+2026-08-06T18:11:41 | START_ACK device_3: ok
+2026-08-06T18:11:41 | START_ACK device_1: ok
+2026-08-06T18:11:41 | START_ACK device_2: ok
+2026-08-06T18:11:48 | STOP session=20260806_181141_5 index=5 signer=signer_1 word_id=5 word=Birgalikda (birga) take=a
+2026-08-06T18:11:48 | STOP_SAVE device_3: ok session=20260806_181141_5 video=004_To_g_ri_haq_rost_a_device_3_20260806_181024_4.mp4 size=12.0 MB
+2026-08-06T18:11:48 | STOP_SAVE device_1: ok session=20260806_181141_5 video=004_To_g_ri_haq_rost_a_device_1_20260806_181024_4.mp4 size=13.1 MB
+2026-08-06T18:11:48 | STOP_SAVE device_2: ok session=20260806_181141_5 video=004_To_g_ri_haq_rost_a_device_2_20260806_181024_4.mp4 size=13.0 MB
+2026-08-06T18:11:48 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181148.txt
+2026-08-06T18:17:17 | START session=20260806_181717_6 index=6 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T18:17:17 | START_ACK device_1: ok
+2026-08-06T18:17:17 | START_ACK device_3: ok
+2026-08-06T18:17:17 | START_ACK device_2: ok
+2026-08-06T18:17:23 | STOP session=20260806_181717_6 index=6 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T18:17:23 | STOP_SAVE device_2: ok session=20260806_181717_6 video=005_Birgalikda_birga_a_device_2_20260806_181141_5.mp4 size=13.4 MB
+2026-08-06T18:17:23 | STOP_SAVE device_1: ok session=20260806_181717_6 video=005_Birgalikda_birga_a_device_1_20260806_181141_5.mp4 size=13.5 MB
+2026-08-06T18:17:23 | STOP_SAVE device_3: ok session=20260806_181717_6 video=005_Birgalikda_birga_a_device_3_20260806_181141_5.mp4 size=12.9 MB
+2026-08-06T18:17:23 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181723.txt
+2026-08-06T18:17:25 | START session=20260806_181725_7 index=7 signer=signer_2 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T18:17:25 | START_ACK device_2: ok
+2026-08-06T18:17:25 | START_ACK device_1: ok
+2026-08-06T18:17:25 | START_ACK device_3: ok
+2026-08-06T18:17:32 | STOP session=20260806_181725_7 index=7 signer=signer_2 word_id=2 word=Sizning (sening, uning, ularning) take=a
+2026-08-06T18:17:32 | STOP_SAVE device_2: ok session=20260806_181725_7 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_181717_6.mp4 size=13.1 MB
+2026-08-06T18:17:32 | STOP_SAVE device_3: ok session=20260806_181725_7 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_181717_6.mp4 size=12.8 MB
+2026-08-06T18:17:32 | STOP_SAVE device_1: ok session=20260806_181725_7 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_181717_6.mp4 size=13.1 MB
+2026-08-06T18:17:32 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181732.txt
+2026-08-06T18:17:34 | START session=20260806_181734_8 index=8 signer=signer_2 word_id=3 word=Birdan, to'satdan (vo-qea, tasodif) take=a
+2026-08-06T18:17:34 | START_ACK device_3: ok
+2026-08-06T18:17:34 | START_ACK device_1: ok
+2026-08-06T18:17:34 | START_ACK device_2: ok
+2026-08-06T18:17:41 | STOP session=20260806_181734_8 index=8 signer=signer_2 word_id=3 word=Birdan, to'satdan (vo-qea, tasodif) take=a
+2026-08-06T18:17:41 | STOP_SAVE device_1: ok session=20260806_181734_8 video=002_Sizning_sening_uning_ularning_a_device_1_20260806_181725_7.mp4 size=13.9 MB
+2026-08-06T18:17:41 | STOP_SAVE device_3: ok session=20260806_181734_8 video=002_Sizning_sening_uning_ularning_a_device_3_20260806_181725_7.mp4 size=13.3 MB
+2026-08-06T18:17:41 | STOP_SAVE device_2: ok session=20260806_181734_8 video=002_Sizning_sening_uning_ularning_a_device_2_20260806_181725_7.mp4 size=13.8 MB
+2026-08-06T18:17:41 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181741.txt
+2026-08-06T18:17:56 | START session=20260806_181756_9 index=9 signer=signer_2 word_id=4 word=To'g'ri (haq, rost) take=a
+2026-08-06T18:17:56 | START_ACK device_1: ok
+2026-08-06T18:17:56 | START_ACK device_2: ok
+2026-08-06T18:17:56 | START_ACK device_3: ok
+2026-08-06T18:18:03 | STOP session=20260806_181756_9 index=9 signer=signer_2 word_id=4 word=To'g'ri (haq, rost) take=a
+2026-08-06T18:18:03 | STOP_SAVE device_2: ok session=20260806_181756_9 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_2_20260806_181734_8.mp4 size=13.3 MB
+2026-08-06T18:18:03 | STOP_SAVE device_3: ok session=20260806_181756_9 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_3_20260806_181734_8.mp4 size=12.7 MB
+2026-08-06T18:18:03 | STOP_SAVE device_1: ok session=20260806_181756_9 video=003_Birdan_to_satdan_vo-qea_tasodif_a_device_1_20260806_181734_8.mp4 size=12.8 MB
+2026-08-06T18:18:03 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_181803.txt
+2026-08-06T18:18:14 | START session=20260806_181814_10 index=10 signer=signer_2 word_id=5 word=Birgalikda (birga) take=a
+2026-08-06T18:18:14 | START_ACK device_2: ok
+2026-08-06T18:18:14 | START_ACK device_1: ok
+2026-08-06T18:18:14 | START_ACK device_3: ok
+2026-08-06T18:18:20 | STOP session=20260806_181814_10 index=10 signer=signer_2 word_id=5 word=Birgalikda (birga) take=a
+2026-08-06T18:18:20 | STOP_SAVE device_1: ok session=20260806_181814_10 video=004_To_g_ri_haq_rost_a_device_1_20260806_181756_9.mp4 size=13.1 MB
+2026-08-06T18:18:20 | STOP_SAVE device_3: ok session=20260806_181814_10 video=004_To_g_ri_haq_rost_a_device_3_20260806_181756_9.mp4 size=12.9 MB
+2026-08-06T18:18:20 | STOP_SAVE device_2: ok session=20260806_181814_10 video=004_To_g_ri_haq_rost_a_device_2_20260806_181756_9.mp4 size=13.1 MB

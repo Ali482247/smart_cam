@@ -1,0 +1,20 @@
+2026-08-06T17:36:46 | START session=20260806_173645_0 index=0 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T17:36:46 | START_ACK device_1: ok
+2026-08-06T17:36:46 | START_ACK device_3: ok
+2026-08-06T17:36:46 | START_ACK device_2: ok
+2026-08-06T17:36:52 | STOP session=20260806_173645_0 index=0 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
+2026-08-06T17:36:52 | STOP_SAVE device_3: ok session=20260806_173645_0
+2026-08-06T17:36:52 | STOP_SAVE device_2: ok session=20260806_173645_0
+2026-08-06T17:36:52 | STOP_SAVE device_1: ok session=20260806_173645_0
+2026-08-06T17:36:52 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260806_173652.txt
+2026-08-06T17:37:11 | MARK_ERROR device=device_2 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_173645_0.mp4
+2026-08-06T17:37:15 | MARK_ERROR device=device_1 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_173645_0.mp4
+2026-08-06T17:37:21 | MARK_ERROR device=device_3 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_173645_0.mp4
+2026-08-06T17:37:33 | START session=20260806_173732_1 index=1 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=b
+2026-08-06T17:37:33 | START_ACK device_1: ok
+2026-08-06T17:37:33 | START_ACK device_3: ok
+2026-08-06T17:37:33 | START_ACK device_2: ok
+2026-08-06T17:37:38 | STOP session=20260806_173732_1 index=1 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=b
+2026-08-06T17:37:38 | STOP_SAVE device_1: ok session=20260806_173732_1 video=001_Tashakkur_minnatdorchilik_a_device_1_20260806_173645_0.mp4 size=3.3 MB
+2026-08-06T17:37:38 | STOP_SAVE device_3: ok session=20260806_173732_1 video=001_Tashakkur_minnatdorchilik_a_device_3_20260806_173645_0.mp4 size=2.3 MB
+2026-08-06T17:37:38 | STOP_SAVE device_2: ok session=20260806_173732_1 video=001_Tashakkur_minnatdorchilik_a_device_2_20260806_173645_0.mp4 size=3.4 MB

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+// Sent by the node right after the WS connection opens (connection_lifecycle.md
+// §Handshake sequence).
+message Hello {
+  string device_id = 1;      // client-generated UUIDv4, persisted client-side (network_architecture.md §Device Identity)
+  string device_name = 2;
+  string manufacturer = 3;
+  string os_version = 4;
+  int32 device_slot = 5;      // 0 if unassigned
+  string device_label = 6;
+  string android_id = 7;      // optional debug metadata only, never the canonical identity
+  string app_version = 8;
+}
+
+// Sent by the server in reply to Hello. protocol_version mismatch -> error is set and
+// the connection is closed cleanly (protocol_specification.md §Versioning).
+message Welcome {
+  string session_id = 1;
+  uint32 protocol_version = 2;
+  int64 server_time_ms = 3;
+  string error = 4;
+}

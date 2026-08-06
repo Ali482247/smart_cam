@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+enum ResultCode {
+  RESULT_OK = 0;
+  RESULT_REJECTED = 1;
+  RESULT_ALREADY_DONE = 2;
+  RESULT_ERROR = 3;
+}

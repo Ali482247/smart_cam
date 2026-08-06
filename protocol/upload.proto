@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+// Server -> node: where/how to push a finished recording (failure_recovery.md's
+// upload-chunk-retry table governs the HTTP side; this just tells the node the
+// endpoint + a short-lived token). Sent right after Event.UPLOAD_STARTED would be
+// expected from the node's own perspective, but the ticket itself always originates
+// server-side because the upload endpoint/port is server config, not node config.
+message UploadTicket {
+  string video_name = 1;
+  string upload_url = 2;
+  string upload_token = 3;
+}
+
+// Node -> server, informational progress for the Dashboard (independent of the actual
+// HTTP resumable transfer, which is the source of truth for completion).
+message UploadProgress {
+  string video_name = 1;
+  uint64 bytes_sent = 2;
+  uint64 total_bytes = 3;
+}

@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+import "common.proto";
+
+// NTP-style 4-timestamp clock sync exchange (clock_synchronization.md §Exchange algorithm).
+message ClockSyncRequest {
+  int64 t0_ms = 1;   // node's local send time
+}
+
+message ClockSyncReply {
+  int64 t0_ms = 1;   // echoed from request
+  int64 t1_ms = 2;   // server receive time
+  int64 t2_ms = 3;   // server send time
+}
+
+// Server -> node, broadcast by the Scheduler (scheduler.md §Algorithm).
+message ScheduledCommand {
+  enum Type {
+    START = 0;
+    STOP = 1;
+    TOGGLE = 2;
+  }
+  Type type = 1;
+  int64 execute_at_ms = 2;    // server clock epoch ms; node converts via its offset
+  string command_id = 3;      // Ack correlation key, independent of sequence_number
+  string camera_name = 4;
+  string session_label = 5;   // shared recording session id across nodes
+  uint32 record_index = 6;
+}
+
+// Node -> server, correlates to command_id (protocol_specification.md §ACK/Retry/...).
+message Ack {
+  string command_id = 1;
+  ResultCode result = 2;
+}

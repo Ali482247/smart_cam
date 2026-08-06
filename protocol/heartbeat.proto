@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+// Sent by the node every 5 seconds (connection_lifecycle.md §Heartbeat/keepalive).
+message Heartbeat {
+  float battery_pct = 1;
+  uint64 free_storage_bytes = 2;
+  uint64 total_storage_bytes = 3;
+  float temperature_c = 4;   // 0 = unavailable
+  bool recording = 5;
+
+  // Self-reported clock-sync state (clock_synchronization.md). The node computes these
+  // from its own ClockSyncRequest/Reply exchanges; carrying them here is what lets the
+  // Scheduler (scheduler.md) read a per-node offset/uncertainty estimate without the
+  // server needing its own copy of t3 (which only the node observes).
+  int64 clock_offset_ms = 6;        // server_time - node_time, per clock_synchronization.md
+  uint32 clock_uncertainty_ms = 7;  // half the offset spread across retained samples
+
+  // Self-reported RTT from the node's own clock-sync exchanges (clock_synchronization.md
+  // §Exchange algorithm). Bootstraps ConnectionManager's RTT metric on the very first
+  // heartbeat, before any ScheduledCommand/Ack round trip has happened - without this,
+  // a freshly connected node would have no RTT sample and the Scheduler would always
+  // exclude it from the first command (scheduler.md §Algorithm step 3).
+  float last_rtt_ms = 8;
+}

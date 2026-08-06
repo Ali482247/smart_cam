@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+// Node -> server, informational recording state (protocol_specification.md §Envelope).
+message StatusUpdate {
+  bool recording = 1;
+  float actual_fps = 2;
+  string active_video_name = 3;
+  int64 recording_started_at_ms = 4;
+}
+
+// Internal event catalogue (network_architecture.md §Event Layer).
+message Event {
+  enum Type {
+    DEVICE_CONNECTED = 0;
+    DEVICE_DISCONNECTED = 1;
+    RECORDING_STARTED = 2;
+    RECORDING_STOPPED = 3;
+    UPLOAD_STARTED = 4;
+    UPLOAD_COMPLETED = 5;
+    STORAGE_WARNING = 6;
+    BATTERY_WARNING = 7;
+    CONNECTION_LOST = 8;
+  }
+  Type type = 1;
+  string detail = 2;   // free-form, e.g. "free=512MB" for STORAGE_WARNING
+}

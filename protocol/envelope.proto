@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package threecam.v1;
+
+import "device.proto";
+import "heartbeat.proto";
+import "scheduler.proto";
+import "recording.proto";
+import "upload.proto";
+
+// Every message, in both directions, is wrapped in exactly one Envelope
+// (protocol_specification.md §Envelope). Binary-serialized, sent as a single WS
+// binary frame — never JSON, never text frames.
+message Envelope {
+  uint32 protocol_version = 1;
+  string app_version = 2;
+  string device_id = 3;        // client-generated UUIDv4
+  string session_id = 4;       // assigned by server on Welcome, echoed thereafter
+  uint64 sequence_number = 5;  // monotonic per (device_id, session_id) - dedup + ordering key
+  int64 timestamp_ms = 6;      // sender's local clock at send time, epoch ms
+
+  oneof payload {
+    Hello hello = 10;
+    Welcome welcome = 11;
+    Heartbeat heartbeat = 12;
+    ClockSyncRequest clock_req = 13;
+    ClockSyncReply clock_reply = 14;
+    ScheduledCommand sched_cmd = 15;
+    Ack ack = 16;
+    StatusUpdate status = 17;
+    Event event = 18;
+    UploadTicket upload_ticket = 19;
+    UploadProgress upload_progress = 20;
+  }
+}

@@ -1,0 +1,1915 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'ws/recording_controller.dart';
+import 'ws/ws_client.dart';
+
+const int controlPort = 8088;
+const int discoveryPort = 8089;
+const String discoveryMessage = 'THREE_CAM_DISCOVER';
+const MethodChannel mediaChannel = MethodChannel('three_cam/media');
+const int stableRecordingFps = 30;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+  runApp(const ThreeCamApp());
+}
+
+class ThreeCamApp extends StatelessWidget {
+  const ThreeCamApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Three Cam',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xffd8344f),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      home: const CameraControlScreen(),
+    );
+  }
+}
+
+class AppSettings {
+  const AppSettings({
+    required this.deviceSlot,
+    required this.deviceLabel,
+    required this.gridMode,
+    required this.resolutionPreset,
+    required this.fps,
+    required this.recordingOrientation,
+    required this.enableAudio,
+    required this.keepScreenOn,
+    required this.saveToGallery,
+    required this.filePrefix,
+    required this.autoExposure,
+    required this.autoFocus,
+    required this.smartZoom,
+    required this.zoomLevel,
+  });
+
+  final int deviceSlot;
+  final String deviceLabel;
+  final String gridMode;
+  final String resolutionPreset;
+  final int fps;
+  final String recordingOrientation;
+  final bool enableAudio;
+  final bool keepScreenOn;
+  final bool saveToGallery;
+  final String filePrefix;
+  final bool autoExposure;
+  final bool autoFocus;
+  final bool smartZoom;
+  final double zoomLevel;
+
+  static AppSettings defaults() {
+    return const AppSettings(
+      deviceSlot: 1,
+      deviceLabel: 'device_1',
+      gridMode: 'off',
+      resolutionPreset: 'veryHigh',
+      fps: stableRecordingFps,
+      recordingOrientation: 'portrait',
+      enableAudio: true,
+      keepScreenOn: true,
+      saveToGallery: true,
+      filePrefix: '',
+      autoExposure: true,
+      autoFocus: true,
+      smartZoom: true,
+      zoomLevel: 1,
+    );
+  }
+
+  static Future<AppSettings> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final defaults = AppSettings.defaults();
+    final slot = prefs.getInt('deviceSlot') ?? defaults.deviceSlot;
+    return AppSettings(
+      deviceSlot: slot,
+      deviceLabel: prefs.getString('deviceLabel') ?? 'device_$slot',
+      gridMode: prefs.getString('gridMode') ?? defaults.gridMode,
+      resolutionPreset:
+          prefs.getString('resolutionPreset') ?? defaults.resolutionPreset,
+      fps: stableRecordingFps,
+      recordingOrientation:
+          prefs.getString('recordingOrientation') ??
+          defaults.recordingOrientation,
+      enableAudio: prefs.getBool('enableAudio') ?? defaults.enableAudio,
+      keepScreenOn: prefs.getBool('keepScreenOn') ?? defaults.keepScreenOn,
+      saveToGallery: prefs.getBool('saveToGallery') ?? defaults.saveToGallery,
+      filePrefix: prefs.getString('filePrefix') ?? defaults.filePrefix,
+      autoExposure: prefs.getBool('autoExposure') ?? defaults.autoExposure,
+      autoFocus: prefs.getBool('autoFocus') ?? defaults.autoFocus,
+      smartZoom: prefs.getBool('smartZoom') ?? defaults.smartZoom,
+      zoomLevel: prefs.getDouble('zoomLevel') ?? defaults.zoomLevel,
+    );
+  }
+
+  Future<void> save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('deviceSlot', deviceSlot);
+    await prefs.setString('deviceLabel', deviceLabel);
+    await prefs.setString('gridMode', gridMode);
+    await prefs.setString('resolutionPreset', resolutionPreset);
+    await prefs.setInt('fps', stableRecordingFps);
+    await prefs.setString('recordingOrientation', recordingOrientation);
+    await prefs.setBool('enableAudio', enableAudio);
+    await prefs.setBool('keepScreenOn', keepScreenOn);
+    await prefs.setBool('saveToGallery', saveToGallery);
+    await prefs.setString('filePrefix', filePrefix);
+    await prefs.setBool('autoExposure', autoExposure);
+    await prefs.setBool('autoFocus', autoFocus);
+    await prefs.setBool('smartZoom', smartZoom);
+    await prefs.setDouble('zoomLevel', zoomLevel);
+  }
+
+  AppSettings copyWith({
+    int? deviceSlot,
+    String? deviceLabel,
+    String? gridMode,
+    String? resolutionPreset,
+    int? fps,
+    String? recordingOrientation,
+    bool? enableAudio,
+    bool? keepScreenOn,
+    bool? saveToGallery,
+    String? filePrefix,
+    bool? autoExposure,
+    bool? autoFocus,
+    bool? smartZoom,
+    double? zoomLevel,
+  }) {
+    final nextSlot = deviceSlot ?? this.deviceSlot;
+    return AppSettings(
+      deviceSlot: nextSlot,
+      deviceLabel: deviceLabel ?? this.deviceLabel,
+      gridMode: gridMode ?? this.gridMode,
+      resolutionPreset: resolutionPreset ?? this.resolutionPreset,
+      fps: stableRecordingFps,
+      recordingOrientation: recordingOrientation ?? this.recordingOrientation,
+      enableAudio: enableAudio ?? this.enableAudio,
+      keepScreenOn: keepScreenOn ?? this.keepScreenOn,
+      saveToGallery: saveToGallery ?? this.saveToGallery,
+      filePrefix: filePrefix ?? this.filePrefix,
+      autoExposure: autoExposure ?? this.autoExposure,
+      autoFocus: autoFocus ?? this.autoFocus,
+      smartZoom: smartZoom ?? this.smartZoom,
+      zoomLevel: zoomLevel ?? this.zoomLevel,
+    );
+  }
+
+  AppSettings normalized() {
+    final safeSlot = deviceSlot.clamp(1, 99);
+    final safeLabel = _cleanLabel(deviceLabel).isEmpty
+        ? 'device_$safeSlot'
+        : _cleanLabel(deviceLabel);
+    return copyWith(
+      deviceSlot: safeSlot,
+      deviceLabel: safeLabel,
+      filePrefix: _cleanLabel(filePrefix),
+      recordingOrientation: recordingOrientation == 'landscape'
+          ? 'landscape'
+          : 'portrait',
+      zoomLevel: zoomLevel.clamp(1, 100).toDouble(),
+    );
+  }
+
+  bool needsCameraRestart(AppSettings other) {
+    return resolutionPreset != other.resolutionPreset ||
+        enableAudio != other.enableAudio;
+  }
+
+  List<DeviceOrientation> get preferredOrientations {
+    if (recordingOrientation == 'landscape') {
+      return const [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ];
+    }
+    return const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown];
+  }
+
+  DeviceOrientation get captureOrientation {
+    return recordingOrientation == 'landscape'
+        ? DeviceOrientation.landscapeLeft
+        : DeviceOrientation.portraitUp;
+  }
+
+  String get recordingOrientationLabel {
+    return recordingOrientation == 'landscape' ? 'horizontal' : 'vertical';
+  }
+
+  ResolutionPreset get cameraResolution {
+    switch (resolutionPreset) {
+      case 'low':
+        return ResolutionPreset.low;
+      case 'medium':
+        return ResolutionPreset.medium;
+      case 'high':
+        return ResolutionPreset.high;
+      case 'ultraHigh':
+        return ResolutionPreset.ultraHigh;
+      case 'max':
+        return ResolutionPreset.max;
+      case 'veryHigh':
+      default:
+        return ResolutionPreset.veryHigh;
+    }
+  }
+
+  int get gridColumns {
+    switch (gridMode) {
+      case '3x4':
+        return 3;
+      case '4x3':
+        return 4;
+      default:
+        return 0;
+    }
+  }
+
+  int get gridRows {
+    switch (gridMode) {
+      case '3x4':
+        return 4;
+      case '4x3':
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  Map<String, Object?> toJson() {
+    final size = targetSizeForPreset(resolutionPreset);
+    return {
+      'deviceSlot': deviceSlot,
+      'deviceLabel': deviceLabel,
+      'gridMode': gridMode,
+      'resolutionPreset': resolutionPreset,
+      'width': size.$1,
+      'height': size.$2,
+      'aspectRatio': '${size.$1}:${size.$2}',
+      'fps': fps,
+      'fpsAppliedByPlugin': true,
+      'recordingOrientation': recordingOrientation,
+      'enableAudio': enableAudio,
+      'keepScreenOn': keepScreenOn,
+      'saveToGallery': saveToGallery,
+      'filePrefix': filePrefix,
+      'autoExposure': autoExposure,
+      'autoFocus': autoFocus,
+      'smartZoom': smartZoom,
+      'zoomLevel': zoomLevel,
+    };
+  }
+
+  static String _cleanLabel(String value) {
+    return value
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_')
+        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+  }
+}
+
+class CameraControlScreen extends StatefulWidget {
+  const CameraControlScreen({super.key});
+
+  @override
+  State<CameraControlScreen> createState() => _CameraControlScreenState();
+}
+
+class _CameraControlScreenState extends State<CameraControlScreen>
+    with WidgetsBindingObserver {
+  CameraController? _camera;
+  HttpServer? _server;
+  RawDatagramSocket? _discoverySocket;
+  AppSettings _settings = AppSettings.defaults();
+  bool _recording = false;
+  bool _booted = false;
+  bool _fpsStreamActive = false;
+  bool _cameraAutomationReady = false;
+  String _status = 'Starting camera...';
+  String _ip = 'checking...';
+  double _actualFps = 0;
+  double _minZoom = 1;
+  double _maxZoom = 1;
+  double _zoom = 1;
+  double _zoomAtScaleStart = 1;
+  int _fpsFrameCount = 0;
+  DateTime? _fpsWindowStartedAt;
+  String? _nativeDeviceId;
+  String? _nativeDeviceName;
+  String? _lastVideoPath;
+  String? _lastVideoName;
+  int? _lastVideoSizeBytes;
+  String? _activeVideoName;
+  DateTime? _recordingStartedAt;
+  String? _sessionId;
+  String? _sessionCameraName;
+  String? _sessionDate;
+  String? _sessionTime;
+  int? _sessionIndex;
+  int _localIndex = 0;
+  Future<void> _operation = Future.value();
+  WsClient? _wsClient;
+  String _wsStatus = 'idle';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _boot();
+  }
+
+  Future<void> _boot() async {
+    _settings = (await AppSettings.load()).normalized();
+    await _settings.save();
+    await _applyPreferredOrientations();
+    await _applyKeepScreenOn();
+    await _initCamera();
+    await _startServer();
+    await _loadIpAddress();
+    await _refreshNativeStatus();
+    await _startDiscovery();
+    _startWsClient();
+    if (!mounted) return;
+    setState(() {
+      _booted = true;
+    });
+  }
+
+  /// New WS+protobuf networking core (network_architecture.md), run alongside the
+  /// legacy HTTP server above - per the migration rules, HTTP stays fully operational
+  /// until the WS path is verified with real devices; this does not replace it yet.
+  void _startWsClient() {
+    _wsClient = WsClient(
+      recordingController: _ScreenRecordingController(this),
+      deviceStatusProvider: _nativeStatus,
+      deviceLabel: _settings.deviceLabel,
+      deviceSlot: _settings.deviceSlot,
+      onStatusChanged: (status) {
+        if (!mounted) return;
+        setState(() {
+          _wsStatus = status;
+        });
+      },
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_applyKeepScreenOn());
+      unawaited(_loadIpAddress());
+      unawaited(_refreshNativeStatus());
+      unawaited(_applyAutoExposureAndFocus());
+      unawaited(_startFpsStream());
+    }
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final oldCamera = _camera;
+      if (oldCamera != null) {
+        await _stopFpsStream(oldCamera);
+        _camera = null;
+        await oldCamera.dispose();
+      }
+      _cameraAutomationReady = false;
+
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        _setStatus('No camera found');
+        return;
+      }
+
+      final backCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      final controller = CameraController(
+        backCamera,
+        _settings.cameraResolution,
+        enableAudio: _settings.enableAudio,
+        fps: _settings.fps,
+      );
+      await controller.initialize();
+      try {
+        await controller.lockCaptureOrientation(_settings.captureOrientation);
+      } catch (_) {
+        // Some CameraX backends ignore capture orientation locks.
+      }
+      await _configureCameraAutomation(controller);
+      await _startFpsStream(controller);
+
+      if (!mounted) return;
+      setState(() {
+        _camera = controller;
+        _status = 'Ready';
+      });
+    } catch (error) {
+      _setStatus('Camera error: $error');
+    }
+  }
+
+  Future<void> _configureCameraAutomation(CameraController camera) async {
+    try {
+      _minZoom = await camera.getMinZoomLevel();
+      _maxZoom = await camera.getMaxZoomLevel();
+      _zoom = _settings.zoomLevel.clamp(_minZoom, _maxZoom).toDouble();
+      await camera.setZoomLevel(_zoom);
+    } catch (_) {
+      _minZoom = 1;
+      _maxZoom = 1;
+      _zoom = 1;
+    }
+
+    await _applyAutoExposureAndFocus(camera);
+    _cameraAutomationReady = true;
+  }
+
+  Future<void> _applyAutoExposureAndFocus([
+    CameraController? controller,
+  ]) async {
+    final camera = controller ?? _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+
+    try {
+      await camera.setExposureMode(
+        _settings.autoExposure ? ExposureMode.auto : ExposureMode.locked,
+      );
+    } catch (_) {}
+
+    try {
+      await camera.setFocusMode(
+        _settings.autoFocus ? FocusMode.auto : FocusMode.locked,
+      );
+    } catch (_) {}
+
+    if (_settings.autoExposure) {
+      try {
+        await camera.setExposurePoint(null);
+      } catch (_) {}
+    }
+    if (_settings.autoFocus) {
+      try {
+        await camera.setFocusPoint(null);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _startFpsStream([CameraController? controller]) async {
+    final camera = controller ?? _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+    if (_recording ||
+        camera.value.isRecordingVideo ||
+        camera.value.isStreamingImages) {
+      return;
+    }
+    if (!camera.supportsImageStreaming()) return;
+
+    try {
+      _resetFpsCounter();
+      await camera.startImageStream((_) => _trackFrame());
+      _fpsStreamActive = true;
+    } catch (_) {
+      _fpsStreamActive = false;
+    }
+  }
+
+  Future<void> _stopFpsStream([CameraController? controller]) async {
+    final camera = controller ?? _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+    if (!_fpsStreamActive && !camera.value.isStreamingImages) return;
+
+    try {
+      await camera.stopImageStream();
+    } catch (_) {
+      // The plugin can already have stopped the stream while switching modes.
+    } finally {
+      _fpsStreamActive = false;
+    }
+  }
+
+  void _resetFpsCounter() {
+    _fpsFrameCount = 0;
+    _fpsWindowStartedAt = DateTime.now();
+  }
+
+  void _trackFrame() {
+    final now = DateTime.now();
+    final started = _fpsWindowStartedAt ?? now;
+    _fpsWindowStartedAt ??= now;
+    _fpsFrameCount++;
+
+    final elapsedMs = now.difference(started).inMilliseconds;
+    if (elapsedMs < 650) return;
+
+    final nextFps = _fpsFrameCount * 1000 / elapsedMs;
+    _fpsFrameCount = 0;
+    _fpsWindowStartedAt = now;
+    if (!mounted) return;
+    setState(() {
+      _actualFps = nextFps;
+    });
+  }
+
+  Future<void> _startServer() async {
+    try {
+      final server = await HttpServer.bind(
+        InternetAddress.anyIPv4,
+        controlPort,
+        shared: true,
+      );
+      _server = server;
+      unawaited(_serve(server));
+    } catch (error) {
+      _setStatus('Server error: $error');
+    }
+  }
+
+  Future<void> _startDiscovery() async {
+    try {
+      final socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        discoveryPort,
+        reuseAddress: true,
+        reusePort: true,
+      );
+      _discoverySocket = socket;
+      socket.listen((event) {
+        if (event != RawSocketEvent.read) return;
+        final datagram = socket.receive();
+        if (datagram == null) return;
+
+        final message = utf8.decode(datagram.data, allowMalformed: true).trim();
+        if (message != discoveryMessage) return;
+
+        final payload = jsonEncode({
+          'app': 'three_cam',
+          'name': _settings.deviceLabel,
+          'deviceId': _nativeDeviceId ?? Platform.localHostname,
+          'deviceName': _nativeDeviceName ?? Platform.localHostname,
+          'deviceSlot': _settings.deviceSlot,
+          'deviceLabel': _settings.deviceLabel,
+          'ip': _ip,
+          'port': controlPort,
+          'recording': _recording,
+          'actualFps': _actualFps,
+          'zoom': _zoom,
+          'settings': _settings.toJson(),
+        });
+        socket.send(utf8.encode(payload), datagram.address, datagram.port);
+
+        // The discovery probe's sender is the PC - this is also the address the new
+        // WS client connects out to (network_architecture.md §Discovery Layer: the
+        // wire format is unchanged, but the same packet now also bootstraps the WS
+        // connection instead of requiring a separate discovery step for it).
+        unawaited(_wsClient?.connectTo(datagram.address.address));
+      });
+    } catch (error) {
+      _setStatus('Discovery error: $error');
+    }
+  }
+
+  Future<void> _serve(HttpServer server) async {
+    await for (final request in server) {
+      try {
+        final path = request.uri.path;
+        if (path == '/start') {
+          final params = request.uri.queryParameters;
+          await _queue(
+            () => _startRecording(
+              cameraName: params['camera'],
+              sessionId: params['session'],
+              date: params['date'],
+              time: params['time'],
+              index: int.tryParse(params['index'] ?? ''),
+            ),
+          );
+          _sendJson(request, {'ok': true, 'recording': _recording});
+        } else if (path == '/stop') {
+          await _queue(_stopRecording);
+          _sendJson(request, {
+            'ok': true,
+            'recording': _recording,
+            'lastVideoPath': _lastVideoPath,
+            'lastVideoName': _lastVideoName,
+            'lastVideoSizeBytes': _lastVideoSizeBytes,
+            'sessionId': _sessionId,
+          });
+        } else if (path == '/toggle') {
+          await _queue(_toggleRecording);
+          _sendJson(request, {
+            'ok': true,
+            'recording': _recording,
+            'lastVideoPath': _lastVideoPath,
+            'lastVideoName': _lastVideoName,
+            'lastVideoSizeBytes': _lastVideoSizeBytes,
+            'sessionId': _sessionId,
+          });
+        } else if (path == '/status') {
+          _sendJson(request, await _statusJson());
+        } else if (path == '/videos') {
+          final videos = await _listVideos();
+          _sendJson(request, {'ok': true, 'videos': videos});
+        } else if (path == '/clear-videos') {
+          final deleted = await _clearVideos();
+          _sendJson(request, {'ok': true, 'deleted': deleted});
+        } else if (path == '/download') {
+          await _sendVideoFile(request);
+        } else {
+          request.response.statusCode = HttpStatus.notFound;
+          _sendJson(request, {'ok': false, 'error': 'unknown endpoint'});
+        }
+      } catch (error) {
+        request.response.statusCode = HttpStatus.internalServerError;
+        _sendJson(request, {'ok': false, 'error': '$error'});
+      }
+    }
+  }
+
+  Future<void> _queue(Future<void> Function() action) {
+    _operation = _operation.then((_) => action());
+    return _operation;
+  }
+
+  Future<Map<String, Object?>> _statusJson() async {
+    final nativeStatus = await _nativeStatus();
+    return {
+      'ok': true,
+      'deviceId': nativeStatus['deviceId'] ?? _nativeDeviceId,
+      'deviceName': nativeStatus['deviceName'] ?? _nativeDeviceName,
+      'deviceSlot': _settings.deviceSlot,
+      'deviceLabel': _settings.deviceLabel,
+      'recording': _recording,
+      'status': _status,
+      'ip': _ip,
+      'port': controlPort,
+      'actualFps': _actualFps,
+      'zoom': _zoom,
+      'minZoom': _minZoom,
+      'maxZoom': _maxZoom,
+      'autoExposure': _settings.autoExposure,
+      'autoFocus': _settings.autoFocus,
+      'cameraAutomationReady': _cameraAutomationReady,
+      'freeStorageBytes': nativeStatus['freeStorageBytes'],
+      'totalStorageBytes': nativeStatus['totalStorageBytes'],
+      'batteryPercent': nativeStatus['batteryPercent'],
+      'batteryCharging': nativeStatus['batteryCharging'],
+      'sessionId': _sessionId,
+      'activeVideoName': _activeVideoName,
+      'recordingStartedAt': _recordingStartedAt?.toIso8601String(),
+      'targetVideo': _settings.toJson(),
+      'lastVideoPath': _lastVideoPath,
+      'lastVideoName': _lastVideoName,
+      'lastVideoSizeBytes': _lastVideoSizeBytes,
+    };
+  }
+
+  Future<Map<String, Object?>> _nativeStatus() async {
+    try {
+      final result = await mediaChannel.invokeMapMethod<String, Object?>(
+        'getDeviceStatus',
+      );
+      final status = result ?? {};
+      _nativeDeviceId = '${status['deviceId'] ?? Platform.localHostname}';
+      _nativeDeviceName = '${status['deviceName'] ?? Platform.localHostname}';
+      return status;
+    } catch (_) {
+      return {
+        'deviceId': Platform.localHostname,
+        'deviceName': Platform.localHostname,
+        'freeStorageBytes': null,
+      };
+    }
+  }
+
+  Future<void> _refreshNativeStatus() async {
+    await _nativeStatus();
+  }
+
+  Future<void> _applyKeepScreenOn() async {
+    try {
+      await mediaChannel.invokeMethod<bool>('setKeepScreenOn', {
+        'enabled': _settings.keepScreenOn,
+      });
+    } catch (_) {
+      // Older builds without the native method still run; Android will just use
+      // the system's normal screen timeout.
+    }
+  }
+
+  Future<void> _applyPreferredOrientations() {
+    return SystemChrome.setPreferredOrientations(
+      _settings.preferredOrientations,
+    );
+  }
+
+  void _sendJson(HttpRequest request, Map<String, Object?> payload) {
+    request.response.headers.contentType = ContentType.json;
+    request.response.write(jsonEncode(payload));
+    unawaited(request.response.close());
+  }
+
+  Future<void> _loadIpAddress() async {
+    try {
+      final interfaces = await NetworkInterface.list(
+        includeLoopback: false,
+        type: InternetAddressType.IPv4,
+      );
+      final addresses = interfaces
+          .expand((interface) => interface.addresses)
+          .map((address) => address.address)
+          .where((address) => !address.startsWith('127.'))
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _ip = addresses.isEmpty ? 'not connected' : addresses.first;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ip = 'unknown';
+      });
+    }
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_recording) {
+      await _stopRecording();
+    } else {
+      await _startRecording();
+    }
+  }
+
+  Future<void> _startRecording({
+    String? cameraName,
+    String? sessionId,
+    String? date,
+    String? time,
+    int? index,
+  }) async {
+    final camera = _camera;
+    if (camera == null || !camera.value.isInitialized) {
+      throw StateError('Camera is not ready');
+    }
+    if (_recording || camera.value.isRecordingVideo) {
+      return;
+    }
+
+    final now = DateTime.now();
+    _sessionCameraName = _cleanName(cameraName ?? _settings.deviceLabel);
+    _sessionDate = date ?? _dateStamp(now);
+    _sessionTime = time ?? _timeStamp(now);
+    _sessionIndex = index ?? await _nextLocalIndex();
+    _localIndex = _sessionIndex! + 1;
+    _sessionId =
+        sessionId ??
+        '${_compactDateStamp(now)}_${_timeStamp(now)}_$_sessionIndex';
+    _activeVideoName = _recordingFileName(
+      cameraName: _sessionCameraName!,
+      date: _sessionDate!,
+      time: _sessionTime!,
+      index: _sessionIndex!,
+    );
+    _recordingStartedAt = now;
+
+    await _stopFpsStream(camera);
+    _resetFpsCounter();
+    try {
+      await camera.lockCaptureOrientation(_settings.captureOrientation);
+      debugPrint('ThreeCam: lockCaptureOrientation (pre-record) OK');
+    } catch (error) {
+      debugPrint(
+        'ThreeCam: lockCaptureOrientation (pre-record) FAILED: $error',
+      );
+    }
+    debugPrint(
+      'ThreeCam: sensorOrientation=${camera.description.sensorOrientation} '
+      'previewSize=${camera.value.previewSize} '
+      'deviceOrientation=${camera.value.deviceOrientation} '
+      'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
+    );
+    await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
+    debugPrint(
+      'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
+      'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
+    );
+    _fpsStreamActive = true;
+    if (!mounted) return;
+    setState(() {
+      _recording = true;
+      _status = 'Recording';
+    });
+  }
+
+  Future<void> _stopRecording() async {
+    final camera = _camera;
+    if (camera == null || !camera.value.isInitialized) {
+      throw StateError('Camera is not ready');
+    }
+    if (!_recording && !camera.value.isRecordingVideo) {
+      return;
+    }
+
+    final file = await camera.stopVideoRecording();
+    final stoppedCameraName = _sessionCameraName;
+    final stoppedDate = _sessionDate;
+    final stoppedTime = _sessionTime;
+    final stoppedIndex = _sessionIndex;
+    _fpsStreamActive = false;
+    if (!mounted) return;
+    setState(() {
+      _recording = false;
+      _status = 'Saving';
+    });
+    unawaited(
+      _saveStoppedVideo(
+        file,
+        cameraName: stoppedCameraName,
+        date: stoppedDate,
+        time: stoppedTime,
+        index: stoppedIndex,
+      ),
+    );
+    unawaited(_startFpsStream(camera));
+  }
+
+  Future<void> _saveStoppedVideo(
+    XFile file, {
+    String? cameraName,
+    String? date,
+    String? time,
+    int? index,
+  }) async {
+    try {
+      final savedPath = await _saveVideo(
+        file,
+        cameraName: cameraName,
+        date: date,
+        time: time,
+        index: index,
+      );
+      if (!mounted) return;
+      setState(() {
+        _lastVideoPath = savedPath;
+        _status = 'Saved';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _status = 'Save error: $error';
+      });
+    }
+  }
+
+  Future<String> _saveVideo(
+    XFile file, {
+    String? cameraName,
+    String? date,
+    String? time,
+    int? index,
+  }) async {
+    final now = DateTime.now();
+    final savedCameraName = _cleanName(cameraName ?? _settings.deviceLabel);
+    final savedDate = date ?? _dateStamp(now);
+    final savedTime = time ?? _timeStamp(now);
+    final savedIndex = index ?? await _nextLocalIndex();
+    _localIndex = savedIndex + 1;
+    final fileName = _recordingFileName(
+      cameraName: savedCameraName,
+      date: savedDate,
+      time: savedTime,
+      index: savedIndex,
+    );
+    final mirrorDir = await _videoDir();
+    final mirrorPath = '${mirrorDir.path}/$fileName';
+    await File(file.path).copy(mirrorPath);
+    _lastVideoName = fileName;
+    _lastVideoSizeBytes = await File(mirrorPath).length();
+    _activeVideoName = null;
+    _recordingStartedAt = null;
+
+    if (!_settings.saveToGallery) {
+      return mirrorPath;
+    }
+
+    try {
+      final path = await mediaChannel.invokeMethod<String>('saveVideoToDcim', {
+        'sourcePath': mirrorPath,
+        'displayName': fileName,
+      });
+      return path ?? 'DCIM/ThreeCam/$fileName';
+    } catch (_) {
+      return mirrorPath;
+    }
+  }
+
+  Future<Directory> _videoDir() async {
+    final baseDir = await getExternalStorageDirectory();
+    final dir = Directory(
+      '${baseDir?.path ?? Directory.systemTemp.path}/ThreeCamVideos',
+    );
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
+  }
+
+  String _dateStamp(DateTime value) {
+    return [
+      value.year.toString().padLeft(4, '0'),
+      value.month.toString().padLeft(2, '0'),
+      value.day.toString().padLeft(2, '0'),
+    ].join(' ');
+  }
+
+  String _timeStamp(DateTime value) {
+    return [
+      value.hour.toString().padLeft(2, '0'),
+      value.minute.toString().padLeft(2, '0'),
+      value.second.toString().padLeft(2, '0'),
+    ].join();
+  }
+
+  String _compactDateStamp(DateTime value) {
+    return [
+      value.year.toString().padLeft(4, '0'),
+      value.month.toString().padLeft(2, '0'),
+      value.day.toString().padLeft(2, '0'),
+    ].join();
+  }
+
+  String _cleanName(String value) {
+    final cleaned = value
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_')
+        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return cleaned.isEmpty ? 'camera' : cleaned;
+  }
+
+  String _recordingFileName({
+    required String cameraName,
+    required String date,
+    required String time,
+    required int index,
+  }) {
+    final prefix = _settings.filePrefix.isEmpty
+        ? ''
+        : '${_cleanName(_settings.filePrefix)}_';
+    final compactDate = date.replaceAll(RegExp(r'\s+'), '');
+    return '$prefix${_cleanName(cameraName)}_${compactDate}_${time}_$index.mp4';
+  }
+
+  Future<int> _nextLocalIndex() async {
+    final dir = await _videoDir();
+    if (!await dir.exists()) return _localIndex < 0 ? 0 : _localIndex;
+    final indexes = <int>[];
+    await for (final entity in dir.list()) {
+      if (entity is! File || !entity.path.endsWith('.mp4')) continue;
+      final name = entity.uri.pathSegments.last;
+      final match = RegExp(r'_(\d+)\.mp4$').firstMatch(name);
+      if (match == null) continue;
+      final index = int.tryParse(match.group(1)!);
+      if (index != null) indexes.add(index);
+    }
+    if (indexes.isEmpty) return _localIndex < 0 ? 0 : _localIndex;
+    indexes.sort();
+    final nextFromFiles = indexes.last + 1;
+    return nextFromFiles > _localIndex ? nextFromFiles : _localIndex;
+  }
+
+  Future<int> _clearVideos() async {
+    if (_recording) {
+      throw StateError('Stop recording before clearing videos');
+    }
+
+    final dir = await _videoDir();
+    if (!await dir.exists()) {
+      _localIndex = 0;
+      return 0;
+    }
+
+    var deleted = 0;
+    await for (final entity in dir.list()) {
+      if (entity is! File || !entity.path.endsWith('.mp4')) continue;
+      await entity.delete();
+      deleted++;
+    }
+
+    _localIndex = 0;
+    _lastVideoPath = null;
+    _lastVideoName = null;
+    _lastVideoSizeBytes = null;
+    _activeVideoName = null;
+    _recordingStartedAt = null;
+    _sessionIndex = null;
+    return deleted;
+  }
+
+  Future<List<Map<String, Object>>> _listVideos() async {
+    final dir = await _videoDir();
+    final files = await dir
+        .list()
+        .where((entity) => entity is File && entity.path.endsWith('.mp4'))
+        .cast<File>()
+        .toList();
+    files.sort(
+      (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+    );
+    return files.map((file) {
+      final stat = file.statSync();
+      return {
+        'name': file.uri.pathSegments.last,
+        'size': stat.size,
+        'modified': stat.modified.toIso8601String(),
+        'deviceSlot': _settings.deviceSlot,
+        'deviceLabel': _settings.deviceLabel,
+      };
+    }).toList();
+  }
+
+  Future<void> _sendVideoFile(HttpRequest request) async {
+    final name = request.uri.queryParameters['name'];
+    if (name == null || name.contains('/') || name.contains('\\')) {
+      request.response.statusCode = HttpStatus.badRequest;
+      _sendJson(request, {'ok': false, 'error': 'bad name'});
+      return;
+    }
+
+    final dir = await _videoDir();
+    final file = File('${dir.path}/$name');
+    if (!await file.exists()) {
+      request.response.statusCode = HttpStatus.notFound;
+      _sendJson(request, {'ok': false, 'error': 'not found'});
+      return;
+    }
+
+    request.response.headers.contentType = ContentType('video', 'mp4');
+    request.response.headers.set(
+      'Content-Disposition',
+      'attachment; filename="$name"',
+    );
+    await file.openRead().pipe(request.response);
+  }
+
+  Future<void> _openSettings() async {
+    if (_recording) {
+      _showSnack('Stop recording before changing settings');
+      return;
+    }
+
+    final next = await Navigator.of(context).push<AppSettings>(
+      MaterialPageRoute(
+        builder: (_) => SettingsScreen(initialSettings: _settings),
+      ),
+    );
+    if (next == null) return;
+
+    final normalized = next.normalized();
+    final shouldRestart = _settings.needsCameraRestart(normalized);
+    setState(() {
+      _settings = normalized;
+      _status = shouldRestart ? 'Applying settings...' : _status;
+    });
+    await _settings.save();
+    await _applyPreferredOrientations();
+    await _applyKeepScreenOn();
+    if (shouldRestart) {
+      await _initCamera();
+    } else {
+      await _applyAutoExposureAndFocus();
+      await _setZoom(normalized.zoomLevel, persist: false);
+    }
+    _showSnack('Settings saved');
+  }
+
+  Future<void> _setZoom(double value, {bool persist = true}) async {
+    final camera = _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+
+    final next = value.clamp(_minZoom, _maxZoom).toDouble();
+    try {
+      await camera.setZoomLevel(next);
+      if (!mounted) return;
+      setState(() {
+        _zoom = next;
+        _settings = _settings.copyWith(zoomLevel: next).normalized();
+      });
+      if (persist) {
+        await _settings.save();
+      }
+    } catch (_) {
+      _showSnack('Zoom is not supported on this camera');
+    }
+  }
+
+  Future<void> _zoomBy(double delta) async {
+    final step = _settings.smartZoom ? _smartZoomStep() : 0.25;
+    await _setZoom(_zoom + (delta * step));
+  }
+
+  double _smartZoomStep() {
+    final range = (_maxZoom - _minZoom).abs();
+    if (range <= 1) return 0.1;
+    if (_zoom < 2) return 0.15;
+    if (_zoom < 5) return 0.35;
+    return range / 12;
+  }
+
+  void _handleScaleStart(ScaleStartDetails details) {
+    _zoomAtScaleStart = _zoom;
+  }
+
+  void _handleScaleUpdate(ScaleUpdateDetails details) {
+    if (details.pointerCount < 2) return;
+    final target = _settings.smartZoom
+        ? _zoomAtScaleStart * details.scale
+        : _zoomAtScaleStart + (details.scale - 1);
+    unawaited(_setZoom(target));
+  }
+
+  Future<void> _handleFocusTap(
+    TapUpDetails details,
+    BoxConstraints constraints,
+  ) async {
+    final camera = _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+
+    final point = Offset(
+      (details.localPosition.dx / constraints.maxWidth).clamp(0, 1),
+      (details.localPosition.dy / constraints.maxHeight).clamp(0, 1),
+    );
+
+    try {
+      if (_settings.autoExposure) {
+        await camera.setExposureMode(ExposureMode.auto);
+        await camera.setExposurePoint(point);
+      }
+      if (_settings.autoFocus) {
+        await camera.setFocusMode(FocusMode.auto);
+        await camera.setFocusPoint(point);
+      }
+      _showSnack('Focus and brightness adjusted');
+    } catch (_) {
+      _showSnack('Focus point is not supported on this camera');
+    }
+  }
+
+  void _showSnack(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  void _setStatus(String value) {
+    if (!mounted) return;
+    setState(() {
+      _status = value;
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_server?.close(force: true));
+    _discoverySocket?.close();
+    unawaited(_wsClient?.stop());
+    unawaited(_stopFpsStream());
+    unawaited(_camera?.dispose());
+    unawaited(
+      mediaChannel.invokeMethod<bool>('setKeepScreenOn', {'enabled': false}),
+    );
+    super.dispose();
+  }
+
+  Widget _buildFullscreenPreview(
+    CameraController camera,
+    BoxConstraints constraints,
+  ) {
+    final previewSize = camera.value.previewSize;
+    if (previewSize == null) {
+      return Center(child: camera.buildPreview());
+    }
+
+    final screenIsPortrait = constraints.maxHeight >= constraints.maxWidth;
+    final previewIsLandscape = previewSize.width >= previewSize.height;
+    final previewWidth = screenIsPortrait && previewIsLandscape
+        ? previewSize.height
+        : previewSize.width;
+    final previewHeight = screenIsPortrait && previewIsLandscape
+        ? previewSize.width
+        : previewSize.height;
+
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: SizedBox(
+            width: previewWidth,
+            height: previewHeight,
+            child: camera.buildPreview(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = _camera;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (camera == null || !camera.value.isInitialized) {
+                return Center(
+                  child: _booted
+                      ? const Text('Camera is not ready')
+                      : const CircularProgressIndicator(),
+                );
+              }
+
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapUp: (details) =>
+                    unawaited(_handleFocusTap(details, constraints)),
+                onScaleStart: _handleScaleStart,
+                onScaleUpdate: _handleScaleUpdate,
+                child: _buildFullscreenPreview(camera, constraints),
+              );
+            },
+          ),
+          if (_settings.gridColumns > 0 && _settings.gridRows > 0)
+            IgnorePointer(
+              child: CustomPaint(
+                painter: GridOverlayPainter(
+                  columns: _settings.gridColumns,
+                  rows: _settings.gridRows,
+                ),
+              ),
+            ),
+          Positioned(
+            left: 16,
+            right: 16,
+            top: 36,
+            child: SafeArea(
+              bottom: false,
+              child: _TopStatus(
+                ip: _ip,
+                status: _status,
+                recording: _recording,
+                lastVideoPath: _lastVideoPath,
+                settings: _settings,
+                actualFps: _actualFps,
+                zoom: _zoom,
+                wsStatus: _wsStatus,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            bottom: 96,
+            child: SafeArea(
+              top: false,
+              child: FpsBadge(
+                actualFps: _actualFps,
+                targetFps: _settings.fps,
+                recording: _recording,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 92,
+            child: SafeArea(
+              top: false,
+              child: ZoomControls(
+                zoom: _zoom,
+                minZoom: _minZoom,
+                maxZoom: _maxZoom,
+                onZoomOut: () => unawaited(_zoomBy(-1)),
+                onZoomIn: () => unawaited(_zoomBy(1)),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 28,
+            child: SafeArea(
+              top: false,
+              child: IconButton.filledTonal(
+                tooltip: 'Settings',
+                onPressed: _openSettings,
+                icon: const Icon(Icons.settings),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 28,
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _recording
+                        ? Colors.white
+                        : const Color(0xffe0233d),
+                    foregroundColor: _recording ? Colors.black : Colors.white,
+                    minimumSize: const Size(190, 56),
+                  ),
+                  onPressed: () => _queue(_toggleRecording),
+                  icon: Icon(
+                    _recording ? Icons.stop : Icons.fiber_manual_record,
+                  ),
+                  label: Text(_recording ? 'STOP' : 'REC'),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Adapts `_CameraControlScreenState`'s existing start/stop/status methods (already
+/// used by the legacy HTTP handlers) to the `RecordingController` interface `WsClient`
+/// depends on - this is the only bridge between the two; `WsClient` itself never
+/// references `_CameraControlScreenState` or the `camera` plugin.
+class _ScreenRecordingController implements RecordingController {
+  _ScreenRecordingController(this._state);
+
+  final _CameraControlScreenState _state;
+
+  @override
+  bool get isRecording => _state._recording;
+
+  @override
+  Future<void> startRecording({
+    String? cameraName,
+    String? sessionId,
+    String? date,
+    String? time,
+    int? index,
+  }) {
+    return _state._queue(
+      () => _state._startRecording(
+        cameraName: cameraName,
+        sessionId: sessionId,
+        date: date,
+        time: time,
+        index: index,
+      ),
+    );
+  }
+
+  @override
+  Future<void> stopRecording() {
+    return _state._queue(() => _state._stopRecording());
+  }
+
+  @override
+  Future<Map<String, Object?>> statusJson() => _state._statusJson();
+}
+
+class _TopStatus extends StatelessWidget {
+  const _TopStatus({
+    required this.ip,
+    required this.status,
+    required this.recording,
+    required this.lastVideoPath,
+    required this.settings,
+    required this.actualFps,
+    required this.zoom,
+    required this.wsStatus,
+  });
+
+  final String ip;
+  final String status;
+  final bool recording;
+  final String? lastVideoPath;
+  final AppSettings settings;
+  final double actualFps;
+  final double zoom;
+  final String wsStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.68),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  recording
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: recording ? const Color(0xffff3852) : Colors.white70,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    status,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('${settings.deviceSlot}: ${settings.deviceLabel}'),
+            Text('http://$ip:$controlPort'),
+            Text(
+              'WS: $wsStatus',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            Text(
+              '${settings.resolutionPreset} / ${settings.recordingOrientationLabel} / target ${settings.fps}fps / real ${actualFps.toStringAsFixed(1)}fps',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            Text(
+              'grid ${settings.gridMode} / zoom ${zoom.toStringAsFixed(1)}x / AE ${settings.autoExposure ? 'auto' : 'lock'} / AF ${settings.autoFocus ? 'auto' : 'lock'}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            if (lastVideoPath != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                lastVideoPath!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FpsBadge extends StatelessWidget {
+  const FpsBadge({
+    super.key,
+    required this.actualFps,
+    required this.targetFps,
+    required this.recording,
+  });
+
+  final double actualFps;
+  final int targetFps;
+  final bool recording;
+
+  @override
+  Widget build(BuildContext context) {
+    final shownFps = actualFps <= 0 ? '--' : actualFps.toStringAsFixed(1);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xff062d16).withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xff32d46b), width: 1.2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.speed, size: 18, color: Color(0xff32d46b)),
+            const SizedBox(width: 8),
+            Text(
+              '$shownFps FPS',
+              style: const TextStyle(
+                color: Color(0xff32d46b),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              recording ? 'REC' : 'LIVE',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.76),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ZoomControls extends StatelessWidget {
+  const ZoomControls({
+    super.key,
+    required this.zoom,
+    required this.minZoom,
+    required this.maxZoom,
+    required this.onZoomOut,
+    required this.onZoomIn,
+  });
+
+  final double zoom;
+  final double minZoom;
+  final double maxZoom;
+  final VoidCallback onZoomOut;
+  final VoidCallback onZoomIn;
+
+  @override
+  Widget build(BuildContext context) {
+    final canZoom = maxZoom > minZoom;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.66),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: 'Zoom out',
+              onPressed: canZoom ? onZoomOut : null,
+              icon: const Icon(Icons.remove),
+              visualDensity: VisualDensity.compact,
+            ),
+            SizedBox(
+              width: 58,
+              child: Text(
+                '${zoom.toStringAsFixed(1)}x',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Zoom in',
+              onPressed: canZoom ? onZoomIn : null,
+              icon: const Icon(Icons.add),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key, required this.initialSettings});
+
+  final AppSettings initialSettings;
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late int _deviceSlot;
+  late String _gridMode;
+  late String _resolutionPreset;
+  late int _fps;
+  late String _recordingOrientation;
+  late bool _enableAudio;
+  late bool _keepScreenOn;
+  late bool _saveToGallery;
+  late bool _autoExposure;
+  late bool _autoFocus;
+  late bool _smartZoom;
+  late double _zoomLevel;
+  late TextEditingController _labelController;
+  late TextEditingController _prefixController;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = widget.initialSettings;
+    _deviceSlot = settings.deviceSlot;
+    _gridMode = settings.gridMode;
+    _resolutionPreset = settings.resolutionPreset;
+    _fps = stableRecordingFps;
+    _recordingOrientation = settings.recordingOrientation;
+    _enableAudio = settings.enableAudio;
+    _keepScreenOn = settings.keepScreenOn;
+    _saveToGallery = settings.saveToGallery;
+    _autoExposure = settings.autoExposure;
+    _autoFocus = settings.autoFocus;
+    _smartZoom = settings.smartZoom;
+    _zoomLevel = settings.zoomLevel;
+    _labelController = TextEditingController(text: settings.deviceLabel);
+    _prefixController = TextEditingController(text: settings.filePrefix);
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    _prefixController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    Navigator.of(context).pop(
+      AppSettings(
+        deviceSlot: _deviceSlot,
+        deviceLabel: _labelController.text,
+        gridMode: _gridMode,
+        resolutionPreset: _resolutionPreset,
+        fps: stableRecordingFps,
+        recordingOrientation: _recordingOrientation,
+        enableAudio: _enableAudio,
+        keepScreenOn: _keepScreenOn,
+        saveToGallery: _saveToGallery,
+        filePrefix: _prefixController.text,
+        autoExposure: _autoExposure,
+        autoFocus: _autoFocus,
+        smartZoom: _smartZoom,
+        zoomLevel: _zoomLevel,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        actions: [
+          TextButton.icon(
+            onPressed: _save,
+            icon: const Icon(Icons.check),
+            label: const Text('Save'),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Device', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int>(
+            initialValue: _deviceSlot,
+            decoration: const InputDecoration(
+              labelText: 'Device number',
+              border: OutlineInputBorder(),
+            ),
+            items: List.generate(
+              12,
+              (index) => DropdownMenuItem(
+                value: index + 1,
+                child: Text('${index + 1} device'),
+              ),
+            ),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() {
+                _deviceSlot = value;
+                final current = _labelController.text.trim();
+                if (current.isEmpty ||
+                    RegExp(r'^device_\d+$').hasMatch(current)) {
+                  _labelController.text = 'device_$value';
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _labelController,
+            decoration: const InputDecoration(
+              labelText: 'Device label / camera name',
+              border: OutlineInputBorder(),
+            ),
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _prefixController,
+            decoration: const InputDecoration(
+              labelText: 'File prefix',
+              border: OutlineInputBorder(),
+            ),
+            textInputAction: TextInputAction.done,
+          ),
+          const SizedBox(height: 24),
+          Text('Camera', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _resolutionPreset,
+            decoration: const InputDecoration(
+              labelText: 'Resolution',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'low', child: Text('Low')),
+              DropdownMenuItem(value: 'medium', child: Text('Medium')),
+              DropdownMenuItem(value: 'high', child: Text('High')),
+              DropdownMenuItem(value: 'veryHigh', child: Text('Very high')),
+              DropdownMenuItem(value: 'ultraHigh', child: Text('Ultra high')),
+              DropdownMenuItem(value: 'max', child: Text('Max')),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _resolutionPreset = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            initialValue: '$_fps fps',
+            enabled: false,
+            decoration: const InputDecoration(
+              labelText: 'Target FPS',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _recordingOrientation,
+            decoration: const InputDecoration(
+              labelText: 'Recording format',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'portrait', child: Text('Vertical')),
+              DropdownMenuItem(value: 'landscape', child: Text('Horizontal')),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _recordingOrientation = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _gridMode,
+            decoration: const InputDecoration(
+              labelText: 'Grid',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'off', child: Text('Off')),
+              DropdownMenuItem(value: '3x4', child: Text('3 x 4')),
+              DropdownMenuItem(value: '4x3', child: Text('4 x 3')),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _gridMode = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Auto brightness'),
+            subtitle: const Text('Camera auto exposure'),
+            value: _autoExposure,
+            onChanged: (value) => setState(() => _autoExposure = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Auto focus'),
+            subtitle: const Text('Continuous focus with tap point'),
+            value: _autoFocus,
+            onChanged: (value) => setState(() => _autoFocus = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Smart zoom'),
+            subtitle: const Text('Smooth pinch and adaptive zoom steps'),
+            value: _smartZoom,
+            onChanged: (value) => setState(() => _smartZoom = value),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text('Start zoom ${_zoomLevel.toStringAsFixed(1)}x'),
+            subtitle: Slider(
+              min: 1,
+              max: 10,
+              divisions: 90,
+              value: _zoomLevel.clamp(1, 10).toDouble(),
+              onChanged: (value) => setState(() => _zoomLevel = value),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Audio'),
+            value: _enableAudio,
+            onChanged: (value) => setState(() => _enableAudio = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Keep screen on'),
+            value: _keepScreenOn,
+            onChanged: (value) => setState(() => _keepScreenOn = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Save to gallery'),
+            value: _saveToGallery,
+            onChanged: (value) => setState(() => _saveToGallery = value),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: _save,
+            icon: const Icon(Icons.save),
+            label: const Text('Save settings'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GridOverlayPainter extends CustomPainter {
+  const GridOverlayPainter({required this.columns, required this.rows});
+
+  final int columns;
+  final int rows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (columns <= 0 || rows <= 0) return;
+
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.42)
+      ..strokeWidth = 1;
+
+    for (var column = 1; column < columns; column++) {
+      final x = size.width * column / columns;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+
+    for (var row = 1; row < rows; row++) {
+      final y = size.height * row / rows;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant GridOverlayPainter oldDelegate) {
+    return columns != oldDelegate.columns || rows != oldDelegate.rows;
+  }
+}
+
+(int, int) targetSizeForPreset(String preset) {
+  switch (preset) {
+    case 'low':
+      return (320, 240);
+    case 'medium':
+      return (720, 480);
+    case 'high':
+      return (1280, 720);
+    case 'ultraHigh':
+      return (3840, 2160);
+    case 'max':
+      return (3840, 2160);
+    case 'veryHigh':
+    default:
+      return (1920, 1080);
+  }
+}

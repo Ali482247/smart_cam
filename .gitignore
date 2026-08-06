@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Local runtime files
+*.log
+*.tmp
+*.bak
+
+# Build outputs
+build/
+camera_build/
+camera_run/
+*.apk
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+coverage/
+
+# Editors and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

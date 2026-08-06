@@ -1,0 +1,48 @@
+{
+  "auto_discover": true,
+  "discovery_port": 8089,
+  "control_port": 8088,
+  "min_phones": 1,
+  "timeout_seconds": 1.5,
+  "next_index": 748,
+  "next_device_slot": 1,
+  "min_free_storage_bytes": 1073741824,
+  "min_battery_percent": 15,
+  "target_video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "video_bitrate": 8000000,
+    "audio_bitrate": 192000,
+    "audio_sample_rate": 48000
+  },
+  "phones": [
+    {
+      "name": "device_1",
+      "url": "http://192.168.0.100:8088",
+      "device_id": "e6e68db4127d9224",
+      "device_name": "24117RN76G",
+      "device_slot": 1,
+      "device_label": "device_1",
+      "camera_name": "device_1"
+    },
+    {
+      "name": "device_2",
+      "url": "http://192.168.0.101:8088",
+      "device_id": "ee18d6805604ce2f",
+      "device_name": "24117RN76G",
+      "device_slot": 2,
+      "device_label": "device_2",
+      "camera_name": "device_2"
+    },
+    {
+      "name": "device_3",
+      "url": "http://192.168.0.102:8088",
+      "device_id": "be20e3d37b4e25a5",
+      "device_name": "24117RN76G",
+      "device_slot": 3,
+      "device_label": "device_3",
+      "camera_name": "device_3"
+    }
+  ]
+}

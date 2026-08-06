@@ -331,6 +331,17 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String? _sessionDate;
   String? _sessionTime;
   int? _sessionIndex;
+  String _sessionSignerId = '';
+  String _sessionSignerName = '';
+  String _sessionSignerDir = '';
+  String _sessionMode = 'word';
+  String _sessionWord = '';
+  String _sessionWordId = '';
+  String _sessionWordDir = '';
+  String _sessionTakeLabel = 'a';
+  int _sessionTakeNumber = 1;
+  int _sessionGestureCount = 1;
+  bool _sessionRetake = false;
   int _localIndex = 0;
   Future<void> _operation = Future.value();
   WsClient? _wsClient;
@@ -608,6 +619,17 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               date: params['date'],
               time: params['time'],
               index: int.tryParse(params['index'] ?? ''),
+              signerId: params['signer_id'],
+              signerName: params['signer_name'],
+              signerDir: params['signer_dir'],
+              mode: params['mode'],
+              word: params['word'],
+              wordId: params['word_id'],
+              wordDir: params['word_dir'],
+              takeLabel: params['take_label'],
+              takeNumber: int.tryParse(params['take_number'] ?? ''),
+              gestureCount: int.tryParse(params['gesture_count'] ?? ''),
+              retake: params['retake'] == '1',
             ),
           );
           _sendJson(request, {'ok': true, 'recording': _recording});
@@ -639,6 +661,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         } else if (path == '/clear-videos') {
           final deleted = await _clearVideos();
           _sendJson(request, {'ok': true, 'deleted': deleted});
+        } else if (path == '/reset-index') {
+          await _resetIndex();
+          _sendJson(request, {'ok': true, 'nextIndex': _localIndex});
+        } else if (path == '/mark-video-error') {
+          final updated = await _markVideoError(
+            request.uri.queryParameters['path'] ?? '',
+          );
+          _sendJson(request, {'ok': true, 'video': updated});
         } else if (path == '/download') {
           await _sendVideoFile(request);
         } else {
@@ -687,6 +717,10 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'lastVideoPath': _lastVideoPath,
       'lastVideoName': _lastVideoName,
       'lastVideoSizeBytes': _lastVideoSizeBytes,
+      'sessionSignerId': _sessionSignerId,
+      'sessionMode': _sessionMode,
+      'sessionWord': _sessionWord,
+      'sessionTakeLabel': _sessionTakeLabel,
     };
   }
 
@@ -772,6 +806,17 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     String? date,
     String? time,
     int? index,
+    String? signerId,
+    String? signerName,
+    String? signerDir,
+    String? mode,
+    String? word,
+    String? wordId,
+    String? wordDir,
+    String? takeLabel,
+    int? takeNumber,
+    int? gestureCount,
+    bool? retake,
   }) async {
     final camera = _camera;
     if (camera == null || !camera.value.isInitialized) {
@@ -787,6 +832,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _sessionTime = time ?? _timeStamp(now);
     _sessionIndex = index ?? await _nextLocalIndex();
     _localIndex = _sessionIndex! + 1;
+    _sessionSignerId = _cleanName(signerId ?? 'signer');
+    _sessionSignerName = (signerName ?? _sessionSignerId).trim();
+    _sessionSignerDir = _cleanName(signerDir ?? _sessionSignerName);
+    _sessionMode = _cleanName(mode ?? 'word');
+    _sessionWord =
+        (word ?? (_sessionMode == 'background' ? 'background' : 'word')).trim();
+    _sessionWordId = (wordId ?? '').trim();
+    _sessionWordDir = _cleanName(wordDir ?? _sessionWord);
+    _sessionTakeNumber = (takeNumber ?? 1).clamp(1, 9999);
+    _sessionTakeLabel = _cleanName(takeLabel ?? _takeLabel(_sessionTakeNumber));
+    _sessionGestureCount = (gestureCount ?? 1).clamp(1, 9999);
+    _sessionRetake = retake ?? false;
     _sessionId =
         sessionId ??
         '${_compactDateStamp(now)}_${_timeStamp(now)}_$_sessionIndex';
@@ -795,6 +852,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       date: _sessionDate!,
       time: _sessionTime!,
       index: _sessionIndex!,
+      mode: _sessionMode,
+      word: _sessionWord,
+      wordDir: _sessionWordDir,
+      takeLabel: _sessionTakeLabel,
+      retake: _sessionRetake,
     );
     _recordingStartedAt = now;
 
@@ -905,12 +967,38 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       date: savedDate,
       time: savedTime,
       index: savedIndex,
+      mode: _sessionMode,
+      word: _sessionWord,
+      wordDir: _sessionWordDir,
+      takeLabel: _sessionTakeLabel,
+      retake: _sessionRetake,
     );
-    final mirrorDir = await _videoDir();
+    final mirrorDir = await _videoDir(
+      signerDir: _sessionSignerDir,
+      wordDir: _sessionMode == 'background' ? 'background' : _sessionWordDir,
+    );
     final mirrorPath = '${mirrorDir.path}/$fileName';
     await File(file.path).copy(mirrorPath);
     _lastVideoName = fileName;
     _lastVideoSizeBytes = await File(mirrorPath).length();
+    await _writeVideoMetadata(File(mirrorPath), {
+      'signerId': _sessionSignerId,
+      'signerName': _sessionSignerName,
+      'signerDir': _sessionSignerDir,
+      'mode': _sessionMode,
+      'word': _sessionWord,
+      'wordId': _sessionWordId,
+      'wordDir': _sessionWordDir,
+      'takeLabel': _sessionTakeLabel,
+      'takeNumber': _sessionTakeNumber,
+      'gestureCount': _sessionGestureCount,
+      'recordIndex': savedIndex,
+      'deviceLabel': _settings.deviceLabel,
+      'cameraName': savedCameraName,
+      'sessionId': _sessionId,
+      'status': 'ok',
+      'createdAt': DateTime.now().toIso8601String(),
+    });
     _activeVideoName = null;
     _recordingStartedAt = null;
 
@@ -922,6 +1010,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       final path = await mediaChannel.invokeMethod<String>('saveVideoToDcim', {
         'sourcePath': mirrorPath,
         'displayName': fileName,
+        'relativeDir':
+            'ThreeCam/$_sessionSignerDir/${_sessionMode == 'background' ? 'background' : _sessionWordDir}',
       });
       return path ?? 'DCIM/ThreeCam/$fileName';
     } catch (_) {
@@ -929,11 +1019,16 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     }
   }
 
-  Future<Directory> _videoDir() async {
+  Future<Directory> _videoDir({String? signerDir, String? wordDir}) async {
     final baseDir = await getExternalStorageDirectory();
-    final dir = Directory(
-      '${baseDir?.path ?? Directory.systemTemp.path}/ThreeCamVideos',
-    );
+    var path = '${baseDir?.path ?? Directory.systemTemp.path}/ThreeCamVideos';
+    if (signerDir != null && signerDir.isNotEmpty) {
+      path = '$path/${_cleanName(signerDir)}';
+    }
+    if (wordDir != null && wordDir.isNotEmpty) {
+      path = '$path/${_cleanName(wordDir)}';
+    }
+    final dir = Directory(path);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
@@ -979,19 +1074,39 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     required String date,
     required String time,
     required int index,
+    String mode = 'word',
+    String word = 'word',
+    String wordDir = 'word',
+    String takeLabel = 'a',
+    bool retake = false,
   }) {
     final prefix = _settings.filePrefix.isEmpty
         ? ''
         : '${_cleanName(_settings.filePrefix)}_';
     final compactDate = date.replaceAll(RegExp(r'\s+'), '');
-    return '$prefix${_cleanName(cameraName)}_${compactDate}_${time}_$index.mp4';
+    final base = mode == 'background'
+        ? 'background'
+        : _cleanName(wordDir.isEmpty ? word : wordDir);
+    final retakePart = retake ? '_retake' : '';
+    return '$prefix${base}_${_cleanName(takeLabel)}${retakePart}_${_cleanName(cameraName)}_${compactDate}_${time}_$index.mp4';
+  }
+
+  String _takeLabel(int takeNumber) {
+    var value = takeNumber < 1 ? 1 : takeNumber;
+    var label = '';
+    while (value > 0) {
+      value -= 1;
+      label = String.fromCharCode('a'.codeUnitAt(0) + (value % 26)) + label;
+      value ~/= 26;
+    }
+    return label;
   }
 
   Future<int> _nextLocalIndex() async {
     final dir = await _videoDir();
     if (!await dir.exists()) return _localIndex < 0 ? 0 : _localIndex;
     final indexes = <int>[];
-    await for (final entity in dir.list()) {
+    await for (final entity in dir.list(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.mp4')) continue;
       final name = entity.uri.pathSegments.last;
       final match = RegExp(r'_(\d+)\.mp4$').firstMatch(name);
@@ -1005,6 +1120,61 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     return nextFromFiles > _localIndex ? nextFromFiles : _localIndex;
   }
 
+  Future<void> _writeVideoMetadata(
+    File videoFile,
+    Map<String, Object?> data,
+  ) async {
+    final metadata = File(
+      videoFile.path.replaceFirst(RegExp(r'\.mp4$'), '.json'),
+    );
+    final payload = {
+      ...data,
+      'fileName': videoFile.uri.pathSegments.last,
+      'relativePath': await _relativeVideoPath(videoFile),
+    };
+    await metadata.writeAsString(jsonEncode(payload), flush: true);
+  }
+
+  Future<Map<String, Object?>> _readVideoMetadata(File videoFile) async {
+    final metadata = File(
+      videoFile.path.replaceFirst(RegExp(r'\.mp4$'), '.json'),
+    );
+    if (!await metadata.exists()) {
+      return {};
+    }
+    try {
+      final decoded = jsonDecode(await metadata.readAsString());
+      return decoded is Map<String, Object?> ? decoded : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<String> _relativeVideoPath(File file) async {
+    final root = await _videoDir();
+    final rootPath = root.path.endsWith(Platform.pathSeparator)
+        ? root.path
+        : '${root.path}${Platform.pathSeparator}';
+    if (file.path.startsWith(rootPath)) {
+      return file.path.substring(rootPath.length).replaceAll('\\', '/');
+    }
+    return file.uri.pathSegments.last;
+  }
+
+  Future<File> _videoFileFromRelativePath(String relativePath) async {
+    if (relativePath.isEmpty ||
+        relativePath.contains('..') ||
+        relativePath.startsWith('/') ||
+        relativePath.startsWith('\\')) {
+      throw ArgumentError('bad path');
+    }
+    final root = await _videoDir();
+    final parts = relativePath
+        .split(RegExp(r'[\\/]'))
+        .where((part) => part.isNotEmpty);
+    return File([root.path, ...parts].join(Platform.pathSeparator));
+  }
+
   Future<int> _clearVideos() async {
     if (_recording) {
       throw StateError('Stop recording before clearing videos');
@@ -1012,16 +1182,23 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 
     final dir = await _videoDir();
     if (!await dir.exists()) {
+      final galleryDeleted = await _deleteDcimVideos();
       _localIndex = 0;
-      return 0;
+      return galleryDeleted;
     }
 
     var deleted = 0;
-    await for (final entity in dir.list()) {
-      if (entity is! File || !entity.path.endsWith('.mp4')) continue;
+    await for (final entity in dir.list(recursive: true)) {
+      if (entity is! File) {
+        continue;
+      }
+      if (!entity.path.endsWith('.mp4') && !entity.path.endsWith('.json')) {
+        continue;
+      }
       await entity.delete();
       deleted++;
     }
+    deleted += await _deleteDcimVideos();
 
     _localIndex = 0;
     _lastVideoPath = null;
@@ -1033,38 +1210,119 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     return deleted;
   }
 
-  Future<List<Map<String, Object>>> _listVideos() async {
+  Future<int> _deleteDcimVideos() async {
+    try {
+      return await mediaChannel.invokeMethod<int>('deleteThreeCamDcimVideos') ??
+          0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<void> _resetIndex() async {
+    if (_recording) {
+      throw StateError('Stop recording before resetting index');
+    }
+    _localIndex = 0;
+    _sessionIndex = null;
+  }
+
+  Future<List<Map<String, Object?>>> _listVideos() async {
     final dir = await _videoDir();
     final files = await dir
-        .list()
+        .list(recursive: true)
         .where((entity) => entity is File && entity.path.endsWith('.mp4'))
         .cast<File>()
         .toList();
     files.sort(
       (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
     );
-    return files.map((file) {
-      final stat = file.statSync();
-      return {
-        'name': file.uri.pathSegments.last,
-        'size': stat.size,
-        'modified': stat.modified.toIso8601String(),
-        'deviceSlot': _settings.deviceSlot,
-        'deviceLabel': _settings.deviceLabel,
-      };
-    }).toList();
+    final result = <Map<String, Object?>>[];
+    for (final file in files) {
+      result.add(await _videoListItem(file));
+    }
+    return result;
+  }
+
+  Future<Map<String, Object?>> _videoListItem(File file) async {
+    final stat = await file.stat();
+    final metadata = await _readVideoMetadata(file);
+    final relativePath = await _relativeVideoPath(file);
+    final status =
+        '${metadata['status'] ?? (file.uri.pathSegments.last.startsWith('ERROR_') ? 'error' : 'ok')}';
+    return {
+      ...metadata,
+      'name': file.uri.pathSegments.last,
+      'relativePath': relativePath,
+      'size': stat.size,
+      'modified': stat.modified.toIso8601String(),
+      'deviceSlot': _settings.deviceSlot,
+      'deviceLabel': _settings.deviceLabel,
+      'status': status,
+      'isError': status == 'error',
+    };
+  }
+
+  Future<Map<String, Object?>> _markVideoError(String relativePath) async {
+    if (_recording) {
+      throw StateError('Stop recording before marking errors');
+    }
+    final file = await _videoFileFromRelativePath(relativePath);
+    if (!await file.exists() || !file.path.endsWith('.mp4')) {
+      throw StateError('Video not found');
+    }
+    final name = file.uri.pathSegments.last;
+    final target = name.startsWith('ERROR_')
+        ? file
+        : File('${file.parent.path}${Platform.pathSeparator}ERROR_$name');
+    final updatedFile = target.path == file.path
+        ? file
+        : await file.rename(target.path);
+    final oldMetadata = File(
+      file.path.replaceFirst(RegExp(r'\.mp4$'), '.json'),
+    );
+    final newMetadata = File(
+      updatedFile.path.replaceFirst(RegExp(r'\.mp4$'), '.json'),
+    );
+    Map<String, Object?> metadata = {};
+    if (await oldMetadata.exists()) {
+      metadata = await _readVideoMetadata(file);
+      if (oldMetadata.path != newMetadata.path) {
+        await oldMetadata.rename(newMetadata.path);
+      }
+    }
+    await _markDcimVideoError(relativePath, updatedFile.uri.pathSegments.last);
+    metadata['status'] = 'error';
+    metadata['errorMarkedAt'] = DateTime.now().toIso8601String();
+    await _writeVideoMetadata(updatedFile, metadata);
+    return _videoListItem(updatedFile);
+  }
+
+  Future<void> _markDcimVideoError(
+    String relativePath,
+    String newDisplayName,
+  ) async {
+    try {
+      await mediaChannel.invokeMethod<bool>('markDcimVideoError', {
+        'relativePath': relativePath,
+        'newDisplayName': newDisplayName,
+      });
+    } catch (_) {
+      // App-storage remains the source of truth if the gallery mirror is gone.
+    }
   }
 
   Future<void> _sendVideoFile(HttpRequest request) async {
-    final name = request.uri.queryParameters['name'];
-    if (name == null || name.contains('/') || name.contains('\\')) {
+    final name =
+        request.uri.queryParameters['path'] ??
+        request.uri.queryParameters['name'];
+    if (name == null) {
       request.response.statusCode = HttpStatus.badRequest;
       _sendJson(request, {'ok': false, 'error': 'bad name'});
       return;
     }
 
-    final dir = await _videoDir();
-    final file = File('${dir.path}/$name');
+    final file = await _videoFileFromRelativePath(name);
     if (!await file.exists()) {
       request.response.statusCode = HttpStatus.notFound;
       _sendJson(request, {'ok': false, 'error': 'not found'});
@@ -1383,6 +1641,17 @@ class _ScreenRecordingController implements RecordingController {
     String? date,
     String? time,
     int? index,
+    String? signerId,
+    String? signerName,
+    String? signerDir,
+    String? mode,
+    String? word,
+    String? wordId,
+    String? wordDir,
+    String? takeLabel,
+    int? takeNumber,
+    int? gestureCount,
+    bool? retake,
   }) {
     return _state._queue(
       () => _state._startRecording(
@@ -1391,6 +1660,17 @@ class _ScreenRecordingController implements RecordingController {
         date: date,
         time: time,
         index: index,
+        signerId: signerId,
+        signerName: signerName,
+        signerDir: signerDir,
+        mode: mode,
+        word: word,
+        wordId: wordId,
+        wordDir: wordDir,
+        takeLabel: takeLabel,
+        takeNumber: takeNumber,
+        gestureCount: gestureCount,
+        retake: retake,
       ),
     );
   }

@@ -12,6 +12,17 @@ abstract class RecordingController {
     String? date,
     String? time,
     int? index,
+    String? signerId,
+    String? signerName,
+    String? signerDir,
+    String? mode,
+    String? word,
+    String? wordId,
+    String? wordDir,
+    String? takeLabel,
+    int? takeNumber,
+    int? gestureCount,
+    bool? retake,
   });
 
   Future<void> stopRecording();

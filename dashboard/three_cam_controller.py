@@ -1,4 +1,6 @@
 import argparse
+import io
+import zlib
 import json
 import re
 import socket
@@ -11,7 +13,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from tkinter import BOTH, DISABLED, NORMAL, StringVar, Tk, Text, ttk
+from tkinter import BOTH, DISABLED, NORMAL, BooleanVar, IntVar, StringVar, Tk, Text, filedialog, messagebox, ttk
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -33,9 +35,28 @@ except Exception as error:  # noqa: BLE001 - legacy HTTP dashboard must still op
     GATEWAY_IMPORT_ERROR = f"{type(error).__name__}: {error}"
 
 CONFIG_NAME = "three_cam_controller_config.json"
+DATASET_STATE_NAME = "three_cam_dataset_state.json"
 SESSION_HISTORY_NAME = "three_cam_session_history.json"
 SESSION_HISTORY_LIMIT = 200
 DISCOVERY_MESSAGE = "THREE_CAM_DISCOVER"
+BACKGROUND_WORD = "background"
+SIGNERS = [
+    ("signer_1", "Шоира"),
+    ("signer_2", "Адолат"),
+    ("signer_3", "Фазилят"),
+    ("signer_4", "Дилназ"),
+    ("signer_5", "Шахзода_1"),
+    ("signer_6", "Парогат"),
+    ("signer_7", "Намуна"),
+    ("signer_8", "Муслима"),
+    ("signer_9", "Нафиса"),
+    ("signer_10", "Лазокат"),
+    ("signer_11", "Нигора_под_вопросом"),
+    ("signer_12", "Шахзода_под_вопросом"),
+    ("signer_13", "AAE"),
+    ("signer_14", "XS"),
+]
+SIGNER_NAMES = dict(SIGNERS)
 DEFAULT_CAMERA_NAMES = [
     "one",
     "two",
@@ -65,6 +86,8 @@ def default_config() -> dict:
         "timeout_seconds": 1.5,
         "next_index": 0,
         "next_device_slot": 1,
+        "required_phone_count": 3,
+        "block_recording_if_missing_phones": True,
         "min_free_storage_bytes": 1073741824,
         "min_battery_percent": 15,
         "target_video": {
@@ -97,6 +120,48 @@ def save_config(config: dict) -> None:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
 
+def default_dataset_state() -> dict:
+    return {
+        "selected_signer_id": "signer_1",
+        "words": [],
+        "main_word_index": 0,
+        "view_word_index": 0,
+        "gesture_count": 1,
+        "takes_done_by_word": {},
+        "background_mode": False,
+        "manual_back_mode": False,
+    }
+
+
+def load_dataset_state() -> dict:
+    path = app_dir() / DATASET_STATE_NAME
+    state = default_dataset_state()
+    if path.exists():
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                state.update(loaded)
+        except (json.JSONDecodeError, OSError):
+            pass
+    state["words"] = normalize_word_items(state.get("words", []))
+    state["selected_signer_id"] = str(state.get("selected_signer_id") or "signer_1")
+    state["gesture_count"] = max(1, int(safe_int(state.get("gesture_count"), 1) or 1))
+    state["main_word_index"] = clamp_index(safe_int(state.get("main_word_index"), 0) or 0, len(state["words"]))
+    state["view_word_index"] = clamp_index(safe_int(state.get("view_word_index"), state["main_word_index"]) or 0, len(state["words"]))
+    state["background_mode"] = bool(state.get("background_mode", False))
+    state["manual_back_mode"] = bool(state.get("manual_back_mode", False))
+    if not isinstance(state.get("takes_done_by_word"), dict):
+        state["takes_done_by_word"] = {}
+    return state
+
+
+def save_dataset_state(state: dict) -> None:
+    path = app_dir() / DATASET_STATE_NAME
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
+
+
 def load_session_history() -> list[dict]:
     path = app_dir() / SESSION_HISTORY_NAME
     if not path.exists():
@@ -121,6 +186,265 @@ def safe_int(value, fallback: int | None = None) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return fallback
+
+
+def clamp_index(index: int, count: int) -> int:
+    if count <= 0:
+        return 0
+    return max(0, min(index, count - 1))
+
+
+def signer_label(signer_id: str) -> str:
+    name = SIGNER_NAMES.get(signer_id, signer_id)
+    return f"{signer_id} - {name}"
+
+
+def signer_dir_name(signer_id: str) -> str:
+    name = SIGNER_NAMES.get(signer_id, signer_id)
+    return safe_name(f"{signer_id}_{name}")
+
+
+def word_key(word: dict) -> str:
+    word_id = word.get("word_id")
+    return str(word_id) if word_id not in (None, "") else safe_name(str(word.get("uzbek") or "word"))
+
+
+def word_display(word: dict | None) -> str:
+    if not word:
+        return "No words imported"
+    word_id = word.get("word_id")
+    page = word.get("page")
+    prefix = []
+    if word_id not in (None, ""):
+        prefix.append(f"№ {word_id}")
+    if page not in (None, ""):
+        prefix.append(f"page {page}")
+    text = str(word.get("uzbek") or "").strip()
+    return f"{' / '.join(prefix)}\n{text}" if prefix else text
+
+
+def word_dir_name(word: dict | None) -> str:
+    if not word:
+        return "word"
+    text = safe_name(str(word.get("uzbek") or "word"))
+    word_id = safe_int(word.get("word_id"))
+    if word_id is not None:
+        return f"{word_id:03d}_{text}" if text else f"{word_id:03d}"
+    return text or "word"
+
+
+def take_label(take_number: int) -> str:
+    take_number = max(1, take_number)
+    label = ""
+    value = take_number
+    while value:
+        value -= 1
+        label = chr(ord("a") + (value % 26)) + label
+        value //= 26
+    return label
+
+
+def normalize_word_text(value: str) -> str:
+    text = re.sub(r"\s+", " ", value).strip()
+    text = re.sub(r"\s+([,.;:)])", r"\1", text)
+    text = re.sub(r"([(])\s+", r"\1", text)
+    # PDF coordinate extraction can split letters into separate cells. Join the
+    # common Google Sheets fragments without changing meaningful spaces elsewhere.
+    text = re.sub(r"\b([A-ZА-ЯOUEHMS])\s+([a-zа-я][a-zа-я'])", r"\1\2", text)
+    text = re.sub(r"\b(En|Er|Esh|Eg|Sevm|Birovn|Magnitofon|Mebel)\s+", r"\1", text)
+    return text
+
+
+def normalize_word_items(items: list) -> list[dict]:
+    normalized = []
+    for index, item in enumerate(items):
+        if isinstance(item, str):
+            text = normalize_word_text(item)
+            if text:
+                normalized.append({"word_id": index + 1, "page": None, "uzbek": text})
+            continue
+        if not isinstance(item, dict):
+            continue
+        text = normalize_word_text(str(item.get("uzbek") or item.get("word") or ""))
+        if not text:
+            continue
+        normalized.append(
+            {
+                "word_id": safe_int(item.get("word_id"), index + 1),
+                "page": safe_int(item.get("page")),
+                "uzbek": text,
+                "source_pdf": str(item.get("source_pdf") or ""),
+                "source_set": str(item.get("source_set") or ""),
+            }
+        )
+    return normalized
+
+
+def source_set_from_pdf(path: Path) -> str:
+    match = re.search(r"(set_\d+)", path.name, re.IGNORECASE)
+    return match.group(1).lower() if match else path.stem
+
+
+def extract_words_from_pdf(path: Path) -> list[dict]:
+    try:
+        return extract_words_with_pypdf(path)
+    except Exception:
+        return extract_words_from_google_sheets_pdf(path)
+
+
+def extract_words_with_pypdf(path: Path) -> list[dict]:
+    from pypdf import PdfReader  # type: ignore
+
+    text = "\n".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
+    items = []
+    for line in text.splitlines():
+        line = normalize_word_text(line)
+        match = re.match(r"^(\d{1,4})\s+(\d{1,4})\s+(.+)$", line)
+        if not match:
+            continue
+        word_text = normalize_word_text(match.group(3))
+        if should_skip_pdf_word(word_text):
+            continue
+        items.append(
+            {
+                "word_id": int(match.group(1)),
+                "page": int(match.group(2)),
+                "uzbek": word_text,
+                "source_pdf": path.name,
+                "source_set": source_set_from_pdf(path),
+            }
+        )
+    if not items:
+        raise RuntimeError("pypdf did not extract table rows")
+    return items
+
+
+def should_skip_pdf_word(text: str) -> bool:
+    lowered = text.lower()
+    return (
+        not text
+        or text == "ФОН"
+        or lowered.startswith("page ")
+        or "signer_" in lowered
+        or lowered in {"uzbek", "i = №", "ii = №"}
+        or bool(re.match(r"^[0-9./-]{6,}$", text))
+    )
+
+
+def pdf_streams(path: Path) -> list[str]:
+    data = path.read_bytes()
+    streams = []
+    for match in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", data, re.DOTALL):
+        raw = match.group(1)
+        for offset in (0, 2):
+            try:
+                streams.append(zlib.decompress(raw[offset:]).decode("latin-1", errors="replace"))
+                break
+            except zlib.error:
+                continue
+    return streams
+
+
+def hex_to_text(hex_value: str) -> str:
+    chars = []
+    for index in range(0, len(hex_value), 4):
+        chars.append(chr(int(hex_value[index : index + 4], 16)))
+    return "".join(chars)
+
+
+def parse_cmap(text: str) -> dict[int, str]:
+    mapping: dict[int, str] = {}
+    for line in text.splitlines():
+        char_match = re.match(r"\s*<([0-9A-Fa-f]{4})>\s+<([0-9A-Fa-f]+)>\s*$", line)
+        if char_match:
+            mapping[int(char_match.group(1), 16)] = hex_to_text(char_match.group(2))
+            continue
+        range_match = re.match(
+            r"\s*<([0-9A-Fa-f]{4})>\s+<([0-9A-Fa-f]{4})>\s+<([0-9A-Fa-f]{4})>\s*$",
+            line,
+        )
+        if range_match:
+            start = int(range_match.group(1), 16)
+            end = int(range_match.group(2), 16)
+            base = int(range_match.group(3), 16)
+            for value in range(start, end + 1):
+                mapping[value] = chr(base + value - start)
+    return mapping
+
+
+def decode_pdf_hex(hex_value: str, mapping: dict[int, str]) -> str:
+    decoded = []
+    for index in range(0, len(hex_value), 4):
+        decoded.append(mapping.get(int(hex_value[index : index + 4], 16), ""))
+    return "".join(decoded)
+
+
+def extract_words_from_google_sheets_pdf(path: Path) -> list[dict]:
+    streams = pdf_streams(path)
+    cmaps = [parse_cmap(stream) for stream in streams if "begincmap" in stream]
+    if len(cmaps) < 3:
+        raise RuntimeError("PDF text maps not found")
+    font_maps = {"F4": cmaps[0], "F6": cmaps[1], "F7": cmaps[2]}
+    glyphs = []
+    for stream in streams:
+        if " Tj" not in stream or "BT" not in stream:
+            continue
+        font = "F4"
+        x = 0.0
+        y = 0.0
+        for line in stream.splitlines():
+            font_match = re.search(r"/(F\d+)\s+[\d.]+\s+Tf", line)
+            if font_match:
+                font = font_match.group(1)
+            tm_match = re.search(r"[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+([-\d.]+)\s+([-\d.]+)\s+Tm", line)
+            if tm_match:
+                x = float(tm_match.group(1))
+                y = float(tm_match.group(2))
+            td_match = re.search(r"([-\d.]+)\s+([-\d.]+)\s+Td\s+<([0-9A-Fa-f]+)>\s+Tj", line)
+            if td_match:
+                x += float(td_match.group(1))
+                y += float(td_match.group(2))
+                glyphs.append((x, y, decode_pdf_hex(td_match.group(3), font_maps.get(font, {}))))
+                continue
+            tj_match = re.search(r"<([0-9A-Fa-f]+)>\s+Tj", line)
+            if tj_match:
+                glyphs.append((x, y, decode_pdf_hex(tj_match.group(1), font_maps.get(font, {}))))
+
+    rows: dict[int, list[tuple[float, str]]] = {}
+    for x, y, text in glyphs:
+        if not text:
+            continue
+        rows.setdefault(round(y / 2) * 2, []).append((x, text))
+
+    items = []
+    for _, cells in sorted(rows.items()):
+        word_id_text = ""
+        page_text = ""
+        word_parts = []
+        for x, text in sorted(cells):
+            if x < 55:
+                word_id_text += text
+            elif x < 90:
+                page_text += text
+            elif x < 362:
+                word_parts.append(text)
+        word_id = safe_int(re.sub(r"\D+", "", word_id_text))
+        page = safe_int(re.sub(r"\D+", "", page_text))
+        word_text = normalize_word_text("".join(word_parts))
+        if word_id is None or page is None or should_skip_pdf_word(word_text):
+            continue
+        items.append(
+            {
+                "word_id": word_id,
+                "page": page,
+                "uzbek": word_text,
+                "source_pdf": path.name,
+                "source_set": source_set_from_pdf(path),
+            }
+        )
+    if not items:
+        raise RuntimeError("No word rows found in PDF")
+    return items
 
 
 def camera_name_from_slot(slot: int | None) -> str:
@@ -346,18 +670,22 @@ def next_record_index(config: dict, phones: list[dict], timeout: float) -> int:
     return int(config.get("next_index", 0))
 
 
-def download_file(phone: dict, name: str, target: Path, timeout: float) -> None:
-    url = normalize_url(phone["url"]) + "/download?name=" + urllib.parse.quote(name)
+def download_file(phone: dict, relative_path: str, target: Path, timeout: float) -> None:
+    query = urllib.parse.urlencode({"path": relative_path})
+    url = normalize_url(phone["url"]) + "/download?" + query
+    target.parent.mkdir(parents=True, exist_ok=True)
     with urllib.request.urlopen(url, timeout=timeout) as response:
         target.write_bytes(response.read())
 
 
-def send_all(config: dict, endpoint: str) -> list[tuple[str, str]]:
+def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tuple[str, str]]:
     phones = get_phones(config, discover=not endpoint in {"/start", "/stop", "/toggle"})
     timeout = float(config.get("timeout_seconds", 1.5))
     if endpoint == "/start" and config.get("check_ready_before_start", False):
         check_ready_for_recording(config, phones, timeout)
-    endpoint_by_phone = build_endpoint_map(config, phones, endpoint)
+    if endpoint == "/start" and config.get("block_recording_if_missing_phones", True):
+        check_all_configured_phones_online(config, timeout)
+    endpoint_by_phone = build_endpoint_map(config, phones, endpoint, task=task)
     results = []
     with ThreadPoolExecutor(max_workers=len(phones)) as executor:
         futures = {
@@ -369,7 +697,7 @@ def send_all(config: dict, endpoint: str) -> list[tuple[str, str]]:
     return results
 
 
-def build_endpoint_map(config: dict, phones: list[dict], endpoint: str) -> dict[int, str]:
+def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: dict | None = None) -> dict[int, str]:
     if endpoint != "/start":
         return {id(phone): endpoint for phone in phones}
 
@@ -389,17 +717,56 @@ def build_endpoint_map(config: dict, phones: list[dict], endpoint: str) -> dict[
             or phone.get("camera_name")
             or camera_name_from_slot(safe_int(phone.get("device_slot")))
         )
-        query = urllib.parse.urlencode(
-            {
-                "camera": camera_name,
-                "date": date_stamp,
-                "time": time_stamp,
-                "index": str(record_index),
-                "session": session_id,
-            }
-        )
+        params = {
+            "camera": camera_name,
+            "date": date_stamp,
+            "time": time_stamp,
+            "index": str(record_index),
+            "session": session_id,
+        }
+        if task:
+            params.update(
+                {
+                    "signer_id": str(task.get("signer_id", "")),
+                    "signer_name": str(task.get("signer_name", "")),
+                    "signer_dir": str(task.get("signer_dir", "")),
+                    "mode": str(task.get("mode", "word")),
+                    "word": str(task.get("word", "")),
+                    "word_id": str(task.get("word_id", "")),
+                    "word_dir": str(task.get("word_dir", "")),
+                    "take_label": str(task.get("take_label", "")),
+                    "take_number": str(task.get("take_number", "")),
+                    "gesture_count": str(task.get("gesture_count", "")),
+                    "retake": "1" if task.get("retake") else "0",
+                }
+            )
+        query = urllib.parse.urlencode(params)
         endpoints[id(phone)] = f"/start?{query}"
     return endpoints
+
+
+def check_all_configured_phones_online(config: dict, timeout: float) -> None:
+    phones = configured_phones(config)
+    required = int(config.get("required_phone_count", config.get("min_phones", len(phones) or 1)))
+    if len(phones) < required:
+        raise RuntimeError(f"WARNING: configured {len(phones)}/{required} phones. Recording blocked.")
+    missing = []
+    with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
+        futures = {executor.submit(get_json, phone, "/status", timeout): phone for phone in phones}
+        for future in as_completed(futures):
+            phone = futures[future]
+            try:
+                payload = future.result()
+                if not payload.get("ok", True):
+                    missing.append(phone_display_name(phone))
+            except Exception:
+                missing.append(f"{phone_display_name(phone)} {phone.get('url', '')}")
+    online = len(phones) - len(missing)
+    if online < required:
+        raise RuntimeError(
+            f"WARNING: connected {online}/{required} phones. Recording blocked.\nMissing: "
+            + ", ".join(missing)
+        )
 
 
 def check_ready_for_recording(config: dict, phones: list[dict], timeout: float) -> None:
@@ -459,14 +826,74 @@ def download_all(config: dict) -> list[tuple[str, str]]:
             phone_dir.mkdir(exist_ok=True)
             count = 0
             for video in videos:
-                video_name = video["name"]
-                target = phone_dir / video_name
+                relative_path = str(video.get("relativePath") or video.get("relative_path") or video.get("name") or "")
+                if not relative_path:
+                    continue
+                safe_parts = [safe_name(part) for part in re.split(r"[\\/]+", relative_path) if part]
+                if not safe_parts:
+                    continue
+                target = phone_dir.joinpath(*safe_parts)
                 if not target.exists():
-                    download_file(phone, video_name, target, max(timeout, 30))
+                    download_file(phone, relative_path, target, max(timeout, 30))
                     count += 1
             results.append((name, f"downloaded {count}, total {len(videos)}"))
         except Exception as error:
             results.append((name, f"ERROR: {error}"))
+    return results
+
+
+def list_videos_all(config: dict) -> list[dict]:
+    phones = configured_phones(config)
+    timeout = float(config.get("timeout_seconds", 3))
+    videos: list[dict] = []
+    with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
+        futures = {executor.submit(get_json, phone, "/videos", timeout): phone for phone in phones}
+        for future in as_completed(futures):
+            phone = futures[future]
+            device = phone_display_name(phone)
+            try:
+                payload = future.result()
+                for video in payload.get("videos", []):
+                    if not isinstance(video, dict):
+                        continue
+                    item = dict(video)
+                    item["phone_name"] = device
+                    item["phone_url"] = phone.get("url", "")
+                    item["device_id"] = phone.get("device_id", "")
+                    videos.append(item)
+            except Exception as error:
+                videos.append(
+                    {
+                        "phone_name": device,
+                        "phone_url": phone.get("url", ""),
+                        "name": f"WARNING: {error}",
+                        "status": "warning",
+                    }
+                )
+    videos.sort(key=lambda item: str(item.get("modified", "")), reverse=True)
+    return videos
+
+
+def mark_video_error(config: dict, video: dict) -> tuple[str, str]:
+    phone_url = video.get("phone_url")
+    if not phone_url:
+        raise RuntimeError("Selected video has no phone URL")
+    timeout = float(config.get("timeout_seconds", 3))
+    phone = {"url": phone_url, "name": video.get("phone_name") or phone_url}
+    relative_path = str(video.get("relativePath") or video.get("relative_path") or video.get("name") or "")
+    endpoint = "/mark-video-error?" + urllib.parse.urlencode({"path": relative_path})
+    return request_phone(phone, endpoint, timeout, method="POST")
+
+
+def reset_index_all(config: dict) -> list[tuple[str, str]]:
+    phones = get_phones(config)
+    timeout = float(config.get("timeout_seconds", 3))
+    config["next_index"] = 0
+    save_config(config)
+    results = []
+    for phone in phones:
+        name, body = request_phone(phone, "/reset-index", timeout, method="POST")
+        results.append((name, body))
     return results
 
 
@@ -547,6 +974,14 @@ class ControllerApp:
     def __init__(self, root: Tk, config: dict):
         self.root = root
         self.config = config
+        self.dataset_state = load_dataset_state()
+        self.signer_var = StringVar(value=signer_label(self.dataset_state.get("selected_signer_id", "signer_1")))
+        self.word_var = StringVar(value="")
+        self.progress_var = StringVar(value="")
+        self.gesture_count_var = IntVar(value=max(1, safe_int(self.dataset_state.get("gesture_count"), 1) or 1))
+        self.background_var = BooleanVar(value=bool(self.dataset_state.get("background_mode", False)))
+        self.video_rows: dict[str, dict] = {}
+        self.active_task: dict | None = None
         self.recording = False
         self.busy = False
         self.status = StringVar(value="Готово")
@@ -569,6 +1004,8 @@ class ControllerApp:
         self.ws_status = StringVar(value="WS: запускается...")
         if Gateway is not None and GatewayConfig is not None:
             self.gateway = Gateway(GatewayConfig())
+            self.gateway = None
+            self.ws_status.set("WS: disabled during dataset workflow")
         else:
             self.ws_status.set(f"WS: disabled ({GATEWAY_IMPORT_ERROR})")
         if self.gateway is not None:
@@ -579,8 +1016,8 @@ class ControllerApp:
                 self.ws_status.set(f"WS: ошибка запуска ({error})")
 
         root.title("Three Cam Controller")
-        root.geometry("820x560")
-        root.minsize(700, 460)
+        root.geometry("1180x760")
+        root.minsize(980, 650)
         root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         frame = ttk.Frame(root, padding=14)
@@ -589,14 +1026,65 @@ class ControllerApp:
         ttk.Label(frame, text="Three Cam Controller", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(frame, textvariable=self.status).pack(anchor="w", pady=(4, 12))
 
+        dataset_frame = ttk.LabelFrame(frame, text="Dataset", padding=8)
+        dataset_frame.pack(fill="x", pady=(0, 12))
+
+        dataset_top = ttk.Frame(dataset_frame)
+        dataset_top.pack(fill="x", pady=(0, 8))
+        ttk.Label(dataset_top, text="Signer").pack(side="left")
+        self.signer_combo = ttk.Combobox(
+            dataset_top,
+            textvariable=self.signer_var,
+            values=[signer_label(item[0]) for item in SIGNERS],
+            state="readonly",
+            width=34,
+        )
+        self.signer_combo.pack(side="left", padx=(6, 10))
+        self.signer_combo.bind("<<ComboboxSelected>>", self.signer_changed)
+        ttk.Button(dataset_top, text="IMPORT PDF", command=self.import_pdf_clicked).pack(side="left", padx=(0, 8))
+        ttk.Label(dataset_top, text="Gestures per word").pack(side="left")
+        self.gesture_spin = ttk.Entry(dataset_top, textvariable=self.gesture_count_var, width=5)
+        self.gesture_spin.pack(side="left", padx=(6, 10))
+        self.gesture_spin.bind("<FocusOut>", lambda _event: self.gesture_count_changed())
+        self.gesture_spin.bind("<Return>", lambda _event: self.gesture_count_changed())
+        ttk.Checkbutton(dataset_top, text="BACKGROUND", variable=self.background_var, command=self.background_toggled).pack(side="left")
+
+        word_row = ttk.Frame(dataset_frame)
+        word_row.pack(fill="x")
+        word_row.columnconfigure(0, weight=1, uniform="word_row_side")
+        word_row.columnconfigure(1, weight=3)
+        word_row.columnconfigure(2, weight=1, uniform="word_row_side")
+
+        word_text = ttk.Frame(word_row)
+        word_text.grid(row=0, column=1, sticky="ew")
+        ttk.Label(
+            word_text,
+            textvariable=self.word_var,
+            font=("Segoe UI", 24, "bold"),
+            anchor="center",
+            justify="center",
+        ).pack(fill="x")
+        ttk.Label(word_text, textvariable=self.progress_var, anchor="center").pack(fill="x", pady=(2, 0))
+
+        record_action = ttk.Frame(word_row)
+        record_action.grid(row=0, column=2, sticky="n", padx=(12, 220), pady=(18, 0))
+        self.record_button = ttk.Button(record_action, text="START REC", command=self.toggle_clicked)
+        self.record_button.pack()
+
+        nav_row = ttk.Frame(dataset_frame)
+        nav_row.pack(fill="x", pady=(8, 0))
+        ttk.Button(nav_row, text="BACK WORD", command=self.back_word_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="RESET VIEW", command=self.reset_view_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="RESET WORDS", command=self.reset_words_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="RESET INDEX", command=self.reset_index_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="DELETE VIDEOS", command=self.delete_videos_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="REFRESH VIDEOS", command=self.refresh_videos_clicked).pack(side="left")
+
         buttons = ttk.Frame(frame)
         buttons.pack(fill="x", pady=(0, 12))
 
         self.discover_button = ttk.Button(buttons, text="Авто поиск", command=self.discover_clicked)
         self.discover_button.pack(side="left", padx=(0, 8))
-
-        self.record_button = ttk.Button(buttons, text="START REC", command=self.toggle_clicked)
-        self.record_button.pack(side="left", padx=(0, 8))
 
         self.status_button = ttk.Button(buttons, text="Проверить", command=self.status_clicked)
         self.status_button.pack(side="left", padx=(0, 8))
@@ -666,6 +1154,35 @@ class ControllerApp:
         ttk.Entry(device_editor, textvariable=self.camera_name_var, width=18).pack(side="left", padx=(4, 10))
         ttk.Button(device_editor, text="Save device", command=self.save_selected_device).pack(side="left")
 
+        videos = ttk.LabelFrame(frame, text="Saved videos", padding=8)
+        videos.pack(fill="x", pady=(0, 12))
+        self.videos_tree = ttk.Treeview(
+            videos,
+            columns=("status", "signer", "word", "take", "device", "name", "size"),
+            show="headings",
+            height=6,
+            selectmode="browse",
+        )
+        for col, title, width in (
+            ("status", "Status", 70),
+            ("signer", "Signer", 120),
+            ("word", "Word", 180),
+            ("take", "Take", 60),
+            ("device", "Device", 110),
+            ("name", "File", 360),
+            ("size", "Size", 80),
+        ):
+            self.videos_tree.heading(col, text=title)
+            self.videos_tree.column(col, width=width, stretch=col == "name")
+        self.videos_tree.tag_configure("error", foreground="#c0392b")
+        self.videos_tree.tag_configure("warning", foreground="#b9770e")
+        self.videos_tree.pack(fill="x")
+        self.videos_tree.bind("<Double-1>", self.video_double_clicked)
+        video_actions = ttk.Frame(videos)
+        video_actions.pack(fill="x", pady=(8, 0))
+        ttk.Button(video_actions, text="Mark error", command=self.mark_selected_video_error_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(video_actions, text="Retake", command=self.retake_selected_video_clicked).pack(side="left")
+
         self.log = Text(frame, height=18, wrap="word")
         self.log.pack(fill=BOTH, expand=True)
 
@@ -673,12 +1190,289 @@ class ControllerApp:
         self.write("2) Нажми Авто поиск. Сколько телефонов найдено, столько и будет управляться.")
         self.write("Пробел тоже нажимает START/STOP.")
         self.root.bind("<space>", lambda _event: self.toggle_clicked())
+        self.refresh_dataset_labels()
         self.refresh_device_table()
         self.start_status_polling()
 
     def write(self, message: str) -> None:
         self.log.insert("end", message + "\n")
         self.log.see("end")
+
+    def save_dataset(self) -> None:
+        self.dataset_state["selected_signer_id"] = self.selected_signer_id()
+        self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        self.dataset_state["background_mode"] = bool(self.background_var.get())
+        save_dataset_state(self.dataset_state)
+
+    def selected_signer_id(self) -> str:
+        selected = self.signer_var.get()
+        if " - " in selected:
+            return selected.split(" - ", 1)[0]
+        return str(self.dataset_state.get("selected_signer_id") or "signer_1")
+
+    def current_word(self) -> dict | None:
+        words = self.dataset_state.get("words", [])
+        if not words or self.background_var.get():
+            return None
+        index = clamp_index(int(self.dataset_state.get("view_word_index", 0)), len(words))
+        return words[index]
+
+    def refresh_dataset_labels(self) -> None:
+        words = self.dataset_state.get("words", [])
+        if self.background_var.get():
+            self.word_var.set("BACKGROUND")
+            self.progress_var.set(f"Signer: {self.signer_var.get()} / background mode")
+            return
+        word = self.current_word()
+        if not word:
+            self.word_var.set("IMPORT PDF")
+            self.progress_var.set("No words imported")
+            return
+        main_index = int(self.dataset_state.get("main_word_index", 0))
+        view_index = int(self.dataset_state.get("view_word_index", main_index))
+        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
+        mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
+        self.word_var.set(word_display(word))
+        self.progress_var.set(
+            f"{view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
+        )
+
+    def signer_changed(self, _event=None) -> None:
+        self.dataset_state["selected_signer_id"] = self.selected_signer_id()
+        self.save_dataset()
+        self.refresh_dataset_labels()
+        self.write(f"Signer selected: {self.signer_var.get()}")
+
+    def gesture_count_changed(self) -> None:
+        self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        self.save_dataset()
+        self.refresh_dataset_labels()
+
+    def background_toggled(self) -> None:
+        self.dataset_state["background_mode"] = bool(self.background_var.get())
+        self.save_dataset()
+        self.refresh_dataset_labels()
+
+    def import_pdf_clicked(self) -> None:
+        paths = filedialog.askopenfilenames(
+            title="Import word PDFs",
+            filetypes=(("PDF files", "*.pdf"), ("All files", "*.*")),
+        )
+        if not paths:
+            return
+
+        def action() -> str:
+            words: list[dict] = []
+            warnings = []
+            for raw_path in paths:
+                path = Path(raw_path)
+                extracted = extract_words_from_pdf(path)
+                words.extend(extracted)
+                if any(item.get("uzbek") == "ФОН" for item in extracted):
+                    warnings.append(f"{path.name}: contains ФОН")
+            words = normalize_word_items(words)
+            words.sort(key=lambda item: (safe_int(item.get("word_id"), 10**9) or 10**9, item.get("source_pdf", "")))
+            if not words:
+                raise RuntimeError("No words found in selected PDF files")
+            self.dataset_state["words"] = words
+            self.dataset_state["main_word_index"] = 0
+            self.dataset_state["view_word_index"] = 0
+            self.dataset_state["takes_done_by_word"] = {}
+            self.dataset_state["manual_back_mode"] = False
+            self.save_dataset()
+            self.root.after(0, self.refresh_dataset_labels)
+            return f"Imported {len(words)} words from {len(paths)} PDF(s)." + (
+                "\n" + "\n".join(warnings) if warnings else ""
+            )
+
+        self.run_background("Importing PDF...", action)
+
+    def build_current_task(self) -> dict:
+        signer_id = self.selected_signer_id()
+        signer_name = SIGNER_NAMES.get(signer_id, signer_id)
+        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        if self.background_var.get():
+            return {
+                "signer_id": signer_id,
+                "signer_name": signer_name,
+                "signer_dir": signer_dir_name(signer_id),
+                "mode": "background",
+                "word": BACKGROUND_WORD,
+                "word_id": "",
+                "word_dir": BACKGROUND_WORD,
+                "take_number": 1,
+                "take_label": take_label(1),
+                "gesture_count": gesture_count,
+                "retake": False,
+            }
+        word = self.current_word()
+        if not word:
+            raise RuntimeError("Import PDF before recording")
+        done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
+        take_number = done + 1
+        return {
+            "signer_id": signer_id,
+            "signer_name": signer_name,
+            "signer_dir": signer_dir_name(signer_id),
+            "mode": "word",
+            "word": word.get("uzbek", ""),
+            "word_id": word.get("word_id", ""),
+            "word_dir": word_dir_name(word),
+            "take_number": take_number,
+            "take_label": take_label(take_number),
+            "gesture_count": gesture_count,
+            "retake": bool(self.dataset_state.get("retake_mode", False)),
+        }
+
+    def complete_current_task(self) -> None:
+        if self.background_var.get():
+            return
+        word = self.current_word()
+        if not word:
+            return
+        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        key = word_key(word)
+        done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0)) + 1
+        self.dataset_state.setdefault("takes_done_by_word", {})[key] = done
+        if not self.dataset_state.get("manual_back_mode") and done >= gesture_count:
+            words = self.dataset_state.get("words", [])
+            next_index = min(int(self.dataset_state.get("main_word_index", 0)) + 1, max(0, len(words) - 1))
+            self.dataset_state["main_word_index"] = next_index
+            self.dataset_state["view_word_index"] = next_index
+        self.dataset_state["retake_mode"] = False
+        self.save_dataset()
+        self.refresh_dataset_labels()
+
+    def back_word_clicked(self) -> None:
+        words = self.dataset_state.get("words", [])
+        if not words:
+            return
+        self.dataset_state["view_word_index"] = max(0, int(self.dataset_state.get("view_word_index", 0)) - 1)
+        self.dataset_state["manual_back_mode"] = True
+        self.save_dataset()
+        self.refresh_dataset_labels()
+
+    def reset_view_clicked(self) -> None:
+        self.dataset_state["manual_back_mode"] = False
+        self.dataset_state["retake_mode"] = False
+        self.dataset_state["view_word_index"] = int(self.dataset_state.get("main_word_index", 0))
+        self.save_dataset()
+        self.refresh_dataset_labels()
+
+    def reset_words_clicked(self) -> None:
+        if not messagebox.askyesno("Reset words", "Start words again from the first word?"):
+            return
+        self.dataset_state["main_word_index"] = 0
+        self.dataset_state["view_word_index"] = 0
+        self.dataset_state["takes_done_by_word"] = {}
+        self.dataset_state["manual_back_mode"] = False
+        self.dataset_state["retake_mode"] = False
+        self.save_dataset()
+        self.refresh_dataset_labels()
+        self.write("Words reset: started again from the first word.")
+
+    def refresh_videos_table(self, videos: list[dict] | None = None) -> None:
+        if not hasattr(self, "videos_tree"):
+            return
+        self.videos_tree.delete(*self.videos_tree.get_children())
+        self.video_rows = {}
+        if videos is None:
+            videos = []
+        for index, video in enumerate(videos):
+            iid = str(index)
+            status = str(video.get("status") or ("error" if video.get("isError") else "ok"))
+            tags = ("error",) if status == "error" else (("warning",) if status == "warning" else ())
+            values = (
+                status.upper(),
+                video.get("signerName") or video.get("signer_name") or "",
+                video.get("word") or video.get("mode") or "",
+                video.get("takeLabel") or video.get("take_label") or "",
+                video.get("deviceLabel") or video.get("phone_name") or "",
+                video.get("name") or "",
+                format_bytes(video.get("size") if isinstance(video.get("size"), int) else None),
+            )
+            self.video_rows[iid] = video
+            self.videos_tree.insert("", "end", iid=iid, values=values, tags=tags)
+
+    def refresh_videos_clicked(self) -> None:
+        def action() -> str:
+            videos = list_videos_all(self.config)
+            self.root.after(0, lambda: self.refresh_videos_table(videos))
+            return f"Videos refreshed: {len(videos)}"
+
+        self.run_background("Refreshing videos...", action)
+
+    def selected_video(self) -> dict | None:
+        selected = self.videos_tree.selection() if hasattr(self, "videos_tree") else ()
+        if not selected:
+            return None
+        return self.video_rows.get(selected[0])
+
+    def video_double_clicked(self, _event=None) -> None:
+        video = self.selected_video()
+        if not video:
+            return
+        messagebox.showinfo(
+            "Video",
+            f"{video.get('name')}\n\nStatus: {video.get('status', 'ok')}\nWord: {video.get('word', '')}",
+        )
+
+    def mark_selected_video_error_clicked(self) -> None:
+        video = self.selected_video()
+        if not video:
+            self.write("Select a video first.")
+            return
+        if not messagebox.askyesno("Mark error", f"Mark this video as error?\n{video.get('name')}"):
+            return
+
+        def action() -> str:
+            name, body = mark_video_error(self.config, video)
+            videos = list_videos_all(self.config)
+            self.root.after(0, lambda: self.refresh_videos_table(videos))
+            return f"{name}: {body}"
+
+        self.run_background("Marking video error...", action)
+
+    def retake_selected_video_clicked(self) -> None:
+        video = self.selected_video()
+        if not video:
+            self.write("Select a video first.")
+            return
+        word_value = str(video.get("word") or "")
+        if not word_value:
+            self.write("Selected video has no word metadata.")
+            return
+        words = self.dataset_state.get("words", [])
+        for index, word in enumerate(words):
+            if str(word.get("uzbek")) == word_value or str(word.get("word_id")) == str(video.get("wordId") or video.get("word_id")):
+                self.dataset_state["view_word_index"] = index
+                self.dataset_state["manual_back_mode"] = True
+                self.dataset_state["retake_mode"] = True
+                self.save_dataset()
+                self.refresh_dataset_labels()
+                self.write(f"Retake selected: {word_value}")
+                return
+        self.write(f"Retake word not found in imported list: {word_value}")
+
+    def reset_index_clicked(self) -> None:
+        if not messagebox.askyesno("Reset index", "Reset future video indexes on controller and phones?"):
+            return
+
+        def action() -> str:
+            return format_results("Reset index:", reset_index_all(self.config))
+
+        self.run_background("Resetting indexes...", action)
+
+    def delete_videos_clicked(self) -> None:
+        if not messagebox.askyesno("Delete videos", "Delete all videos from all phones?"):
+            return
+        def action() -> str:
+            result = format_results("Delete videos:", clear_videos_all(self.config))
+            self.root.after(0, self.refresh_videos_table)
+            return result
+
+        self.run_background("Deleting videos...", action)
 
     def set_busy(self, busy: bool) -> None:
         self.busy = busy
@@ -899,14 +1693,27 @@ class ControllerApp:
         title = "Останавливаю запись..." if self.recording else "Запускаю запись..."
 
         def action() -> str:
-            results = send_all(self.config, endpoint)
+            task = None
+            if not self.recording:
+                task = self.build_current_task()
+                self.active_task = task
+            results = send_all(self.config, endpoint, task=task)
             self.recording = not self.recording
             button_text = "STOP REC" if self.recording else "START REC"
             self.root.after(0, lambda: self.record_button.configure(text=button_text))
             self.root.after(0, self.start_timer if self.recording else self.stop_timer)
             if self.recording:
                 self._session_started_at["http"] = time.time()
+                if self.active_task:
+                    task_text = (
+                        f"{self.active_task.get('mode')} / {self.active_task.get('word')} "
+                        f"/ take {self.active_task.get('take_label')}"
+                    )
+                    self.root.after(0, lambda: self.write(f"START task: {task_text}"))
             else:
+                self.root.after(0, self.complete_current_task)
+                videos = list_videos_all(self.config)
+                self.root.after(0, lambda: self.refresh_videos_table(videos))
                 self.root.after(0, lambda: self.record_session_history("http"))
             return format_results("Команда отправлена:", results)
 

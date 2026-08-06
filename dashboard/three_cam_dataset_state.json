@@ -1,0 +1,714 @@
+{
+  "selected_signer_id": "signer_14",
+  "words": [
+    {
+      "word_id": 1,
+      "page": 12,
+      "uzbek": "Tashakkur, minnatdorchilik",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 2,
+      "page": 12,
+      "uzbek": "Sizning (sening, uning, ularning)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 3,
+      "page": 12,
+      "uzbek": "Birdan, to'satdan (vo-qea, tasodif)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 4,
+      "page": 13,
+      "uzbek": "To'g'ri (haq, rost)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 5,
+      "page": 13,
+      "uzbek": "Birgalikda (birga)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 6,
+      "page": 14,
+      "uzbek": "Bexosdan (kutilma-ganda)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 7,
+      "page": 14,
+      "uzbek": "Hamma",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 8,
+      "page": 14,
+      "uzbek": "Atigi, faqat (hammasi)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 9,
+      "page": 15,
+      "uzbek": "Siz (sizlar)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 10,
+      "page": 15,
+      "uzbek": "Qayerda",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 11,
+      "page": 16,
+      "uzbek": "-gacha, -guncha",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 12,
+      "page": 16,
+      "uzbek": "Xayr",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 13,
+      "page": 16,
+      "uzbek": "Agar (ehtimol, bo'lsa ham, garchi)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 14,
+      "page": 16,
+      "uzbek": "Yana",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 15,
+      "page": 17,
+      "uzbek": "Nimaga (nima uchun)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 16,
+      "page": 17,
+      "uzbek": "Assalomu alaykum",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 17,
+      "page": 17,
+      "uzbek": "Bor (ega bo'lmoq)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 18,
+      "page": 18,
+      "uzbek": "Yoki (ikki holdan birini tanlab olish zaruriyati)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 19,
+      "page": 18,
+      "uzbek": "Har (har bir)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 20,
+      "page": 19,
+      "uzbek": "Qanday, qanaqa",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 21,
+      "page": 19,
+      "uzbek": "Tamom (oxir, nihoya)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 22,
+      "page": 19,
+      "uzbek": "Qaysi (bu, chunki)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 23,
+      "page": 20,
+      "uzbek": "Kim",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 24,
+      "page": 20,
+      "uzbek": "Qayerga",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 25,
+      "page": 20,
+      "uzbek": "Ortiqcha",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 26,
+      "page": 21,
+      "uzbek": "O'rtasida, oraliqda",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 27,
+      "page": 21,
+      "uzbek": "Ko'p",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 28,
+      "page": 21,
+      "uzbek": "Biz",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 29,
+      "page": 22,
+      "uzbek": "Mening",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 30,
+      "page": 22,
+      "uzbek": "Mumkin (ehtimol)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 31,
+      "page": 22,
+      "uzbek": "Uchrashmoq",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 32,
+      "page": 23,
+      "uzbek": "Kerak (zarur, kerakli)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 33,
+      "page": 23,
+      "uzbek": "Kerak emas",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 34,
+      "page": 23,
+      "uzbek": "Teskari",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 35,
+      "page": 24,
+      "uzbek": "Behuda, foydasiz",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 36,
+      "page": 24,
+      "uzbek": "Masalan",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 37,
+      "page": 24,
+      "uzbek": "Haqiqiy (asl nusxa)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 38,
+      "page": 25,
+      "uzbek": "Boshlamoq",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 39,
+      "page": 25,
+      "uzbek": "Imkon yo'q",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 40,
+      "page": 26,
+      "uzbek": "Bir nechta",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 41,
+      "page": 26,
+      "uzbek": "Yaramaydi, mumkin emas",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 42,
+      "page": 26,
+      "uzbek": "Yo'q",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 43,
+      "page": 27,
+      "uzbek": "Hech vaqt, aslo",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 44,
+      "page": 27,
+      "uzbek": "Hech kim",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 45,
+      "page": 27,
+      "uzbek": "Hech narsa",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 46,
+      "page": 28,
+      "uzbek": "Odatdagi (oddiy)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 47,
+      "page": 28,
+      "uzbek": "Vazifa, majburiyat",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 48,
+      "page": 28,
+      "uzbek": "U (ular)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 49,
+      "page": 29,
+      "uzbek": "Yana",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 50,
+      "page": 29,
+      "uzbek": "Qayerdan (ko’rinib qolmoq, paydo bo’lmoq)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 51,
+      "page": 29,
+      "uzbek": "Juda (haddan tashqari)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 52,
+      "page": 30,
+      "uzbek": "Marhamat (iltimos, iltimos qilmoq)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 53,
+      "page": 30,
+      "uzbek": "Nima uchun, nimaga",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 54,
+      "page": 30,
+      "uzbek": "Sabab",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 55,
+      "page": 31,
+      "uzbek": "Ayrim-ayrim, dona-dona, alohida",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 56,
+      "page": 31,
+      "uzbek": "Har xil (turli-tuman)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 57,
+      "page": 32,
+      "uzbek": "Yonma-yon (yonida, qo'shni)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 58,
+      "page": 32,
+      "uzbek": "Eng (birinchi)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 59,
+      "page": 32,
+      "uzbek": "O'ziniki (xususiy)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 60,
+      "page": 33,
+      "uzbek": "O'zini (o'ziga, olijanob, ziyoli)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 61,
+      "page": 33,
+      "uzbek": "O'rtasi(o'rta)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 62,
+      "page": 34,
+      "uzbek": "Yangilik (yangi)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 63,
+      "page": 34,
+      "uzbek": "Maxsus (ixtisos, hunar)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 64,
+      "page": 34,
+      "uzbek": "Ham (bir xil, teng)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 65,
+      "page": 35,
+      "uzbek": "Faqat, nuqul",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 66,
+      "page": 35,
+      "uzbek": "Sen",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 67,
+      "page": 35,
+      "uzbek": "Yetar",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 68,
+      "page": 36,
+      "uzbek": "Yetarli emas (yetishmaslik, kam chiqish) He",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 69,
+      "page": 36,
+      "uzbek": "Xohlamoq (istamoq, istak)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 70,
+      "page": 36,
+      "uzbek": "Xohlamaslik (istamaslik)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 71,
+      "page": 37,
+      "uzbek": "Kimning",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 72,
+      "page": 37,
+      "uzbek": "Nima",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 73,
+      "page": 37,
+      "uzbek": "Rioya qilmoq (bajarmoq)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 74,
+      "page": 38,
+      "uzbek": "Qachon",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 75,
+      "page": 38,
+      "uzbek": "Boshqa (boshqacha)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 76,
+      "page": 38,
+      "uzbek": "Natija, jami, yakun",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 77,
+      "page": 39,
+      "uzbek": "Farq, tafovut",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 78,
+      "page": 39,
+      "uzbek": "O'zi",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 79,
+      "page": 40,
+      "uzbek": "Siz",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 80,
+      "page": 40,
+      "uzbek": "Xursandlik (shodlik, sevinch, quvonch)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 81,
+      "page": 40,
+      "uzbek": "O'lim (vafot etish, o'lik)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 82,
+      "page": 41,
+      "uzbek": "Kulgi (kulish)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 83,
+      "page": 41,
+      "uzbek": "Shoshmoq (shoshilmoq)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 84,
+      "page": 41,
+      "uzbek": "Osoyishtalik, jimjitlik",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 85,
+      "page": 42,
+      "uzbek": "Avlod",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 86,
+      "page": 44,
+      "uzbek": "Buvi",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 87,
+      "page": 44,
+      "uzbek": "Egizaklar",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 88,
+      "page": 44,
+      "uzbek": "Nikon (uylanish, erga tegish, er-xot-inlik.)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 89,
+      "page": 45,
+      "uzbek": "Aka",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 90,
+      "page": 45,
+      "uzbek": "Katta",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 91,
+      "page": 45,
+      "uzbek": "Tarbiyalamoq",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 92,
+      "page": 46,
+      "uzbek": "Mehmon (tashrif)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 93,
+      "page": 46,
+      "uzbek": "Sayr qilmoq",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 94,
+      "page": 46,
+      "uzbek": "Sovg'a qilmoq",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 95,
+      "page": 46,
+      "uzbek": "Nasihat qilmoq (ta'sir etish)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 96,
+      "page": 47,
+      "uzbek": "Yosh",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 97,
+      "page": 47,
+      "uzbek": "Qizbola",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 98,
+      "page": 47,
+      "uzbek": "Buva, bobo",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 99,
+      "page": 48,
+      "uzbek": "Bolalar",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    },
+    {
+      "word_id": 100,
+      "page": 48,
+      "uzbek": "Aziz (qimmatli, qimmat)",
+      "source_pdf": "set_01_words_0001_0100.xlsm - Google Sheets.pdf",
+      "source_set": "set_01"
+    }
+  ],
+  "main_word_index": 1,
+  "view_word_index": 1,
+  "gesture_count": 1,
+  "takes_done_by_word": {
+    "1": 1
+  },
+  "background_mode": false,
+  "manual_back_mode": false,
+  "retake_mode": false
+}

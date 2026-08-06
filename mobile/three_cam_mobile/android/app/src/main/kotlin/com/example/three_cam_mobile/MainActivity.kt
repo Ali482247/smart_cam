@@ -1,6 +1,7 @@
 package com.example.three_cam_mobile
 
 import android.content.ContentValues
+import android.content.ContentUris
 import android.content.Context
 import android.content.IntentFilter
 import android.os.BatteryManager
@@ -29,16 +30,38 @@ class MainActivity : FlutterActivity() {
                 "saveVideoToDcim" -> {
                     val sourcePath = call.argument<String>("sourcePath")
                     val displayName = call.argument<String>("displayName")
+                    val relativeDir = call.argument<String>("relativeDir")
                     if (sourcePath.isNullOrBlank() || displayName.isNullOrBlank()) {
                         result.error("bad_args", "sourcePath and displayName are required", null)
                         return@setMethodCallHandler
                     }
 
                     try {
-                        val savedPath = saveVideoToDcim(sourcePath, displayName)
+                        val savedPath = saveVideoToDcim(sourcePath, displayName, relativeDir)
                         result.success(savedPath)
                     } catch (error: Exception) {
                         result.error("save_failed", error.message, null)
+                    }
+                }
+                "deleteThreeCamDcimVideos" -> {
+                    try {
+                        result.success(deleteThreeCamDcimVideos())
+                    } catch (error: Exception) {
+                        result.error("delete_failed", error.message, null)
+                    }
+                }
+                "markDcimVideoError" -> {
+                    val relativePath = call.argument<String>("relativePath")
+                    val newDisplayName = call.argument<String>("newDisplayName")
+                    if (relativePath.isNullOrBlank() || newDisplayName.isNullOrBlank()) {
+                        result.error("bad_args", "relativePath and newDisplayName are required", null)
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        result.success(markDcimVideoError(relativePath, newDisplayName))
+                    } catch (error: Exception) {
+                        result.error("mark_failed", error.message, null)
                     }
                 }
                 "getDeviceStatus" -> result.success(deviceStatus())
@@ -100,9 +123,14 @@ class MainActivity : FlutterActivity() {
         return plugged != -1 && plugged != 0
     }
 
-    private fun saveVideoToDcim(sourcePath: String, displayName: String): String {
+    private fun saveVideoToDcim(sourcePath: String, displayName: String, relativeDir: String?): String {
         val source = File(sourcePath)
         require(source.exists()) { "Source video does not exist: $sourcePath" }
+        val safeRelativeDir = relativeDir
+            ?.trim('/')
+            ?.replace("\\", "/")
+            ?.takeIf { it.isNotBlank() }
+            ?: "ThreeCam"
 
         val resolver = applicationContext.contentResolver
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -117,7 +145,7 @@ class MainActivity : FlutterActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 put(
                     MediaStore.Video.Media.RELATIVE_PATH,
-                    "${Environment.DIRECTORY_DCIM}/ThreeCam"
+                    "${Environment.DIRECTORY_DCIM}/$safeRelativeDir"
                 )
                 put(MediaStore.Video.Media.IS_PENDING, 1)
             }
@@ -140,6 +168,85 @@ class MainActivity : FlutterActivity() {
             resolver.update(uri, doneValues, null, null)
         }
 
-        return "DCIM/ThreeCam/$displayName"
+        return "DCIM/$safeRelativeDir/$displayName"
+    }
+
+    private fun deleteThreeCamDcimVideos(): Int {
+        val resolver = applicationContext.contentResolver
+        val collection = videoCollection()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            resolver.delete(
+                collection,
+                "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ?",
+                arrayOf("${Environment.DIRECTORY_DCIM}/ThreeCam/%")
+            )
+        } else {
+            resolver.delete(
+                collection,
+                "${MediaStore.Video.Media.DATA} LIKE ?",
+                arrayOf("%/${Environment.DIRECTORY_DCIM}/ThreeCam/%")
+            )
+        }
+    }
+
+    private fun markDcimVideoError(relativePath: String, newDisplayName: String): Boolean {
+        val normalized = relativePath.trim('/').replace("\\", "/")
+        val oldDisplayName = normalized.substringAfterLast('/')
+        val parent = normalized.substringBeforeLast('/', "")
+        val resolver = applicationContext.contentResolver
+        val collection = videoCollection()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val dcimRelativePath = buildString {
+                append(Environment.DIRECTORY_DCIM)
+                append("/ThreeCam/")
+                if (parent.isNotBlank()) {
+                    append(parent)
+                    append("/")
+                }
+            }
+            val values = ContentValues().apply {
+                put(MediaStore.Video.Media.DISPLAY_NAME, newDisplayName)
+            }
+            return resolver.update(
+                collection,
+                values,
+                "${MediaStore.Video.Media.RELATIVE_PATH} = ? AND ${MediaStore.Video.Media.DISPLAY_NAME} = ?",
+                arrayOf(dcimRelativePath, oldDisplayName)
+            ) > 0
+        }
+
+        val cursor = resolver.query(
+            collection,
+            arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA),
+            "${MediaStore.Video.Media.DATA} LIKE ?",
+            arrayOf("%/${Environment.DIRECTORY_DCIM}/ThreeCam/$normalized"),
+            null
+        ) ?: return false
+        cursor.use {
+            if (!it.moveToFirst()) {
+                return false
+            }
+            val id = it.getLong(0)
+            val dataPath = it.getString(1)
+            val source = File(dataPath)
+            val target = File(source.parentFile, newDisplayName)
+            val renamed = source.renameTo(target)
+            if (renamed) {
+                val uri = ContentUris.withAppendedId(collection, id)
+                val values = ContentValues().apply {
+                    put(MediaStore.Video.Media.DISPLAY_NAME, newDisplayName)
+                    put(MediaStore.Video.Media.DATA, target.absolutePath)
+                }
+                resolver.update(uri, values, null, null)
+            }
+            return renamed
+        }
+    }
+
+    private fun videoCollection() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    } else {
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
     }
 }

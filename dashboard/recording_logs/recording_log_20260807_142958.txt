@@ -1,0 +1,620 @@
+2026-08-07T13:55:01 | START session=20260807_135500_357 index=357 signer=signer_1 word_id= word=background take=a
+2026-08-07T13:55:01 | START_ACK device_2: ok
+2026-08-07T13:55:01 | START_ACK device_1: ok
+2026-08-07T13:55:01 | START_ACK device_3: ok
+2026-08-07T13:55:19 | STOP session=20260807_135500_357 index=357 signer=signer_1 word_id= word=background take=a
+2026-08-07T13:55:19 | STOP_SAVE device_1: ok session=20260807_135500_357
+2026-08-07T13:55:19 | STOP_SAVE device_2: ok session=20260807_135500_357
+2026-08-07T13:55:19 | STOP_SAVE device_3: ok session=20260807_135500_357
+2026-08-07T13:55:19 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135519.txt
+2026-08-07T13:55:46 | START session=20260807_135545_358 index=358 signer=signer_1 word_id=201 word=Qaychi take=a
+2026-08-07T13:55:46 | START_ACK device_2: ok
+2026-08-07T13:55:46 | START_ACK device_1: ok
+2026-08-07T13:55:46 | START_ACK device_3: ok
+2026-08-07T13:55:53 | STOP session=20260807_135545_358 index=358 signer=signer_1 word_id=201 word=Qaychi take=a
+2026-08-07T13:55:53 | STOP_SAVE device_2: ok session=20260807_135545_358 video=background_a_device_2_20260807_135500_357.mp4 size=37.6 MB
+2026-08-07T13:55:53 | STOP_SAVE device_1: ok session=20260807_135545_358 video=background_a_device_1_20260807_135500_357.mp4 size=37.7 MB
+2026-08-07T13:55:53 | STOP_SAVE device_3: ok session=20260807_135545_358 video=background_a_device_3_20260807_135500_357.mp4 size=37.1 MB
+2026-08-07T13:55:53 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135553.txt
+2026-08-07T13:56:10 | START session=20260807_135610_359 index=359 signer=signer_1 word_id=202 word=Gul qog'oz take=a
+2026-08-07T13:56:11 | START_ACK device_1: ok
+2026-08-07T13:56:11 | START_ACK device_2: ok
+2026-08-07T13:56:11 | START_ACK device_3: ok
+2026-08-07T13:56:19 | STOP session=20260807_135610_359 index=359 signer=signer_1 word_id=202 word=Gul qog'oz take=a
+2026-08-07T13:56:19 | STOP_SAVE device_1: ok session=20260807_135610_359 video=201_Qaychi_a_device_1_20260807_135545_358.mp4 size=13.2 MB
+2026-08-07T13:56:19 | STOP_SAVE device_3: ok session=20260807_135610_359 video=201_Qaychi_a_device_3_20260807_135545_358.mp4 size=13.0 MB
+2026-08-07T13:56:19 | STOP_SAVE device_2: ok session=20260807_135610_359 video=201_Qaychi_a_device_2_20260807_135545_358.mp4 size=13.4 MB
+2026-08-07T13:56:19 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135619.txt
+2026-08-07T13:56:35 | START session=20260807_135635_360 index=360 signer=signer_1 word_id=203 word=Odeyal (ko'rpa) take=a
+2026-08-07T13:56:35 | START_ACK device_1: ok
+2026-08-07T13:56:35 | START_ACK device_3: ok
+2026-08-07T13:56:35 | START_ACK device_2: ok
+2026-08-07T13:56:43 | STOP session=20260807_135635_360 index=360 signer=signer_1 word_id=203 word=Odeyal (ko'rpa) take=a
+2026-08-07T13:56:43 | STOP_SAVE device_3: ok session=20260807_135635_360 video=202_Gul_qog_oz_a_device_3_20260807_135610_359.mp4 size=13.9 MB
+2026-08-07T13:56:43 | STOP_SAVE device_1: ok session=20260807_135635_360 video=202_Gul_qog_oz_a_device_1_20260807_135610_359.mp4 size=14.3 MB
+2026-08-07T13:56:43 | STOP_SAVE device_2: ok session=20260807_135635_360 video=202_Gul_qog_oz_a_device_2_20260807_135610_359.mp4 size=14.7 MB
+2026-08-07T13:56:43 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135643.txt
+2026-08-07T13:57:00 | START session=20260807_135659_361 index=361 signer=signer_1 word_id=204 word=Deraza take=a
+2026-08-07T13:57:00 | START_ACK device_1: ok
+2026-08-07T13:57:00 | START_ACK device_2: ok
+2026-08-07T13:57:00 | START_ACK device_3: ok
+2026-08-07T13:57:07 | STOP session=20260807_135659_361 index=361 signer=signer_1 word_id=204 word=Deraza take=a
+2026-08-07T13:57:07 | STOP_SAVE device_1: ok session=20260807_135659_361 video=203_Odeyal_ko_rpa_a_device_1_20260807_135635_360.mp4 size=13.2 MB
+2026-08-07T13:57:07 | STOP_SAVE device_2: ok session=20260807_135659_361 video=203_Odeyal_ko_rpa_a_device_2_20260807_135635_360.mp4 size=12.5 MB
+2026-08-07T13:57:07 | STOP_SAVE device_3: ok session=20260807_135659_361 video=203_Odeyal_ko_rpa_a_device_3_20260807_135635_360.mp4 size=12.4 MB
+2026-08-07T13:57:08 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135707.txt
+2026-08-07T13:57:29 | START session=20260807_135728_362 index=362 signer=signer_1 word_id=205 word=Ko'rpa jilti take=a
+2026-08-07T13:57:29 | START_ACK device_1: ok
+2026-08-07T13:57:29 | START_ACK device_2: ok
+2026-08-07T13:57:29 | START_ACK device_3: ok
+2026-08-07T13:57:37 | STOP session=20260807_135728_362 index=362 signer=signer_1 word_id=205 word=Ko'rpa jilti take=a
+2026-08-07T13:57:37 | STOP_SAVE device_1: ok session=20260807_135728_362 video=204_Deraza_a_device_1_20260807_135659_361.mp4 size=13.5 MB
+2026-08-07T13:57:37 | STOP_SAVE device_2: ok session=20260807_135728_362 video=204_Deraza_a_device_2_20260807_135659_361.mp4 size=13.1 MB
+2026-08-07T13:57:37 | STOP_SAVE device_3: ok session=20260807_135728_362 video=204_Deraza_a_device_3_20260807_135659_361.mp4 size=12.8 MB
+2026-08-07T13:57:37 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135737.txt
+2026-08-07T13:57:54 | START session=20260807_135754_363 index=363 signer=signer_1 word_id=205 word=Ko'rpa jilti take=b
+2026-08-07T13:57:54 | START_ACK device_2: ok
+2026-08-07T13:57:54 | START_ACK device_1: ok
+2026-08-07T13:57:54 | START_ACK device_3: ok
+2026-08-07T13:57:57 | STOP session=20260807_135754_363 index=363 signer=signer_1 word_id=205 word=Ko'rpa jilti take=b
+2026-08-07T13:57:57 | STOP_SAVE device_1: ok session=20260807_135754_363 video=205_Ko_rpa_jilti_a_device_1_20260807_135728_362.mp4 size=15.8 MB
+2026-08-07T13:57:57 | STOP_SAVE device_3: ok session=20260807_135754_363 video=205_Ko_rpa_jilti_a_device_3_20260807_135728_362.mp4 size=15.4 MB
+2026-08-07T13:57:57 | STOP_SAVE device_2: ok session=20260807_135754_363 video=205_Ko_rpa_jilti_a_device_2_20260807_135728_362.mp4 size=15.7 MB
+2026-08-07T13:57:57 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135757.txt
+2026-08-07T13:59:03 | START session=20260807_135902_364 index=364 signer=signer_1 word_id=205 word=Ko'rpa jilti take=c
+2026-08-07T13:59:03 | START_ACK device_1: ok
+2026-08-07T13:59:03 | START_ACK device_3: ok
+2026-08-07T13:59:03 | START_ACK device_2: ok
+2026-08-07T13:59:12 | STOP session=20260807_135902_364 index=364 signer=signer_1 word_id=205 word=Ko'rpa jilti take=c
+2026-08-07T13:59:12 | STOP_SAVE device_2: ok session=20260807_135902_364 video=205_Ko_rpa_jilti_b_device_2_20260807_135754_363.mp4 size=2.5 MB
+2026-08-07T13:59:12 | STOP_SAVE device_1: ok session=20260807_135902_364 video=205_Ko_rpa_jilti_b_device_1_20260807_135754_363.mp4 size=2.2 MB
+2026-08-07T13:59:12 | STOP_SAVE device_3: ok session=20260807_135902_364 video=205_Ko_rpa_jilti_b_device_3_20260807_135754_363.mp4 size=1.9 MB
+2026-08-07T13:59:12 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135912.txt
+2026-08-07T13:59:29 | START session=20260807_135929_365 index=365 signer=signer_1 word_id=206 word=Yostiq take=a
+2026-08-07T13:59:29 | START_ACK device_1: ok
+2026-08-07T13:59:29 | START_ACK device_2: ok
+2026-08-07T13:59:29 | START_ACK device_3: ok
+2026-08-07T13:59:39 | STOP session=20260807_135929_365 index=365 signer=signer_1 word_id=206 word=Yostiq take=a
+2026-08-07T13:59:39 | STOP_SAVE device_1: ok session=20260807_135929_365 video=205_Ko_rpa_jilti_c_device_1_20260807_135902_364.mp4 size=16.0 MB
+2026-08-07T13:59:39 | STOP_SAVE device_2: ok session=20260807_135929_365 video=205_Ko_rpa_jilti_c_device_2_20260807_135902_364.mp4 size=15.6 MB
+2026-08-07T13:59:39 | STOP_SAVE device_3: ok session=20260807_135929_365 video=205_Ko_rpa_jilti_c_device_3_20260807_135902_364.mp4 size=15.6 MB
+2026-08-07T13:59:39 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_135939.txt
+2026-08-07T13:59:58 | START session=20260807_135957_366 index=366 signer=signer_1 word_id=207 word=Tokcha take=a
+2026-08-07T13:59:58 | START_ACK device_3: ok
+2026-08-07T13:59:58 | START_ACK device_2: ok
+2026-08-07T13:59:58 | START_ACK device_1: ok
+2026-08-07T14:00:06 | STOP session=20260807_135957_366 index=366 signer=signer_1 word_id=207 word=Tokcha take=a
+2026-08-07T14:00:06 | STOP_SAVE device_3: ok session=20260807_135957_366 video=206_Yostiq_a_device_3_20260807_135929_365.mp4 size=17.6 MB
+2026-08-07T14:00:06 | STOP_SAVE device_1: ok session=20260807_135957_366 video=206_Yostiq_a_device_1_20260807_135929_365.mp4 size=18.0 MB
+2026-08-07T14:00:06 | STOP_SAVE device_2: ok session=20260807_135957_366 video=206_Yostiq_a_device_2_20260807_135929_365.mp4 size=18.0 MB
+2026-08-07T14:00:06 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140006.txt
+2026-08-07T14:00:25 | START session=20260807_140024_367 index=367 signer=signer_1 word_id=208 word=Sochiq take=a
+2026-08-07T14:00:25 | START_ACK device_3: ok
+2026-08-07T14:00:25 | START_ACK device_1: ok
+2026-08-07T14:00:25 | START_ACK device_2: ok
+2026-08-07T14:00:32 | STOP session=20260807_140024_367 index=367 signer=signer_1 word_id=208 word=Sochiq take=a
+2026-08-07T14:00:32 | STOP_SAVE device_2: ok session=20260807_140024_367 video=207_Tokcha_a_device_2_20260807_135957_366.mp4 size=13.3 MB
+2026-08-07T14:00:32 | STOP_SAVE device_1: ok session=20260807_140024_367 video=207_Tokcha_a_device_1_20260807_135957_366.mp4 size=13.4 MB
+2026-08-07T14:00:32 | STOP_SAVE device_3: ok session=20260807_140024_367 video=207_Tokcha_a_device_3_20260807_135957_366.mp4 size=13.2 MB
+2026-08-07T14:00:32 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140032.txt
+2026-08-07T14:01:26 | START session=20260807_140125_368 index=368 signer=signer_1 word_id=208 word=Sochiq take=b
+2026-08-07T14:01:26 | START_ACK device_2: ok
+2026-08-07T14:01:26 | START_ACK device_3: ok
+2026-08-07T14:01:26 | START_ACK device_1: ok
+2026-08-07T14:01:35 | STOP session=20260807_140125_368 index=368 signer=signer_1 word_id=208 word=Sochiq take=b
+2026-08-07T14:01:35 | STOP_SAVE device_1: ok session=20260807_140125_368 video=208_Sochiq_a_device_1_20260807_140024_367.mp4 size=13.1 MB
+2026-08-07T14:01:35 | STOP_SAVE device_2: ok session=20260807_140125_368 video=208_Sochiq_a_device_2_20260807_140024_367.mp4 size=13.2 MB
+2026-08-07T14:01:35 | STOP_SAVE device_3: ok session=20260807_140125_368 video=208_Sochiq_a_device_3_20260807_140024_367.mp4 size=13.3 MB
+2026-08-07T14:01:35 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140135.txt
+2026-08-07T14:01:53 | START session=20260807_140153_369 index=369 signer=signer_1 word_id=209 word=Choyshab take=a
+2026-08-07T14:01:53 | START_ACK device_2: ok
+2026-08-07T14:01:53 | START_ACK device_1: ok
+2026-08-07T14:01:53 | START_ACK device_3: ok
+2026-08-07T14:02:03 | STOP session=20260807_140153_369 index=369 signer=signer_1 word_id=209 word=Choyshab take=a
+2026-08-07T14:02:03 | STOP_SAVE device_2: ok session=20260807_140153_369 video=208_Sochiq_b_device_2_20260807_140125_368.mp4 size=18.3 MB
+2026-08-07T14:02:03 | STOP_SAVE device_3: ok session=20260807_140153_369 video=208_Sochiq_b_device_3_20260807_140125_368.mp4 size=17.5 MB
+2026-08-07T14:02:03 | STOP_SAVE device_1: ok session=20260807_140153_369 video=208_Sochiq_b_device_1_20260807_140125_368.mp4 size=18.1 MB
+2026-08-07T14:02:03 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140203.txt
+2026-08-07T14:02:21 | START session=20260807_140220_370 index=370 signer=signer_1 word_id=210 word=Propiska take=a
+2026-08-07T14:02:21 | START_ACK device_3: ok
+2026-08-07T14:02:21 | START_ACK device_2: ok
+2026-08-07T14:02:21 | START_ACK device_1: ok
+2026-08-07T14:02:29 | STOP session=20260807_140220_370 index=370 signer=signer_1 word_id=210 word=Propiska take=a
+2026-08-07T14:02:29 | STOP_SAVE device_1: ok session=20260807_140220_370 video=209_Choyshab_a_device_1_20260807_140153_369.mp4 size=18.5 MB
+2026-08-07T14:02:29 | STOP_SAVE device_3: ok session=20260807_140220_370 video=209_Choyshab_a_device_3_20260807_140153_369.mp4 size=18.2 MB
+2026-08-07T14:02:29 | STOP_SAVE device_2: ok session=20260807_140220_370 video=209_Choyshab_a_device_2_20260807_140153_369.mp4 size=18.6 MB
+2026-08-07T14:02:29 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140229.txt
+2026-08-07T14:02:55 | START session=20260807_140254_371 index=371 signer=signer_1 word_id=211 word=Chang yutkich take=a
+2026-08-07T14:02:55 | START_ACK device_3: ok
+2026-08-07T14:02:55 | START_ACK device_2: ok
+2026-08-07T14:02:55 | START_ACK device_1: ok
+2026-08-07T14:03:03 | STOP session=20260807_140254_371 index=371 signer=signer_1 word_id=211 word=Chang yutkich take=a
+2026-08-07T14:03:03 | STOP_SAVE device_2: ok session=20260807_140254_371 video=210_Propiska_a_device_2_20260807_140220_370.mp4 size=14.9 MB
+2026-08-07T14:03:03 | STOP_SAVE device_3: ok session=20260807_140254_371 video=210_Propiska_a_device_3_20260807_140220_370.mp4 size=14.7 MB
+2026-08-07T14:03:03 | STOP_SAVE device_1: ok session=20260807_140254_371 video=210_Propiska_a_device_1_20260807_140220_370.mp4 size=14.9 MB
+2026-08-07T14:03:03 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140303.txt
+2026-08-07T14:03:28 | START session=20260807_140327_372 index=372 signer=signer_1 word_id=211 word=Chang yutkich take=b
+2026-08-07T14:03:28 | START_ACK device_3: ok
+2026-08-07T14:03:28 | START_ACK device_2: ok
+2026-08-07T14:03:28 | START_ACK device_1: ok
+2026-08-07T14:03:36 | STOP session=20260807_140327_372 index=372 signer=signer_1 word_id=211 word=Chang yutkich take=b
+2026-08-07T14:03:36 | STOP_SAVE device_2: ok session=20260807_140327_372 video=211_Chang_yutkich_a_device_2_20260807_140254_371.mp4 size=13.7 MB
+2026-08-07T14:03:36 | STOP_SAVE device_1: ok session=20260807_140327_372 video=211_Chang_yutkich_a_device_1_20260807_140254_371.mp4 size=13.9 MB
+2026-08-07T14:03:36 | STOP_SAVE device_3: ok session=20260807_140327_372 video=211_Chang_yutkich_a_device_3_20260807_140254_371.mp4 size=13.6 MB
+2026-08-07T14:03:36 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140336.txt
+2026-08-07T14:03:54 | START session=20260807_140353_373 index=373 signer=signer_1 word_id=212 word=Radio take=a
+2026-08-07T14:03:54 | START_ACK device_3: ok
+2026-08-07T14:03:54 | START_ACK device_2: ok
+2026-08-07T14:03:54 | START_ACK device_1: ERROR: <urlopen error timed out>
+2026-08-07T14:03:58 | STOP session=20260807_140353_373 index=373 signer=signer_1 word_id=212 word=Radio take=a
+2026-08-07T14:03:58 | STOP_SAVE device_1: ok session=20260807_140327_372 video=211_Chang_yutkich_b_device_1_20260807_140327_372.mp4 size=13.4 MB
+2026-08-07T14:03:58 | STOP_SAVE device_3: ok session=20260807_140353_373 video=211_Chang_yutkich_b_device_3_20260807_140327_372.mp4 size=13.0 MB
+2026-08-07T14:03:58 | STOP_SAVE device_2: ok session=20260807_140353_373 video=211_Chang_yutkich_b_device_2_20260807_140327_372.mp4 size=13.3 MB
+2026-08-07T14:03:58 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140358.txt
+2026-08-07T14:04:16 | START session=20260807_140416_374 index=374 signer=signer_1 word_id=212 word=Radio take=b
+2026-08-07T14:04:16 | START_ACK device_3: ok
+2026-08-07T14:04:16 | START_ACK device_1: ok
+2026-08-07T14:04:16 | START_ACK device_2: ok
+2026-08-07T14:04:24 | STOP session=20260807_140416_374 index=374 signer=signer_1 word_id=212 word=Radio take=b
+2026-08-07T14:04:24 | STOP_SAVE device_1: ok session=20260807_140416_374 video=211_Chang_yutkich_b_device_1_20260807_140327_372.mp4 size=13.4 MB
+2026-08-07T14:04:24 | STOP_SAVE device_2: ok session=20260807_140416_374 video=212_Radio_a_device_2_20260807_140353_373.mp4 size=5.8 MB
+2026-08-07T14:04:24 | STOP_SAVE device_3: ok session=20260807_140416_374 video=212_Radio_a_device_3_20260807_140353_373.mp4 size=5.2 MB
+2026-08-07T14:04:24 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140424.txt
+2026-08-07T14:04:46 | START session=20260807_140445_375 index=375 signer=signer_1 word_id=213 word=Devor take=a
+2026-08-07T14:04:46 | START_ACK device_2: ok
+2026-08-07T14:04:46 | START_ACK device_3: ok
+2026-08-07T14:04:46 | START_ACK device_1: ok
+2026-08-07T14:04:54 | STOP session=20260807_140445_375 index=375 signer=signer_1 word_id=213 word=Devor take=a
+2026-08-07T14:04:54 | STOP_SAVE device_1: ok session=20260807_140445_375 video=212_Radio_b_device_1_20260807_140416_374.mp4 size=13.1 MB
+2026-08-07T14:04:54 | STOP_SAVE device_3: ok session=20260807_140445_375 video=212_Radio_b_device_3_20260807_140416_374.mp4 size=13.2 MB
+2026-08-07T14:04:54 | STOP_SAVE device_2: ok session=20260807_140445_375 video=212_Radio_b_device_2_20260807_140416_374.mp4 size=13.2 MB
+2026-08-07T14:04:54 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140454.txt
+2026-08-07T14:05:13 | START session=20260807_140512_376 index=376 signer=signer_1 word_id=214 word=Kir yuvadigan mashina take=a
+2026-08-07T14:05:13 | START_ACK device_2: ok
+2026-08-07T14:05:13 | START_ACK device_3: ok
+2026-08-07T14:05:13 | START_ACK device_1: ok
+2026-08-07T14:05:22 | STOP session=20260807_140512_376 index=376 signer=signer_1 word_id=214 word=Kir yuvadigan mashina take=a
+2026-08-07T14:05:22 | STOP_SAVE device_3: ok session=20260807_140512_376 video=213_Devor_a_device_3_20260807_140445_375.mp4 size=13.2 MB
+2026-08-07T14:05:22 | STOP_SAVE device_1: ok session=20260807_140512_376 video=213_Devor_a_device_1_20260807_140445_375.mp4 size=13.3 MB
+2026-08-07T14:05:22 | STOP_SAVE device_2: ok session=20260807_140512_376 video=213_Devor_a_device_2_20260807_140445_375.mp4 size=13.5 MB
+2026-08-07T14:05:22 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140522.txt
+2026-08-07T14:05:41 | START session=20260807_140541_377 index=377 signer=signer_1 word_id=215 word=Stol take=a
+2026-08-07T14:05:42 | START_ACK device_3: ok
+2026-08-07T14:05:42 | START_ACK device_2: ok
+2026-08-07T14:05:42 | START_ACK device_1: ok
+2026-08-07T14:05:50 | STOP session=20260807_140541_377 index=377 signer=signer_1 word_id=215 word=Stol take=a
+2026-08-07T14:05:50 | STOP_SAVE device_2: ok session=20260807_140541_377 video=214_Kir_yuvadigan_mashina_a_device_2_20260807_140512_376.mp4 size=17.2 MB
+2026-08-07T14:05:50 | STOP_SAVE device_3: ok session=20260807_140541_377 video=214_Kir_yuvadigan_mashina_a_device_3_20260807_140512_376.mp4 size=16.6 MB
+2026-08-07T14:05:50 | STOP_SAVE device_1: ok session=20260807_140541_377 video=214_Kir_yuvadigan_mashina_a_device_1_20260807_140512_376.mp4 size=17.1 MB
+2026-08-07T14:05:50 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140550.txt
+2026-08-07T14:06:10 | START session=20260807_140609_378 index=378 signer=signer_1 word_id=216 word=Stul take=a
+2026-08-07T14:06:10 | START_ACK device_3: ok
+2026-08-07T14:06:10 | START_ACK device_1: ok
+2026-08-07T14:06:10 | START_ACK device_2: ok
+2026-08-07T14:06:17 | STOP session=20260807_140609_378 index=378 signer=signer_1 word_id=216 word=Stul take=a
+2026-08-07T14:06:17 | STOP_SAVE device_1: ok session=20260807_140609_378 video=215_Stol_a_device_1_20260807_140541_377.mp4 size=13.6 MB
+2026-08-07T14:06:17 | STOP_SAVE device_3: ok session=20260807_140609_378 video=215_Stol_a_device_3_20260807_140541_377.mp4 size=13.6 MB
+2026-08-07T14:06:17 | STOP_SAVE device_2: ok session=20260807_140609_378 video=215_Stol_a_device_2_20260807_140541_377.mp4 size=14.0 MB
+2026-08-07T14:06:17 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140617.txt
+2026-08-07T14:06:36 | START session=20260807_140635_379 index=379 signer=signer_1 word_id=217 word=Televizor take=a
+2026-08-07T14:06:36 | START_ACK device_3: ok
+2026-08-07T14:06:36 | START_ACK device_1: ok
+2026-08-07T14:06:36 | START_ACK device_2: ok
+2026-08-07T14:06:44 | STOP session=20260807_140635_379 index=379 signer=signer_1 word_id=217 word=Televizor take=a
+2026-08-07T14:06:44 | STOP_SAVE device_1: ok session=20260807_140635_379 video=216_Stul_a_device_1_20260807_140609_378.mp4 size=13.3 MB
+2026-08-07T14:06:44 | STOP_SAVE device_2: ok session=20260807_140635_379 video=216_Stul_a_device_2_20260807_140609_378.mp4 size=12.8 MB
+2026-08-07T14:06:44 | STOP_SAVE device_3: ok session=20260807_140635_379 video=216_Stul_a_device_3_20260807_140609_378.mp4 size=12.4 MB
+2026-08-07T14:06:44 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140644.txt
+2026-08-07T14:07:04 | START session=20260807_140704_380 index=380 signer=signer_1 word_id=218 word=Telefon take=a
+2026-08-07T14:07:04 | START_ACK device_3: ok
+2026-08-07T14:07:04 | START_ACK device_1: ok
+2026-08-07T14:07:04 | START_ACK device_2: ok
+2026-08-07T14:07:12 | STOP session=20260807_140704_380 index=380 signer=signer_1 word_id=218 word=Telefon take=a
+2026-08-07T14:07:12 | STOP_SAVE device_3: ok session=20260807_140704_380 video=217_Televizor_a_device_3_20260807_140635_379.mp4 size=15.1 MB
+2026-08-07T14:07:12 | STOP_SAVE device_1: ok session=20260807_140704_380 video=217_Televizor_a_device_1_20260807_140635_379.mp4 size=15.3 MB
+2026-08-07T14:07:12 | STOP_SAVE device_2: ok session=20260807_140704_380 video=217_Televizor_a_device_2_20260807_140635_379.mp4 size=15.0 MB
+2026-08-07T14:07:12 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140712.txt
+2026-08-07T14:07:34 | START session=20260807_140733_381 index=381 signer=signer_1 word_id=218 word=Telefon take=b
+2026-08-07T14:07:34 | START_ACK device_1: ok
+2026-08-07T14:07:34 | START_ACK device_3: ok
+2026-08-07T14:07:34 | START_ACK device_2: ok
+2026-08-07T14:07:42 | STOP session=20260807_140733_381 index=381 signer=signer_1 word_id=218 word=Telefon take=b
+2026-08-07T14:07:42 | STOP_SAVE device_2: ok session=20260807_140733_381 video=218_Telefon_a_device_2_20260807_140704_380.mp4 size=13.5 MB
+2026-08-07T14:07:42 | STOP_SAVE device_1: ok session=20260807_140733_381 video=218_Telefon_a_device_1_20260807_140704_380.mp4 size=13.4 MB
+2026-08-07T14:07:42 | STOP_SAVE device_3: ok session=20260807_140733_381 video=218_Telefon_a_device_3_20260807_140704_380.mp4 size=13.2 MB
+2026-08-07T14:07:42 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140742.txt
+2026-08-07T14:08:10 | START session=20260807_140809_382 index=382 signer=signer_1 word_id=218 word=Telefon take=c
+2026-08-07T14:08:10 | START_ACK device_2: ok
+2026-08-07T14:08:10 | START_ACK device_1: ok
+2026-08-07T14:08:10 | START_ACK device_3: ok
+2026-08-07T14:08:17 | STOP session=20260807_140809_382 index=382 signer=signer_1 word_id=218 word=Telefon take=c
+2026-08-07T14:08:17 | STOP_SAVE device_3: ok session=20260807_140809_382 video=218_Telefon_b_device_3_20260807_140733_381.mp4 size=14.2 MB
+2026-08-07T14:08:17 | STOP_SAVE device_2: ok session=20260807_140809_382 video=218_Telefon_b_device_2_20260807_140733_381.mp4 size=14.5 MB
+2026-08-07T14:08:17 | STOP_SAVE device_1: ok session=20260807_140809_382 video=218_Telefon_b_device_1_20260807_140733_381.mp4 size=14.6 MB
+2026-08-07T14:08:17 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140817.txt
+2026-08-07T14:08:37 | START session=20260807_140837_383 index=383 signer=signer_1 word_id=219 word=Hojatxona take=a
+2026-08-07T14:08:37 | START_ACK device_3: ok
+2026-08-07T14:08:37 | START_ACK device_1: ok
+2026-08-07T14:08:37 | START_ACK device_2: ok
+2026-08-07T14:08:45 | STOP session=20260807_140837_383 index=383 signer=signer_1 word_id=219 word=Hojatxona take=a
+2026-08-07T14:08:45 | STOP_SAVE device_1: ok session=20260807_140837_383 video=218_Telefon_c_device_1_20260807_140809_382.mp4 size=13.6 MB
+2026-08-07T14:08:46 | STOP_SAVE device_2: ok session=20260807_140837_383 video=218_Telefon_c_device_2_20260807_140809_382.mp4 size=13.4 MB
+2026-08-07T14:08:46 | STOP_SAVE device_3: ok session=20260807_140837_383 video=218_Telefon_c_device_3_20260807_140809_382.mp4 size=13.0 MB
+2026-08-07T14:08:46 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140846.txt
+2026-08-07T14:09:05 | START session=20260807_140905_384 index=384 signer=signer_1 word_id=220 word=Dazmol take=a
+2026-08-07T14:09:05 | START_ACK device_1: ok
+2026-08-07T14:09:05 | START_ACK device_2: ok
+2026-08-07T14:09:05 | START_ACK device_3: ok
+2026-08-07T14:09:13 | STOP session=20260807_140905_384 index=384 signer=signer_1 word_id=220 word=Dazmol take=a
+2026-08-07T14:09:13 | STOP_SAVE device_3: ok session=20260807_140905_384 video=219_Hojatxona_a_device_3_20260807_140837_383.mp4 size=12.9 MB
+2026-08-07T14:09:13 | STOP_SAVE device_1: ok session=20260807_140905_384 video=219_Hojatxona_a_device_1_20260807_140837_383.mp4 size=13.2 MB
+2026-08-07T14:09:13 | STOP_SAVE device_2: ok session=20260807_140905_384 video=219_Hojatxona_a_device_2_20260807_140837_383.mp4 size=13.4 MB
+2026-08-07T14:09:13 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140913.txt
+2026-08-07T14:09:43 | START session=20260807_140942_385 index=385 signer=signer_1 word_id=221 word=Faks take=a
+2026-08-07T14:09:43 | START_ACK device_3: ok
+2026-08-07T14:09:43 | START_ACK device_2: ok
+2026-08-07T14:09:43 | START_ACK device_1: ok
+2026-08-07T14:09:51 | STOP session=20260807_140942_385 index=385 signer=signer_1 word_id=221 word=Faks take=a
+2026-08-07T14:09:51 | STOP_SAVE device_3: ok session=20260807_140942_385 video=220_Dazmol_a_device_3_20260807_140905_384.mp4 size=13.1 MB
+2026-08-07T14:09:51 | STOP_SAVE device_1: ok session=20260807_140942_385 video=220_Dazmol_a_device_1_20260807_140905_384.mp4 size=13.6 MB
+2026-08-07T14:09:51 | STOP_SAVE device_2: ok session=20260807_140942_385 video=220_Dazmol_a_device_2_20260807_140905_384.mp4 size=13.7 MB
+2026-08-07T14:09:51 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_140951.txt
+2026-08-07T14:10:18 | START session=20260807_141017_386 index=386 signer=signer_1 word_id=222 word=Fortochka take=a
+2026-08-07T14:10:18 | START_ACK device_3: ok
+2026-08-07T14:10:18 | START_ACK device_2: ok
+2026-08-07T14:10:18 | START_ACK device_1: ok
+2026-08-07T14:10:25 | STOP session=20260807_141017_386 index=386 signer=signer_1 word_id=222 word=Fortochka take=a
+2026-08-07T14:10:25 | STOP_SAVE device_3: ok session=20260807_141017_386 video=221_Faks_a_device_3_20260807_140942_385.mp4 size=12.3 MB
+2026-08-07T14:10:25 | STOP_SAVE device_1: ok session=20260807_141017_386 video=221_Faks_a_device_1_20260807_140942_385.mp4 size=12.2 MB
+2026-08-07T14:10:25 | STOP_SAVE device_2: ok session=20260807_141017_386 video=221_Faks_a_device_2_20260807_140942_385.mp4 size=15.0 MB
+2026-08-07T14:10:25 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141025.txt
+2026-08-07T14:10:49 | START session=20260807_141049_387 index=387 signer=signer_1 word_id=223 word=Muzlatgich take=a
+2026-08-07T14:10:49 | START_ACK device_2: ok
+2026-08-07T14:10:49 | START_ACK device_1: ok
+2026-08-07T14:10:49 | START_ACK device_3: ok
+2026-08-07T14:10:57 | STOP session=20260807_141049_387 index=387 signer=signer_1 word_id=223 word=Muzlatgich take=a
+2026-08-07T14:10:57 | STOP_SAVE device_1: ok session=20260807_141049_387 video=222_Fortochka_a_device_1_20260807_141017_386.mp4 size=12.9 MB
+2026-08-07T14:10:57 | STOP_SAVE device_2: ok session=20260807_141049_387 video=222_Fortochka_a_device_2_20260807_141017_386.mp4 size=12.8 MB
+2026-08-07T14:10:57 | STOP_SAVE device_3: ok session=20260807_141049_387 video=222_Fortochka_a_device_3_20260807_141017_386.mp4 size=12.4 MB
+2026-08-07T14:10:57 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141057.txt
+2026-08-07T14:11:15 | START session=20260807_141115_388 index=388 signer=signer_1 word_id=224 word=Soat take=a
+2026-08-07T14:11:15 | START_ACK device_1: ok
+2026-08-07T14:11:15 | START_ACK device_3: ok
+2026-08-07T14:11:15 | START_ACK device_2: ok
+2026-08-07T14:11:24 | STOP session=20260807_141115_388 index=388 signer=signer_1 word_id=224 word=Soat take=a
+2026-08-07T14:11:24 | STOP_SAVE device_1: ok session=20260807_141115_388 video=223_Muzlatgich_a_device_1_20260807_141049_387.mp4 size=14.1 MB
+2026-08-07T14:11:24 | STOP_SAVE device_2: ok session=20260807_141115_388 video=223_Muzlatgich_a_device_2_20260807_141049_387.mp4 size=14.3 MB
+2026-08-07T14:11:24 | STOP_SAVE device_3: ok session=20260807_141115_388 video=223_Muzlatgich_a_device_3_20260807_141049_387.mp4 size=13.8 MB
+2026-08-07T14:11:24 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141124.txt
+2026-08-07T14:11:44 | START session=20260807_141144_389 index=389 signer=signer_1 word_id=224 word=Soat take=b
+2026-08-07T14:11:44 | START_ACK device_2: ok
+2026-08-07T14:11:44 | START_ACK device_1: ok
+2026-08-07T14:11:44 | START_ACK device_3: ok
+2026-08-07T14:11:53 | STOP session=20260807_141144_389 index=389 signer=signer_1 word_id=224 word=Soat take=b
+2026-08-07T14:11:53 | STOP_SAVE device_2: ok session=20260807_141144_389 video=224_Soat_a_device_2_20260807_141115_388.mp4 size=15.7 MB
+2026-08-07T14:11:53 | STOP_SAVE device_3: ok session=20260807_141144_389 video=224_Soat_a_device_3_20260807_141115_388.mp4 size=15.4 MB
+2026-08-07T14:11:53 | STOP_SAVE device_1: ok session=20260807_141144_389 video=224_Soat_a_device_1_20260807_141115_388.mp4 size=15.7 MB
+2026-08-07T14:11:53 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141153.txt
+2026-08-07T14:12:24 | START session=20260807_141224_390 index=390 signer=signer_1 word_id=225 word=Shkaf take=a
+2026-08-07T14:12:24 | START_ACK device_2: ok
+2026-08-07T14:12:24 | START_ACK device_3: ok
+2026-08-07T14:12:24 | START_ACK device_1: ok
+2026-08-07T14:12:33 | STOP session=20260807_141224_390 index=390 signer=signer_1 word_id=225 word=Shkaf take=a
+2026-08-07T14:12:33 | STOP_SAVE device_1: ok session=20260807_141224_390 video=224_Soat_b_device_1_20260807_141144_389.mp4 size=16.5 MB
+2026-08-07T14:12:33 | STOP_SAVE device_3: ok session=20260807_141224_390 video=224_Soat_b_device_3_20260807_141144_389.mp4 size=16.1 MB
+2026-08-07T14:12:33 | STOP_SAVE device_2: ok session=20260807_141224_390 video=224_Soat_b_device_2_20260807_141144_389.mp4 size=16.5 MB
+2026-08-07T14:12:33 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141233.txt
+2026-08-07T14:12:55 | START session=20260807_141255_391 index=391 signer=signer_1 word_id=225 word=Shkaf take=b
+2026-08-07T14:12:55 | START_ACK device_2: ok
+2026-08-07T14:12:55 | START_ACK device_3: ok
+2026-08-07T14:12:55 | START_ACK device_1: ok
+2026-08-07T14:13:05 | STOP session=20260807_141255_391 index=391 signer=signer_1 word_id=225 word=Shkaf take=b
+2026-08-07T14:13:05 | STOP_SAVE device_1: ok session=20260807_141255_391 video=225_Shkaf_a_device_1_20260807_141224_390.mp4 size=16.0 MB
+2026-08-07T14:13:05 | STOP_SAVE device_2: ok session=20260807_141255_391 video=225_Shkaf_a_device_2_20260807_141224_390.mp4 size=16.2 MB
+2026-08-07T14:13:05 | STOP_SAVE device_3: ok session=20260807_141255_391 video=225_Shkaf_a_device_3_20260807_141224_390.mp4 size=16.0 MB
+2026-08-07T14:13:05 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141305.txt
+2026-08-07T14:13:25 | START session=20260807_141324_392 index=392 signer=signer_1 word_id=226 word=Elektr quwati take=a
+2026-08-07T14:13:25 | START_ACK device_2: ok
+2026-08-07T14:13:25 | START_ACK device_1: ok
+2026-08-07T14:13:25 | START_ACK device_3: ok
+2026-08-07T14:13:33 | STOP session=20260807_141324_392 index=392 signer=signer_1 word_id=226 word=Elektr quwati take=a
+2026-08-07T14:13:33 | STOP_SAVE device_2: ok session=20260807_141324_392 video=225_Shkaf_b_device_2_20260807_141255_391.mp4 size=18.0 MB
+2026-08-07T14:13:33 | STOP_SAVE device_3: ok session=20260807_141324_392 video=225_Shkaf_b_device_3_20260807_141255_391.mp4 size=18.1 MB
+2026-08-07T14:13:33 | STOP_SAVE device_1: ok session=20260807_141324_392 video=225_Shkaf_b_device_1_20260807_141255_391.mp4 size=18.2 MB
+2026-08-07T14:13:33 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141333.txt
+2026-08-07T14:13:55 | START session=20260807_141355_393 index=393 signer=signer_1 word_id=227 word=Yig'ishtirmoq (tozalash) take=a
+2026-08-07T14:13:55 | START_ACK device_3: ok
+2026-08-07T14:13:55 | START_ACK device_1: ok
+2026-08-07T14:13:55 | START_ACK device_2: ok
+2026-08-07T14:14:02 | STOP session=20260807_141355_393 index=393 signer=signer_1 word_id=227 word=Yig'ishtirmoq (tozalash) take=a
+2026-08-07T14:14:02 | STOP_SAVE device_3: ok session=20260807_141355_393 video=226_Elektr_quwati_a_device_3_20260807_141324_392.mp4 size=13.2 MB
+2026-08-07T14:14:02 | STOP_SAVE device_1: ok session=20260807_141355_393 video=226_Elektr_quwati_a_device_1_20260807_141324_392.mp4 size=13.7 MB
+2026-08-07T14:14:02 | STOP_SAVE device_2: ok session=20260807_141355_393 video=226_Elektr_quwati_a_device_2_20260807_141324_392.mp4 size=13.8 MB
+2026-08-07T14:14:02 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141402.txt
+2026-08-07T14:14:24 | START session=20260807_141423_394 index=394 signer=signer_1 word_id=228 word=Ozodalik (ozodlik) take=a
+2026-08-07T14:14:24 | START_ACK device_1: ok
+2026-08-07T14:14:24 | START_ACK device_2: ok
+2026-08-07T14:14:24 | START_ACK device_3: ok
+2026-08-07T14:14:34 | STOP session=20260807_141423_394 index=394 signer=signer_1 word_id=228 word=Ozodalik (ozodlik) take=a
+2026-08-07T14:14:34 | STOP_SAVE device_2: ok session=20260807_141423_394 video=227_Yig_ishtirmoq_tozalash_a_device_2_20260807_141355_393.mp4 size=12.8 MB
+2026-08-07T14:14:34 | STOP_SAVE device_3: ok session=20260807_141423_394 video=227_Yig_ishtirmoq_tozalash_a_device_3_20260807_141355_393.mp4 size=12.3 MB
+2026-08-07T14:14:34 | STOP_SAVE device_1: ok session=20260807_141423_394 video=227_Yig_ishtirmoq_tozalash_a_device_1_20260807_141355_393.mp4 size=13.0 MB
+2026-08-07T14:14:34 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141434.txt
+2026-08-07T14:14:56 | START session=20260807_141455_395 index=395 signer=signer_1 word_id=229 word=Iﬂoslik (iﬂos, kir) take=a
+2026-08-07T14:14:56 | START_ACK device_3: ok
+2026-08-07T14:14:56 | START_ACK device_2: ok
+2026-08-07T14:14:56 | START_ACK device_1: ok
+2026-08-07T14:15:04 | STOP session=20260807_141455_395 index=395 signer=signer_1 word_id=229 word=Iﬂoslik (iﬂos, kir) take=a
+2026-08-07T14:15:04 | STOP_SAVE device_2: ok session=20260807_141455_395 video=228_Ozodalik_ozodlik_a_device_2_20260807_141423_394.mp4 size=19.5 MB
+2026-08-07T14:15:04 | STOP_SAVE device_1: ok session=20260807_141455_395 video=228_Ozodalik_ozodlik_a_device_1_20260807_141423_394.mp4 size=19.8 MB
+2026-08-07T14:15:04 | STOP_SAVE device_3: ok session=20260807_141455_395 video=228_Ozodalik_ozodlik_a_device_3_20260807_141423_394.mp4 size=18.4 MB
+2026-08-07T14:15:04 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141504.txt
+2026-08-07T14:15:23 | START session=20260807_141522_396 index=396 signer=signer_1 word_id=230 word=Qavat take=a
+2026-08-07T14:15:23 | START_ACK device_1: ok
+2026-08-07T14:15:23 | START_ACK device_2: ok
+2026-08-07T14:15:23 | START_ACK device_3: ok
+2026-08-07T14:15:31 | STOP session=20260807_141522_396 index=396 signer=signer_1 word_id=230 word=Qavat take=a
+2026-08-07T14:15:31 | STOP_SAVE device_3: ok session=20260807_141522_396 video=229_Iﬂoslik_iﬂos_kir_a_device_3_20260807_141455_395.mp4 size=13.2 MB
+2026-08-07T14:15:31 | STOP_SAVE device_2: ok session=20260807_141522_396 video=229_Iﬂoslik_iﬂos_kir_a_device_2_20260807_141455_395.mp4 size=13.4 MB
+2026-08-07T14:15:31 | STOP_SAVE device_1: ok session=20260807_141522_396 video=229_Iﬂoslik_iﬂos_kir_a_device_1_20260807_141455_395.mp4 size=13.6 MB
+2026-08-07T14:15:31 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141531.txt
+2026-08-07T14:15:51 | START session=20260807_141550_397 index=397 signer=signer_1 word_id=230 word=Qavat take=b
+2026-08-07T14:15:51 | START_ACK device_2: ok
+2026-08-07T14:15:51 | START_ACK device_1: ok
+2026-08-07T14:15:51 | START_ACK device_3: ok
+2026-08-07T14:16:00 | STOP session=20260807_141550_397 index=397 signer=signer_1 word_id=230 word=Qavat take=b
+2026-08-07T14:16:00 | STOP_SAVE device_3: ok session=20260807_141550_397 video=230_Qavat_a_device_3_20260807_141522_396.mp4 size=13.2 MB
+2026-08-07T14:16:00 | STOP_SAVE device_2: ok session=20260807_141550_397 video=230_Qavat_a_device_2_20260807_141522_396.mp4 size=13.6 MB
+2026-08-07T14:16:00 | STOP_SAVE device_1: ok session=20260807_141550_397 video=230_Qavat_a_device_1_20260807_141522_396.mp4 size=13.8 MB
+2026-08-07T14:16:00 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141600.txt
+2026-08-07T14:16:21 | START session=20260807_141620_398 index=398 signer=signer_1 word_id=231 word=Ishtaha take=a
+2026-08-07T14:16:21 | START_ACK device_3: ok
+2026-08-07T14:16:21 | START_ACK device_1: ok
+2026-08-07T14:16:21 | START_ACK device_2: ok
+2026-08-07T14:16:28 | STOP session=20260807_141620_398 index=398 signer=signer_1 word_id=231 word=Ishtaha take=a
+2026-08-07T14:16:28 | STOP_SAVE device_1: ok session=20260807_141620_398 video=230_Qavat_b_device_1_20260807_141550_397.mp4 size=16.6 MB
+2026-08-07T14:16:28 | STOP_SAVE device_2: ok session=20260807_141620_398 video=230_Qavat_b_device_2_20260807_141550_397.mp4 size=16.6 MB
+2026-08-07T14:16:28 | STOP_SAVE device_3: ok session=20260807_141620_398 video=230_Qavat_b_device_3_20260807_141550_397.mp4 size=16.4 MB
+2026-08-07T14:16:28 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141628.txt
+2026-08-07T14:16:50 | START session=20260807_141650_399 index=399 signer=signer_1 word_id=232 word=Banka take=a
+2026-08-07T14:16:50 | START_ACK device_1: ok
+2026-08-07T14:16:50 | START_ACK device_3: ok
+2026-08-07T14:16:50 | START_ACK device_2: ok
+2026-08-07T14:17:00 | STOP session=20260807_141650_399 index=399 signer=signer_1 word_id=232 word=Banka take=a
+2026-08-07T14:17:00 | STOP_SAVE device_3: ok session=20260807_141650_399 video=231_Ishtaha_a_device_3_20260807_141620_398.mp4 size=12.9 MB
+2026-08-07T14:17:00 | STOP_SAVE device_1: ok session=20260807_141650_399 video=231_Ishtaha_a_device_1_20260807_141620_398.mp4 size=13.2 MB
+2026-08-07T14:17:00 | STOP_SAVE device_2: ok session=20260807_141650_399 video=231_Ishtaha_a_device_2_20260807_141620_398.mp4 size=13.1 MB
+2026-08-07T14:17:00 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141700.txt
+2026-08-07T14:17:20 | START session=20260807_141720_400 index=400 signer=signer_1 word_id=233 word=Quymoq (blinchik) take=a
+2026-08-07T14:17:20 | START_ACK device_1: ok
+2026-08-07T14:17:20 | START_ACK device_3: ok
+2026-08-07T14:17:20 | START_ACK device_2: ok
+2026-08-07T14:17:29 | STOP session=20260807_141720_400 index=400 signer=signer_1 word_id=233 word=Quymoq (blinchik) take=a
+2026-08-07T14:17:29 | STOP_SAVE device_2: ok session=20260807_141720_400 video=232_Banka_a_device_2_20260807_141650_399.mp4 size=18.1 MB
+2026-08-07T14:17:29 | STOP_SAVE device_3: ok session=20260807_141720_400 video=232_Banka_a_device_3_20260807_141650_399.mp4 size=18.0 MB
+2026-08-07T14:17:29 | STOP_SAVE device_1: ok session=20260807_141720_400 video=232_Banka_a_device_1_20260807_141650_399.mp4 size=18.5 MB
+2026-08-07T14:17:29 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141729.txt
+2026-08-07T14:17:52 | START session=20260807_141752_401 index=401 signer=signer_1 word_id=233 word=Quymoq (blinchik) take=b
+2026-08-07T14:17:52 | START_ACK device_3: ok
+2026-08-07T14:17:52 | START_ACK device_2: ok
+2026-08-07T14:17:52 | START_ACK device_1: ok
+2026-08-07T14:18:00 | STOP session=20260807_141752_401 index=401 signer=signer_1 word_id=233 word=Quymoq (blinchik) take=b
+2026-08-07T14:18:00 | STOP_SAVE device_3: ok session=20260807_141752_401 video=233_Quymoq_blinchik_a_device_3_20260807_141720_400.mp4 size=16.5 MB
+2026-08-07T14:18:00 | STOP_SAVE device_1: ok session=20260807_141752_401 video=233_Quymoq_blinchik_a_device_1_20260807_141720_400.mp4 size=17.4 MB
+2026-08-07T14:18:00 | STOP_SAVE device_2: ok session=20260807_141752_401 video=233_Quymoq_blinchik_a_device_2_20260807_141720_400.mp4 size=16.6 MB
+2026-08-07T14:18:00 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141800.txt
+2026-08-07T14:18:20 | START session=20260807_141819_402 index=402 signer=signer_1 word_id=234 word=Butilka take=a
+2026-08-07T14:18:20 | START_ACK device_2: ok
+2026-08-07T14:18:20 | START_ACK device_3: ok
+2026-08-07T14:18:20 | START_ACK device_1: ok
+2026-08-07T14:18:29 | STOP session=20260807_141819_402 index=402 signer=signer_1 word_id=234 word=Butilka take=a
+2026-08-07T14:18:29 | STOP_SAVE device_3: ok session=20260807_141819_402 video=233_Quymoq_blinchik_b_device_3_20260807_141752_401.mp4 size=12.9 MB
+2026-08-07T14:18:29 | STOP_SAVE device_1: ok session=20260807_141819_402 video=233_Quymoq_blinchik_b_device_1_20260807_141752_401.mp4 size=13.1 MB
+2026-08-07T14:18:29 | STOP_SAVE device_2: ok session=20260807_141819_402 video=233_Quymoq_blinchik_b_device_2_20260807_141752_401.mp4 size=13.3 MB
+2026-08-07T14:18:29 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141829.txt
+2026-08-07T14:18:48 | START session=20260807_141847_403 index=403 signer=signer_1 word_id=234 word=Butilka take=b
+2026-08-07T14:18:48 | START_ACK device_1: ok
+2026-08-07T14:18:48 | START_ACK device_3: ok
+2026-08-07T14:18:48 | START_ACK device_2: ok
+2026-08-07T14:18:55 | STOP session=20260807_141847_403 index=403 signer=signer_1 word_id=234 word=Butilka take=b
+2026-08-07T14:18:55 | STOP_SAVE device_1: ok session=20260807_141847_403 video=234_Butilka_a_device_1_20260807_141819_402.mp4 size=15.5 MB
+2026-08-07T14:18:55 | STOP_SAVE device_2: ok session=20260807_141847_403 video=234_Butilka_a_device_2_20260807_141819_402.mp4 size=16.0 MB
+2026-08-07T14:18:55 | STOP_SAVE device_3: ok session=20260807_141847_403 video=234_Butilka_a_device_3_20260807_141819_402.mp4 size=15.1 MB
+2026-08-07T14:18:55 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141855.txt
+2026-08-07T14:19:24 | START session=20260807_141924_404 index=404 signer=signer_1 word_id=235 word=Sanchqi take=a
+2026-08-07T14:19:24 | START_ACK device_2: ok
+2026-08-07T14:19:24 | START_ACK device_1: ok
+2026-08-07T14:19:24 | START_ACK device_3: ok
+2026-08-07T14:19:33 | STOP session=20260807_141924_404 index=404 signer=signer_1 word_id=235 word=Sanchqi take=a
+2026-08-07T14:19:33 | STOP_SAVE device_3: ok session=20260807_141924_404 video=234_Butilka_b_device_3_20260807_141847_403.mp4 size=12.8 MB
+2026-08-07T14:19:33 | STOP_SAVE device_2: ok session=20260807_141924_404 video=234_Butilka_b_device_2_20260807_141847_403.mp4 size=13.4 MB
+2026-08-07T14:19:33 | STOP_SAVE device_1: ok session=20260807_141924_404 video=234_Butilka_b_device_1_20260807_141847_403.mp4 size=13.1 MB
+2026-08-07T14:19:33 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_141933.txt
+2026-08-07T14:19:55 | START session=20260807_141954_405 index=405 signer=signer_1 word_id=236 word=Vino take=a
+2026-08-07T14:19:55 | START_ACK device_1: ok
+2026-08-07T14:19:55 | START_ACK device_3: ok
+2026-08-07T14:19:55 | START_ACK device_2: ok
+2026-08-07T14:20:03 | STOP session=20260807_141954_405 index=405 signer=signer_1 word_id=236 word=Vino take=a
+2026-08-07T14:20:03 | STOP_SAVE device_1: ok session=20260807_141954_405 video=235_Sanchqi_a_device_1_20260807_141924_404.mp4 size=14.2 MB
+2026-08-07T14:20:03 | STOP_SAVE device_2: ok session=20260807_141954_405 video=235_Sanchqi_a_device_2_20260807_141924_404.mp4 size=14.2 MB
+2026-08-07T14:20:03 | STOP_SAVE device_3: ok session=20260807_141954_405 video=235_Sanchqi_a_device_3_20260807_141924_404.mp4 size=13.9 MB
+2026-08-07T14:20:03 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142003.txt
+2026-08-07T14:20:34 | START session=20260807_142033_406 index=406 signer=signer_1 word_id=237 word=Ta'm (yeb ko'rmoq) take=a
+2026-08-07T14:20:34 | START_ACK device_1: ok
+2026-08-07T14:20:34 | START_ACK device_2: ok
+2026-08-07T14:20:34 | START_ACK device_3: ok
+2026-08-07T14:20:43 | STOP session=20260807_142033_406 index=406 signer=signer_1 word_id=237 word=Ta'm (yeb ko'rmoq) take=a
+2026-08-07T14:20:43 | STOP_SAVE device_3: ok session=20260807_142033_406 video=236_Vino_a_device_3_20260807_141954_405.mp4 size=13.5 MB
+2026-08-07T14:20:43 | STOP_SAVE device_2: ok session=20260807_142033_406 video=236_Vino_a_device_2_20260807_141954_405.mp4 size=14.1 MB
+2026-08-07T14:20:43 | STOP_SAVE device_1: ok session=20260807_142033_406 video=236_Vino_a_device_1_20260807_141954_405.mp4 size=14.0 MB
+2026-08-07T14:20:43 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142043.txt
+2026-08-07T14:21:07 | START session=20260807_142106_407 index=407 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=a
+2026-08-07T14:21:07 | START_ACK device_3: ok
+2026-08-07T14:21:07 | START_ACK device_1: ok
+2026-08-07T14:21:07 | START_ACK device_2: ok
+2026-08-07T14:21:14 | STOP session=20260807_142106_407 index=407 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=a
+2026-08-07T14:21:14 | STOP_SAVE device_2: ok session=20260807_142106_407 video=237_Ta_m_yeb_ko_rmoq_a_device_2_20260807_142033_406.mp4 size=15.3 MB
+2026-08-07T14:21:14 | STOP_SAVE device_3: ok session=20260807_142106_407 video=237_Ta_m_yeb_ko_rmoq_a_device_3_20260807_142033_406.mp4 size=15.0 MB
+2026-08-07T14:21:14 | STOP_SAVE device_1: ok session=20260807_142106_407 video=237_Ta_m_yeb_ko_rmoq_a_device_1_20260807_142033_406.mp4 size=15.6 MB
+2026-08-07T14:21:15 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142114.txt
+2026-08-07T14:21:36 | START session=20260807_142136_408 index=408 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=b
+2026-08-07T14:21:36 | START_ACK device_3: ok
+2026-08-07T14:21:36 | START_ACK device_1: ok
+2026-08-07T14:21:36 | START_ACK device_2: ok
+2026-08-07T14:21:44 | STOP session=20260807_142136_408 index=408 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=b
+2026-08-07T14:21:44 | STOP_SAVE device_2: ok session=20260807_142136_408 video=238_Zarar_ziyon_zararli_a_device_2_20260807_142106_407.mp4 size=13.8 MB
+2026-08-07T14:21:44 | STOP_SAVE device_3: ok session=20260807_142136_408 video=238_Zarar_ziyon_zararli_a_device_3_20260807_142106_407.mp4 size=13.5 MB
+2026-08-07T14:21:44 | STOP_SAVE device_1: ok session=20260807_142136_408 video=238_Zarar_ziyon_zararli_a_device_1_20260807_142106_407.mp4 size=14.1 MB
+2026-08-07T14:21:44 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142144.txt
+2026-08-07T14:22:05 | START session=20260807_142205_409 index=409 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=c
+2026-08-07T14:22:05 | START_ACK device_1: ok
+2026-08-07T14:22:05 | START_ACK device_2: ok
+2026-08-07T14:22:05 | START_ACK device_3: ok
+2026-08-07T14:22:14 | STOP session=20260807_142205_409 index=409 signer=signer_1 word_id=238 word=Zarar (ziyon, zararli) take=c
+2026-08-07T14:22:14 | STOP_SAVE device_3: ok session=20260807_142205_409 video=238_Zarar_ziyon_zararli_b_device_3_20260807_142136_408.mp4 size=13.6 MB
+2026-08-07T14:22:14 | STOP_SAVE device_2: ok session=20260807_142205_409 video=238_Zarar_ziyon_zararli_b_device_2_20260807_142136_408.mp4 size=13.9 MB
+2026-08-07T14:22:14 | STOP_SAVE device_1: ok session=20260807_142205_409 video=238_Zarar_ziyon_zararli_b_device_1_20260807_142136_408.mp4 size=13.7 MB
+2026-08-07T14:22:14 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142214.txt
+2026-08-07T14:22:35 | START session=20260807_142234_410 index=410 signer=signer_1 word_id=239 word=Suv take=a
+2026-08-07T14:22:35 | START_ACK device_2: ok
+2026-08-07T14:22:35 | START_ACK device_1: ok
+2026-08-07T14:22:35 | START_ACK device_3: ok
+2026-08-07T14:22:42 | STOP session=20260807_142234_410 index=410 signer=signer_1 word_id=239 word=Suv take=a
+2026-08-07T14:22:42 | STOP_SAVE device_2: ok session=20260807_142234_410 video=238_Zarar_ziyon_zararli_c_device_2_20260807_142205_409.mp4 size=13.1 MB
+2026-08-07T14:22:42 | STOP_SAVE device_3: ok session=20260807_142234_410 video=238_Zarar_ziyon_zararli_c_device_3_20260807_142205_409.mp4 size=12.9 MB
+2026-08-07T14:22:42 | STOP_SAVE device_1: ok session=20260807_142234_410 video=238_Zarar_ziyon_zararli_c_device_1_20260807_142205_409.mp4 size=13.5 MB
+2026-08-07T14:22:42 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142242.txt
+2026-08-07T14:23:03 | START session=20260807_142302_411 index=411 signer=signer_1 word_id=240 word=Aroq take=a
+2026-08-07T14:23:03 | START_ACK device_3: ok
+2026-08-07T14:23:03 | START_ACK device_2: ok
+2026-08-07T14:23:03 | START_ACK device_1: ok
+2026-08-07T14:23:10 | STOP session=20260807_142302_411 index=411 signer=signer_1 word_id=240 word=Aroq take=a
+2026-08-07T14:23:10 | STOP_SAVE device_1: ok session=20260807_142302_411 video=239_Suv_a_device_1_20260807_142234_410.mp4 size=13.1 MB
+2026-08-07T14:23:10 | STOP_SAVE device_3: ok session=20260807_142302_411 video=239_Suv_a_device_3_20260807_142234_410.mp4 size=13.0 MB
+2026-08-07T14:23:10 | STOP_SAVE device_2: ok session=20260807_142302_411 video=239_Suv_a_device_2_20260807_142234_410.mp4 size=13.3 MB
+2026-08-07T14:23:10 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142310.txt
+2026-08-07T14:23:38 | START session=20260807_142337_412 index=412 signer=signer_1 word_id=241 word=Tanlamoq (tanlash) take=a
+2026-08-07T14:23:38 | START_ACK device_3: ok
+2026-08-07T14:23:38 | START_ACK device_2: ok
+2026-08-07T14:23:38 | START_ACK device_1: ok
+2026-08-07T14:23:45 | STOP session=20260807_142337_412 index=412 signer=signer_1 word_id=241 word=Tanlamoq (tanlash) take=a
+2026-08-07T14:23:45 | STOP_SAVE device_1: ok session=20260807_142337_412 video=240_Aroq_a_device_1_20260807_142302_411.mp4 size=12.5 MB
+2026-08-07T14:23:45 | STOP_SAVE device_2: ok session=20260807_142337_412 video=240_Aroq_a_device_2_20260807_142302_411.mp4 size=12.8 MB
+2026-08-07T14:23:45 | STOP_SAVE device_3: ok session=20260807_142337_412 video=240_Aroq_a_device_3_20260807_142302_411.mp4 size=12.7 MB
+2026-08-07T14:23:45 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142345.txt
+2026-08-07T14:24:11 | START session=20260807_142411_413 index=413 signer=signer_1 word_id=242 word=Mazali (shirin) take=a
+2026-08-07T14:24:11 | START_ACK device_3: ok
+2026-08-07T14:24:11 | START_ACK device_1: ok
+2026-08-07T14:24:11 | START_ACK device_2: ok
+2026-08-07T14:24:19 | STOP session=20260807_142411_413 index=413 signer=signer_1 word_id=242 word=Mazali (shirin) take=a
+2026-08-07T14:24:19 | STOP_SAVE device_2: ok session=20260807_142411_413 video=241_Tanlamoq_tanlash_a_device_2_20260807_142337_412.mp4 size=13.1 MB
+2026-08-07T14:24:19 | STOP_SAVE device_1: ok session=20260807_142411_413 video=241_Tanlamoq_tanlash_a_device_1_20260807_142337_412.mp4 size=12.8 MB
+2026-08-07T14:24:19 | STOP_SAVE device_3: ok session=20260807_142411_413 video=241_Tanlamoq_tanlash_a_device_3_20260807_142337_412.mp4 size=12.7 MB
+2026-08-07T14:24:19 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142419.txt
+2026-08-07T14:24:39 | START session=20260807_142439_414 index=414 signer=signer_1 word_id=243 word=Och take=a
+2026-08-07T14:24:39 | START_ACK device_3: ok
+2026-08-07T14:24:39 | START_ACK device_1: ok
+2026-08-07T14:24:39 | START_ACK device_2: ok
+2026-08-07T14:24:47 | STOP session=20260807_142439_414 index=414 signer=signer_1 word_id=243 word=Och take=a
+2026-08-07T14:24:47 | STOP_SAVE device_2: ok session=20260807_142439_414 video=242_Mazali_shirin_a_device_2_20260807_142411_413.mp4 size=13.4 MB
+2026-08-07T14:24:47 | STOP_SAVE device_3: ok session=20260807_142439_414 video=242_Mazali_shirin_a_device_3_20260807_142411_413.mp4 size=13.0 MB
+2026-08-07T14:24:47 | STOP_SAVE device_1: ok session=20260807_142439_414 video=242_Mazali_shirin_a_device_1_20260807_142411_413.mp4 size=13.3 MB
+2026-08-07T14:24:47 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142447.txt
+2026-08-07T14:25:07 | START session=20260807_142506_415 index=415 signer=signer_1 word_id=244 word=Achchiq take=a
+2026-08-07T14:25:07 | START_ACK device_3: ok
+2026-08-07T14:25:07 | START_ACK device_2: ok
+2026-08-07T14:25:07 | START_ACK device_1: ok
+2026-08-07T14:25:15 | STOP session=20260807_142506_415 index=415 signer=signer_1 word_id=244 word=Achchiq take=a
+2026-08-07T14:25:15 | STOP_SAVE device_1: ok session=20260807_142506_415 video=243_Och_a_device_1_20260807_142439_414.mp4 size=13.1 MB
+2026-08-07T14:25:15 | STOP_SAVE device_2: ok session=20260807_142506_415 video=243_Och_a_device_2_20260807_142439_414.mp4 size=13.3 MB
+2026-08-07T14:25:15 | STOP_SAVE device_3: ok session=20260807_142506_415 video=243_Och_a_device_3_20260807_142439_414.mp4 size=13.1 MB
+2026-08-07T14:25:15 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142515.txt
+2026-08-07T14:25:35 | START session=20260807_142535_416 index=416 signer=signer_1 word_id=245 word=Issiq take=a
+2026-08-07T14:25:35 | START_ACK device_3: ok
+2026-08-07T14:25:35 | START_ACK device_2: ok
+2026-08-07T14:25:35 | START_ACK device_1: ok
+2026-08-07T14:25:42 | STOP session=20260807_142535_416 index=416 signer=signer_1 word_id=245 word=Issiq take=a
+2026-08-07T14:25:42 | STOP_SAVE device_1: ok session=20260807_142535_416 video=244_Achchiq_a_device_1_20260807_142506_415.mp4 size=13.4 MB
+2026-08-07T14:25:42 | STOP_SAVE device_2: ok session=20260807_142535_416 video=244_Achchiq_a_device_2_20260807_142506_415.mp4 size=13.6 MB
+2026-08-07T14:25:42 | STOP_SAVE device_3: ok session=20260807_142535_416 video=244_Achchiq_a_device_3_20260807_142506_415.mp4 size=13.5 MB
+2026-08-07T14:25:42 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142542.txt
+2026-08-07T14:26:03 | START session=20260807_142602_417 index=417 signer=signer_1 word_id=246 word=Tayyorlash take=a
+2026-08-07T14:26:03 | START_ACK device_2: ok
+2026-08-07T14:26:03 | START_ACK device_1: ok
+2026-08-07T14:26:03 | START_ACK device_3: ok
+2026-08-07T14:26:10 | STOP session=20260807_142602_417 index=417 signer=signer_1 word_id=246 word=Tayyorlash take=a
+2026-08-07T14:26:10 | STOP_SAVE device_3: ok session=20260807_142602_417 video=245_Issiq_a_device_3_20260807_142535_416.mp4 size=12.2 MB
+2026-08-07T14:26:10 | STOP_SAVE device_2: ok session=20260807_142602_417 video=245_Issiq_a_device_2_20260807_142535_416.mp4 size=12.4 MB
+2026-08-07T14:26:10 | STOP_SAVE device_1: ok session=20260807_142602_417 video=245_Issiq_a_device_1_20260807_142535_416.mp4 size=12.1 MB
+2026-08-07T14:26:10 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142610.txt
+2026-08-07T14:26:32 | START session=20260807_142632_418 index=418 signer=signer_1 word_id=247 word=Quyuq (tiqilinch, tvorog) take=a
+2026-08-07T14:26:32 | START_ACK device_1: ok
+2026-08-07T14:26:32 | START_ACK device_3: ok
+2026-08-07T14:26:32 | START_ACK device_2: ok
+2026-08-07T14:26:40 | STOP session=20260807_142632_418 index=418 signer=signer_1 word_id=247 word=Quyuq (tiqilinch, tvorog) take=a
+2026-08-07T14:26:40 | STOP_SAVE device_2: ok session=20260807_142632_418 video=246_Tayyorlash_a_device_2_20260807_142602_417.mp4 size=13.4 MB
+2026-08-07T14:26:40 | STOP_SAVE device_1: ok session=20260807_142632_418 video=246_Tayyorlash_a_device_1_20260807_142602_417.mp4 size=13.4 MB
+2026-08-07T14:26:40 | STOP_SAVE device_3: ok session=20260807_142632_418 video=246_Tayyorlash_a_device_3_20260807_142602_417.mp4 size=12.9 MB
+2026-08-07T14:26:40 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142640.txt
+2026-08-07T14:27:01 | START session=20260807_142700_419 index=419 signer=signer_1 word_id=248 word=Parhez take=a
+2026-08-07T14:27:01 | START_ACK device_1: ok
+2026-08-07T14:27:01 | START_ACK device_2: ok
+2026-08-07T14:27:01 | START_ACK device_3: ok
+2026-08-07T14:27:09 | STOP session=20260807_142700_419 index=419 signer=signer_1 word_id=248 word=Parhez take=a
+2026-08-07T14:27:09 | STOP_SAVE device_3: ok session=20260807_142700_419 video=247_Quyuq_tiqilinch_tvorog_a_device_3_20260807_142632_418.mp4 size=13.5 MB
+2026-08-07T14:27:09 | STOP_SAVE device_2: ok session=20260807_142700_419 video=247_Quyuq_tiqilinch_tvorog_a_device_2_20260807_142632_418.mp4 size=13.3 MB
+2026-08-07T14:27:09 | STOP_SAVE device_1: ok session=20260807_142700_419 video=247_Quyuq_tiqilinch_tvorog_a_device_1_20260807_142632_418.mp4 size=14.0 MB
+2026-08-07T14:27:09 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142709.txt
+2026-08-07T14:27:29 | START session=20260807_142728_420 index=420 signer=signer_1 word_id=249 word=Ovqat take=a
+2026-08-07T14:27:29 | START_ACK device_3: ok
+2026-08-07T14:27:29 | START_ACK device_1: ok
+2026-08-07T14:27:29 | START_ACK device_2: ok
+2026-08-07T14:27:36 | STOP session=20260807_142728_420 index=420 signer=signer_1 word_id=249 word=Ovqat take=a
+2026-08-07T14:27:36 | STOP_SAVE device_3: ok session=20260807_142728_420 video=248_Parhez_a_device_3_20260807_142700_419.mp4 size=13.2 MB
+2026-08-07T14:27:36 | STOP_SAVE device_1: ok session=20260807_142728_420 video=248_Parhez_a_device_1_20260807_142700_419.mp4 size=13.8 MB
+2026-08-07T14:27:36 | STOP_SAVE device_2: ok session=20260807_142728_420 video=248_Parhez_a_device_2_20260807_142700_419.mp4 size=13.7 MB
+2026-08-07T14:27:36 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142736.txt
+2026-08-07T14:27:57 | START session=20260807_142757_421 index=421 signer=signer_1 word_id=250 word=Qovurmoq take=a
+2026-08-07T14:27:57 | START_ACK device_1: ok
+2026-08-07T14:27:57 | START_ACK device_2: ok
+2026-08-07T14:27:57 | START_ACK device_3: ok
+2026-08-07T14:28:05 | STOP session=20260807_142757_421 index=421 signer=signer_1 word_id=250 word=Qovurmoq take=a
+2026-08-07T14:28:05 | STOP_SAVE device_1: ok session=20260807_142757_421 video=249_Ovqat_a_device_1_20260807_142728_420.mp4 size=13.2 MB
+2026-08-07T14:28:05 | STOP_SAVE device_2: ok session=20260807_142757_421 video=249_Ovqat_a_device_2_20260807_142728_420.mp4 size=13.1 MB
+2026-08-07T14:28:05 | STOP_SAVE device_3: ok session=20260807_142757_421 video=249_Ovqat_a_device_3_20260807_142728_420.mp4 size=13.1 MB
+2026-08-07T14:28:05 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142805.txt
+2026-08-07T14:28:27 | START session=20260807_142826_422 index=422 signer=signer_1 word_id=251 word=Hid (xushbo'y is, hid kelmoq) take=a
+2026-08-07T14:28:27 | START_ACK device_3: ok
+2026-08-07T14:28:27 | START_ACK device_1: ok
+2026-08-07T14:28:27 | START_ACK device_2: ok
+2026-08-07T14:28:34 | STOP session=20260807_142826_422 index=422 signer=signer_1 word_id=251 word=Hid (xushbo'y is, hid kelmoq) take=a
+2026-08-07T14:28:34 | STOP_SAVE device_3: ok session=20260807_142826_422 video=250_Qovurmoq_a_device_3_20260807_142757_421.mp4 size=13.8 MB
+2026-08-07T14:28:34 | STOP_SAVE device_1: ok session=20260807_142826_422 video=250_Qovurmoq_a_device_1_20260807_142757_421.mp4 size=14.3 MB
+2026-08-07T14:28:34 | STOP_SAVE device_2: ok session=20260807_142826_422 video=250_Qovurmoq_a_device_2_20260807_142757_421.mp4 size=13.9 MB
+2026-08-07T14:28:34 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142834.txt
+2026-08-07T14:28:54 | START session=20260807_142854_423 index=423 signer=signer_1 word_id=252 word=Kastryulka take=a
+2026-08-07T14:28:54 | START_ACK device_3: ok
+2026-08-07T14:28:54 | START_ACK device_2: ok
+2026-08-07T14:28:54 | START_ACK device_1: ok
+2026-08-07T14:29:02 | STOP session=20260807_142854_423 index=423 signer=signer_1 word_id=252 word=Kastryulka take=a
+2026-08-07T14:29:02 | STOP_SAVE device_3: ok session=20260807_142854_423 video=251_Hid_xushbo_y_is_hid_kelmoq_a_device_3_20260807_142826_422.mp4 size=12.6 MB
+2026-08-07T14:29:02 | STOP_SAVE device_1: ok session=20260807_142854_423 video=251_Hid_xushbo_y_is_hid_kelmoq_a_device_1_20260807_142826_422.mp4 size=13.1 MB
+2026-08-07T14:29:02 | STOP_SAVE device_2: ok session=20260807_142854_423 video=251_Hid_xushbo_y_is_hid_kelmoq_a_device_2_20260807_142826_422.mp4 size=12.8 MB
+2026-08-07T14:29:02 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142902.txt
+2026-08-07T14:29:23 | START session=20260807_142922_424 index=424 signer=signer_1 word_id=253 word=Bo'tqa take=a
+2026-08-07T14:29:23 | START_ACK device_2: ok
+2026-08-07T14:29:23 | START_ACK device_1: ok
+2026-08-07T14:29:23 | START_ACK device_3: ok
+2026-08-07T14:29:30 | STOP session=20260807_142922_424 index=424 signer=signer_1 word_id=253 word=Bo'tqa take=a
+2026-08-07T14:29:30 | STOP_SAVE device_2: ok session=20260807_142922_424 video=252_Kastryulka_a_device_2_20260807_142854_423.mp4 size=14.1 MB
+2026-08-07T14:29:30 | STOP_SAVE device_1: ok session=20260807_142922_424 video=252_Kastryulka_a_device_1_20260807_142854_423.mp4 size=14.2 MB
+2026-08-07T14:29:30 | STOP_SAVE device_3: ok session=20260807_142922_424 video=252_Kastryulka_a_device_3_20260807_142854_423.mp4 size=13.8 MB
+2026-08-07T14:29:30 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_142930.txt
+2026-08-07T14:29:51 | START session=20260807_142950_425 index=425 signer=signer_1 word_id=254 word=Keﬁr (qatiq, nordon) take=a
+2026-08-07T14:29:51 | START_ACK device_1: ok
+2026-08-07T14:29:51 | START_ACK device_2: ok
+2026-08-07T14:29:51 | START_ACK device_3: ok
+2026-08-07T14:29:58 | STOP session=20260807_142950_425 index=425 signer=signer_1 word_id=254 word=Keﬁr (qatiq, nordon) take=a
+2026-08-07T14:29:58 | STOP_SAVE device_2: ok session=20260807_142950_425 video=253_Bo_tqa_a_device_2_20260807_142922_424.mp4 size=13.6 MB
+2026-08-07T14:29:58 | STOP_SAVE device_3: ok session=20260807_142950_425 video=253_Bo_tqa_a_device_3_20260807_142922_424.mp4 size=12.8 MB
+2026-08-07T14:29:58 | STOP_SAVE device_1: ok session=20260807_142950_425 video=253_Bo_tqa_a_device_1_20260807_142922_424.mp4 size=13.5 MB

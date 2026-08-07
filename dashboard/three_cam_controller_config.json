@@ -4,7 +4,7 @@
   "control_port": 8088,
   "min_phones": 1,
   "timeout_seconds": 1.5,
-  "next_index": 29,
+  "next_index": 484,
   "next_device_slot": 1,
   "required_phone_count": 3,
   "block_recording_if_missing_phones": true,
@@ -21,7 +21,7 @@
   "phones": [
     {
       "name": "device_1",
-      "url": "http://192.168.0.104:8088",
+      "url": "http://192.168.0.102:8088",
       "device_id": "409159a310027ac1",
       "device_name": "24117RN76G",
       "device_slot": 1,
@@ -30,7 +30,7 @@
     },
     {
       "name": "device_2",
-      "url": "http://192.168.0.100:8088",
+      "url": "http://192.168.0.101:8088",
       "device_id": "da3e512f0d49efb4",
       "device_name": "24117RN76G",
       "device_slot": 2,
@@ -39,7 +39,7 @@
     },
     {
       "name": "device_3",
-      "url": "http://192.168.0.101:8088",
+      "url": "http://192.168.0.100:8088",
       "device_id": "6a4b5e45cac6598c",
       "device_name": "24117RN76G",
       "device_slot": 3,

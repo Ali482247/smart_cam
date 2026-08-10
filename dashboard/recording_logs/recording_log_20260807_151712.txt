@@ -1,0 +1,5 @@
+2026-08-07T15:16:59 | START_PENDING session=? index=? signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:00 | START session=20260807_151659_487 index=487 signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:00 | START_ACK device_3: ok
+2026-08-07T15:17:00 | START_ACK device_2: ok
+2026-08-07T15:17:00 | START_ACK device_1: ok

@@ -1,0 +1,5 @@
+2026-08-07T18:53:21 | START_PENDING session=? index=? signer=signer_10 word_id=109 word=Tug'ilgan kun take=b
+2026-08-07T18:53:21 | START session=20260807_185321_1101 index=1101 signer=signer_10 word_id=109 word=Tug'ilgan kun take=b
+2026-08-07T18:53:21 | START_ACK device_3: ok
+2026-08-07T18:53:21 | START_ACK device_1: ok
+2026-08-07T18:53:21 | START_ACK device_2: ok

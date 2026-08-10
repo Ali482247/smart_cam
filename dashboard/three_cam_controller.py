@@ -86,6 +86,10 @@ def default_config() -> dict:
         "control_port": 8088,
         "min_phones": 1,
         "timeout_seconds": 1.5,
+        "record_command_timeout_seconds": 8.0,
+        "video_list_timeout_seconds": 30.0,
+        "post_stop_video_refresh_delay_seconds": 1.5,
+        "auto_refresh_videos_after_stop": False,
         "next_index": 0,
         "next_device_slot": 1,
         "required_phone_count": 3,
@@ -644,6 +648,10 @@ def request_phone(phone: dict, endpoint: str, timeout: float, method: str = "POS
         return name, "ERROR: timeout"
 
 
+def recording_command_timeout(config: dict) -> float:
+    return float(config.get("record_command_timeout_seconds", max(8.0, float(config.get("timeout_seconds", 1.5)))))
+
+
 def get_json(phone: dict, endpoint: str, timeout: float) -> dict:
     url = normalize_url(phone["url"]) + endpoint
     with urllib.request.urlopen(url, timeout=timeout) as response:
@@ -688,7 +696,11 @@ def download_file(phone: dict, relative_path: str, target: Path, timeout: float)
 
 def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tuple[str, str]]:
     phones = get_phones(config, discover=not endpoint in {"/start", "/stop", "/toggle"})
-    timeout = float(config.get("timeout_seconds", 1.5))
+    timeout = (
+        recording_command_timeout(config)
+        if endpoint in {"/start", "/stop", "/toggle"}
+        else float(config.get("timeout_seconds", 1.5))
+    )
     if endpoint == "/start" and config.get("check_ready_before_start", False):
         check_ready_for_recording(config, phones, timeout)
     if endpoint == "/start" and config.get("block_recording_if_missing_phones", True):
@@ -705,7 +717,13 @@ def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tupl
     return results
 
 
-def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: dict | None = None) -> dict[int, str]:
+def build_endpoint_map(
+    config: dict,
+    phones: list[dict],
+    endpoint: str,
+    task: dict | None = None,
+    scan_remote_indexes: bool = True,
+) -> dict[int, str]:
     if endpoint != "/start":
         return {id(phone): endpoint for phone in phones}
 
@@ -713,7 +731,10 @@ def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: di
     date_stamp = now.strftime("%Y %m %d")
     time_stamp = now.strftime("%H%M%S")
     timeout = float(config.get("timeout_seconds", 3))
-    record_index = next_record_index(config, phones, timeout)
+    if scan_remote_indexes:
+        record_index = next_record_index(config, phones, timeout)
+    else:
+        record_index = int(config.get("next_index", 0))
     session_id = f"{now.strftime('%Y%m%d')}_{time_stamp}_{record_index}"
     config["next_index"] = record_index + 1
     save_config(config)
@@ -757,6 +778,34 @@ def build_endpoint_map(config: dict, phones: list[dict], endpoint: str, task: di
         query = urllib.parse.urlencode(params)
         endpoints[id(phone)] = f"/start?{query}"
     return endpoints
+
+
+def send_start_fast(config: dict, task: dict | None = None) -> list[tuple[str, str]]:
+    phones = get_phones(config, discover=False)
+    if not phones:
+        raise RuntimeError("No phones configured.")
+
+    endpoint_by_phone = build_endpoint_map(config, phones, "/start", task=task, scan_remote_indexes=False)
+    timeout = float(config.get("start_timeout_seconds", recording_command_timeout(config)))
+    retries = max(1, int(config.get("start_retry_count", 1)))
+    retry_delay = max(0.0, float(config.get("start_retry_delay_seconds", 0.08)))
+
+    def request_start(phone: dict) -> tuple[str, str]:
+        last_result = (phone_display_name(phone), "ERROR: not sent")
+        for attempt in range(retries):
+            last_result = request_phone(phone, endpoint_by_phone[id(phone)], timeout)
+            if not str(last_result[1]).startswith("ERROR:"):
+                return last_result
+            if attempt + 1 < retries and retry_delay:
+                time.sleep(retry_delay)
+        return last_result
+
+    results = []
+    with ThreadPoolExecutor(max_workers=len(phones)) as executor:
+        futures = [executor.submit(request_start, phone) for phone in phones]
+        for future in as_completed(futures):
+            results.append(future.result())
+    return results
 
 
 def check_all_configured_phones_online(config: dict, timeout: float) -> None:
@@ -858,7 +907,7 @@ def download_all(config: dict) -> list[tuple[str, str]]:
 
 def list_videos_all(config: dict) -> list[dict]:
     phones = configured_phones(config)
-    timeout = float(config.get("timeout_seconds", 3))
+    timeout = float(config.get("video_list_timeout_seconds", max(8.0, float(config.get("timeout_seconds", 3)))))
     videos: list[dict] = []
     with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
         futures = {executor.submit(get_json, phone, "/videos", timeout): phone for phone in phones}
@@ -1010,6 +1059,7 @@ class ControllerApp:
         self.video_rows: dict[str, dict] = {}
         self.active_task: dict | None = None
         self.recording = False
+        self._stop_command_running = False
         self.busy = False
         self.status = StringVar(value="Готово")
         self.record_start_time: float | None = None
@@ -1860,41 +1910,110 @@ class ControllerApp:
         self.run_background("Ищу телефоны...", action)
 
     def toggle_clicked(self) -> None:
-        endpoint = "/stop" if self.recording else "/start"
-        title = "Останавливаю запись..." if self.recording else "Запускаю запись..."
+        if self.recording:
+            self.stop_recording_clicked()
+        else:
+            self.start_recording_clicked()
 
-        def action() -> str:
-            task = None
-            if not self.recording:
-                task = self.build_current_task()
-                self.active_task = task
-            results = send_all(self.config, endpoint, task=task)
-            self.recording = not self.recording
-            button_text = "STOP REC" if self.recording else "START REC"
-            self.root.after(0, lambda: self.record_button.configure(text=button_text))
-            self.root.after(0, self.start_timer if self.recording else self.stop_timer)
-            if self.recording:
-                self._session_started_at["http"] = time.time()
-                self.root.after(0, lambda t=task: self.recording_log_write(f"START {self.task_log_text(t)}"))
-                self.log_phone_results("START_ACK", results)
-                if self.active_task:
-                    task_text = (
-                        f"{self.active_task.get('mode')} / {self.active_task.get('word')} "
-                        f"/ take {self.active_task.get('take_label')}"
-                    )
-                    self.root.after(0, lambda: self.write(f"START task: {task_text}"))
-            else:
-                self.root.after(0, self.complete_current_task)
-                videos = list_videos_all(self.config)
-                self.root.after(0, lambda: self.refresh_videos_table(videos))
-                self.root.after(0, lambda: self.record_session_history("http"))
-                self.root.after(0, lambda t=self.active_task: self.recording_log_write(f"STOP {self.task_log_text(t)}"))
-                self.log_phone_results("STOP_SAVE", results)
+    def set_http_recording_state(self, recording: bool) -> None:
+        self.recording = recording
+        self.record_button.configure(text="STOP REC" if recording else "START REC")
+        if recording:
+            self.start_timer()
+        else:
+            self.stop_timer()
+
+    def start_recording_clicked(self) -> None:
+        if self.busy:
+            return
+
+        try:
+            task = self.build_current_task()
+        except Exception as error:
+            self.write(f"ERROR: {error}")
+            self.status.set("Error")
+            return
+        self.active_task = task
+        self.set_http_recording_state(True)
+        self._session_started_at["http"] = time.time()
+        self.status.set("Starting recording...")
+        self.recording_log_write(f"START_PENDING {self.task_log_text(task)}")
+
+        def worker() -> None:
+            try:
+                results = send_start_fast(self.config, task=task)
+                task_text = (
+                    f"{task.get('mode')} / {task.get('word')} "
+                    f"/ take {task.get('take_label')}"
+                )
+                message = format_results("Command sent:", results)
+
+                def apply_start_ack() -> None:
+                    self.recording_log_write(f"START {self.task_log_text(task)}")
+                    self.log_phone_results("START_ACK", results)
+                    self.write(f"START task: {task_text}")
+                    self.write(message)
+                    if not self._stop_command_running:
+                        self.status.set("Ready")
+
+                self.root.after(0, apply_start_ack)
+            except Exception as error:
+                message = f"ERROR: {error}"
+
+                def rollback() -> None:
+                    if self.recording and self.active_task is task:
+                        self.set_http_recording_state(False)
+                        self._session_started_at.pop("http", None)
+                    self.write(message)
+                    self.status.set("Error")
+
+                self.root.after(0, rollback)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def stop_recording_clicked(self) -> None:
+        if self._stop_command_running:
+            return
+
+        task = self.active_task
+        self._stop_command_running = True
+        self.set_http_recording_state(False)
+        self.record_button.configure(state=DISABLED)
+        self.status.set("Stopping recording...")
+
+        def worker() -> None:
+            try:
+                results = send_all(self.config, "/stop", task=task)
+                videos = None
+                if self.config.get("auto_refresh_videos_after_stop", False):
+                    time.sleep(max(0.0, float(self.config.get("post_stop_video_refresh_delay_seconds", 1.5))))
+                    videos = list_videos_all(self.config)
                 saved_log = self.save_recording_log_file()
-                self.root.after(0, lambda p=saved_log: self.recording_log_write(f"LOG_SAVED path={p}"))
-            return format_results("Команда отправлена:", results)
 
-        self.run_background(title, action)
+                def apply_stop() -> None:
+                    self.complete_current_task()
+                    if videos is not None:
+                        self.refresh_videos_table(videos)
+                    self.record_session_history("http")
+                    self.recording_log_write(f"STOP {self.task_log_text(task)}")
+                    self.log_phone_results("STOP_SAVE", results)
+                    self.recording_log_write(f"LOG_SAVED path={saved_log}")
+                    self.write(format_results("Command sent:", results))
+                    self.status.set("Ready")
+
+                self.root.after(0, apply_stop)
+            except Exception as error:
+                message = f"ERROR: {error}"
+                self.root.after(0, lambda m=message: self.write(m))
+                self.root.after(0, lambda: self.status.set("Error"))
+            finally:
+                def finish() -> None:
+                    self._stop_command_running = False
+                    self.record_button.configure(state=DISABLED if self.busy else NORMAL)
+
+                self.root.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def status_clicked(self) -> None:
         def action() -> str:

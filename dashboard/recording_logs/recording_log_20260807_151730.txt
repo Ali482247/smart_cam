@@ -1,0 +1,15 @@
+2026-08-07T15:16:59 | START_PENDING session=? index=? signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:00 | START session=20260807_151659_487 index=487 signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:00 | START_ACK device_3: ok
+2026-08-07T15:17:00 | START_ACK device_2: ok
+2026-08-07T15:17:00 | START_ACK device_1: ok
+2026-08-07T15:17:12 | STOP session=20260807_151659_487 index=487 signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:12 | LOG_SAVED path=C:\Users\Aliakbar Abdullayev\Desktop\smart_cam\dashboard\recording_logs\recording_log_20260807_151712.txt
+2026-08-07T15:17:12 | STOP_SAVE device_3: ok session=20260807_151659_487 video=background_a_device_3_20260807_151324_486.mp4 size=10.9 MB
+2026-08-07T15:17:12 | STOP_SAVE device_2: ok session=20260807_151659_487 video=background_a_device_2_20260807_151324_486.mp4 size=11.3 MB
+2026-08-07T15:17:12 | STOP_SAVE device_1: ok session=20260807_151659_487 video=background_a_device_1_20260807_151324_486.mp4 size=10.9 MB
+2026-08-07T15:17:15 | START_PENDING session=? index=? signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:19 | START session=20260807_151715_488 index=488 signer=signer_1 word_id= word=background take=a
+2026-08-07T15:17:19 | START_ACK device_3: ERROR: timeout
+2026-08-07T15:17:19 | START_ACK device_2: ERROR: timeout
+2026-08-07T15:17:19 | START_ACK device_1: ERROR: timeout

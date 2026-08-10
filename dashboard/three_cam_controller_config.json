@@ -4,7 +4,11 @@
   "control_port": 8088,
   "min_phones": 1,
   "timeout_seconds": 1.5,
-  "next_index": 484,
+  "record_command_timeout_seconds": 8.0,
+  "video_list_timeout_seconds": 30.0,
+  "post_stop_video_refresh_delay_seconds": 1.5,
+  "auto_refresh_videos_after_stop": false,
+  "next_index": 1208,
   "next_device_slot": 1,
   "required_phone_count": 3,
   "block_recording_if_missing_phones": true,
@@ -46,5 +50,6 @@
       "device_label": "device_3",
       "camera_name": "device_3"
     }
-  ]
+  ],
+  "start_retry_count": 1
 }

@@ -42,6 +42,7 @@ RECORDING_LOG_DIR_NAME = "recording_logs"
 SESSION_HISTORY_LIMIT = 200
 DISCOVERY_MESSAGE = "THREE_CAM_DISCOVER"
 BACKGROUND_WORD = "background"
+APP_VERSION = "1.1.0"
 SIGNERS = [
     ("signer_1", "Шоира"),
     ("signer_2", "Адолат"),
@@ -241,8 +242,13 @@ def word_dir_name(word: dict | None) -> str:
     text = safe_name(str(word.get("uzbek") or "word"))
     word_id = safe_int(word.get("word_id"))
     if word_id is not None:
-        return f"{word_id:03d}_{text}" if text else f"{word_id:03d}"
+        return f"{word_id:04d}_{text}" if text else f"{word_id:04d}"
     return text or "word"
+
+
+def word_number_prefix(word_id: int | str | None) -> str:
+    value = safe_int(word_id)
+    return f"{value:04d}" if value is not None else ""
 
 
 def take_label(take_number: int) -> str:
@@ -694,6 +700,29 @@ def download_file(phone: dict, relative_path: str, target: Path, timeout: float)
         target.write_bytes(response.read())
 
 
+def local_sidecar_payload(video: dict, target: Path, phone: dict) -> dict:
+    size_bytes = target.stat().st_size if target.exists() else safe_int(video.get("size"), 0)
+    status = str(video.get("status") or ("error" if not size_bytes else "ok"))
+    if safe_int(size_bytes, 0) == 0:
+        status = "error"
+    return {
+        "record": safe_int(video.get("record") or video.get("recordIndex")),
+        "signer": video.get("signer") or video.get("signerId") or video.get("signer_id"),
+        "word_id": safe_int(video.get("word_id") or video.get("wordId") or video.get("global_index")),
+        "word": video.get("word") or video.get("gloss_uz"),
+        "take": video.get("take") or video.get("takeLabel") or video.get("take_label"),
+        "device": safe_int(video.get("device") or video.get("deviceSlot") or phone.get("device_slot")),
+        "started_at": video.get("started_at") or video.get("recordingStartedAt"),
+        "stopped_at": video.get("stopped_at") or video.get("created_at") or video.get("createdAt"),
+        "duration_ms": safe_int(video.get("duration_ms")),
+        "size_bytes": safe_int(size_bytes, 0),
+        "status": status,
+        "app_version": video.get("app_version") or APP_VERSION,
+        "file": target.name,
+        "source_device": phone_display_name(phone),
+    }
+
+
 def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tuple[str, str]]:
     phones = get_phones(config, discover=not endpoint in {"/start", "/stop", "/toggle"})
     timeout = (
@@ -773,6 +802,7 @@ def build_endpoint_map(
                     "take_number": str(task.get("take_number", "")),
                     "gesture_count": str(task.get("gesture_count", "")),
                     "retake": "1" if task.get("retake") else "0",
+                    "app_version": APP_VERSION,
                 }
             )
         query = urllib.parse.urlencode(params)
@@ -899,6 +929,12 @@ def download_all(config: dict) -> list[tuple[str, str]]:
                 if not target.exists():
                     download_file(phone, relative_path, target, max(timeout, 30))
                     count += 1
+                if target.suffix.lower() == ".mp4":
+                    sidecar = target.with_suffix(".json")
+                    sidecar.write_text(
+                        json.dumps(local_sidecar_payload(video, target, phone), indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
             results.append((name, f"downloaded {count}, total {len(videos)}"))
         except Exception as error:
             results.append((name, f"ERROR: {error}"))
@@ -1072,6 +1108,12 @@ class ControllerApp:
         self.session_history = load_session_history()
         self._session_started_at: dict[str, float] = {}
         self.recording_log_entries: list[str] = []
+        self.recording_status_by_word: dict[str, str] = dict(
+            self.dataset_state.get("recording_status_by_word", {})
+            if isinstance(self.dataset_state.get("recording_status_by_word"), dict)
+            else {}
+        )
+        self.camera_state_by_name: dict[str, str] = {}
 
         # New WS+Scheduler networking core (network_architecture.md), run alongside the
         # legacy HTTP path above - per the migration rules this is additive: the
@@ -1168,6 +1210,30 @@ class ControllerApp:
         ttk.Button(nav_row, text="DELETE VIDEOS", command=self.delete_videos_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(nav_row, text="REFRESH VIDEOS", command=self.refresh_videos_clicked).pack(side="left")
 
+        word_columns = ttk.Frame(dataset_frame)
+        word_columns.pack(fill="x", pady=(8, 0))
+        word_columns.columnconfigure(0, weight=1, uniform="word_columns")
+        word_columns.columnconfigure(1, weight=1, uniform="word_columns")
+        self.word_trees = []
+        for column_index in range(2):
+            tree = ttk.Treeview(
+                word_columns,
+                columns=("word", "take"),
+                show="headings",
+                height=6,
+                selectmode="browse",
+            )
+            tree.heading("word", text="Word")
+            tree.heading("take", text="Take")
+            tree.column("word", width=430, stretch=True)
+            tree.column("take", width=64, stretch=False, anchor="center")
+            tree.tag_configure("ok", foreground="#1e8449")
+            tree.tag_configure("error", foreground="#c0392b")
+            tree.tag_configure("current", background="#d6eaf8")
+            tree.grid(row=0, column=column_index, sticky="ew", padx=(0, 6) if column_index == 0 else (6, 0))
+            tree.bind("<<TreeviewSelect>>", self.word_tree_selected)
+            self.word_trees.append(tree)
+
         buttons = ttk.Frame(frame)
         buttons.pack(fill="x", pady=(0, 12))
 
@@ -1209,24 +1275,28 @@ class ControllerApp:
 
         self.devices_tree = ttk.Treeview(
             devices,
-            columns=("slot", "camera", "device", "url", "free", "battery"),
+            columns=("slot", "camera", "state", "device", "url", "free", "battery"),
             show="headings",
             height=4,
             selectmode="browse",
         )
         self.devices_tree.heading("slot", text="Slot")
         self.devices_tree.heading("camera", text="Camera name")
+        self.devices_tree.heading("state", text="State")
         self.devices_tree.heading("device", text="Device")
         self.devices_tree.heading("url", text="URL")
         self.devices_tree.heading("free", text="Free")
         self.devices_tree.heading("battery", text="Battery")
         self.devices_tree.column("slot", width=52, stretch=False)
         self.devices_tree.column("camera", width=110, stretch=False)
+        self.devices_tree.column("state", width=90, stretch=False)
         self.devices_tree.column("device", width=150, stretch=True)
         self.devices_tree.column("url", width=190, stretch=True)
         self.devices_tree.column("free", width=90, stretch=False)
         self.devices_tree.column("battery", width=90, stretch=False)
         self.devices_tree.tag_configure("offline", foreground="#c0392b")
+        self.devices_tree.tag_configure("saved", foreground="#1e8449")
+        self.devices_tree.tag_configure("recording", foreground="#b9770e")
         self.devices_tree.pack(fill="x")
         self.devices_tree.bind("<<TreeviewSelect>>", self.device_selected)
 
@@ -1299,31 +1369,61 @@ class ControllerApp:
         self.log.insert("end", message + "\n")
         self.log.see("end")
 
-    def recording_log_write(self, message: str) -> None:
-        line = f"{datetime.now().isoformat(timespec='seconds')} | {message}"
+    def recording_log_path(self, when: datetime | None = None) -> Path:
+        stamp = (when or datetime.now()).strftime("%Y%m%d")
+        return recording_log_dir() / f"recording_log_{stamp}.ndjson"
+
+    def append_recording_log_line(self, line: str, when: datetime | None = None) -> Path:
+        path = self.recording_log_path(when)
+        path.parent.mkdir(exist_ok=True)
+        with path.open("a", encoding="utf-8") as f:
+            f.write(line + "\n")
+        return path
+
+    def recording_event_write(self, event: str, **fields) -> dict:
+        now = datetime.now()
+        payload = {
+            "ts": now.astimezone().isoformat(timespec="milliseconds"),
+            "event": event,
+            "app_version": APP_VERSION,
+        }
+        payload.update({key: value for key, value in fields.items() if value is not None})
+        line = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         self.recording_log_entries.append(line)
+        self.append_recording_log_line(line, now)
         if hasattr(self, "recording_log"):
             self.recording_log.insert("end", line + "\n")
             self.recording_log.see("end")
+        return payload
+
+    def recording_log_write(self, message: str) -> None:
+        self.recording_event_write("LOG", message=message)
 
     def save_recording_log_file(self, path: Path | None = None) -> Path:
         if path is None:
-            stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            path = recording_log_dir() / f"recording_log_{stamp}.txt"
+            path = self.recording_log_path()
+            path.parent.mkdir(exist_ok=True)
+            path.touch(exist_ok=True)
+            return path
         content = "\n".join(self.recording_log_entries)
         if content:
             content += "\n"
-        path.write_text(content, encoding="utf-8")
+        if path != self.recording_log_path():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+        elif not path.exists():
+            path.parent.mkdir(exist_ok=True)
+            path.touch()
         return path
 
     def save_recording_log_clicked(self) -> None:
-        initial = recording_log_dir() / f"recording_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        initial = self.recording_log_path()
         path = filedialog.asksaveasfilename(
             title="Save recording log",
             initialdir=str(initial.parent),
             initialfile=initial.name,
-            defaultextension=".txt",
-            filetypes=(("Text log", "*.txt"), ("All files", "*.*")),
+            defaultextension=".ndjson",
+            filetypes=(("NDJSON log", "*.ndjson"), ("All files", "*.*")),
         )
         if not path:
             return
@@ -1339,32 +1439,90 @@ class ControllerApp:
             f"word={task.get('word', '')} take={task.get('take_label', '?')}"
         )
 
+    def task_event_fields(self, task: dict | None) -> dict:
+        if not task:
+            return {"record": None}
+        return {
+            "session": task.get("session_id"),
+            "record": task.get("record_index"),
+            "signer": task.get("signer_id"),
+            "signer_name": task.get("signer_name"),
+            "word_id": safe_int(task.get("word_id")),
+            "word": task.get("word"),
+            "take": task.get("take_label"),
+            "mode": task.get("mode"),
+            "app_version": task.get("app_version") or APP_VERSION,
+        }
+
     def log_phone_results(self, event: str, results: list[tuple[str, str]]) -> None:
         for name, body in results:
             try:
                 payload = json.loads(body)
             except json.JSONDecodeError:
-                self.root.after(0, lambda n=name, b=body: self.recording_log_write(f"{event} {n}: {b}"))
+                self.root.after(0, lambda n=name, b=body: self.recording_event_write(event, device=n, status="error", reason=b))
                 continue
             if not payload.get("ok", True):
                 self.root.after(
                     0,
-                    lambda n=name, p=payload: self.recording_log_write(f"{event} {n}: ERROR {p.get('error', p)}"),
+                    lambda n=name, p=payload: self.recording_event_write(
+                        event,
+                        device=n,
+                        status="error",
+                        reason=p.get("error", p),
+                        session=p.get("sessionId"),
+                    ),
                 )
                 continue
-            details = [f"{event} {name}: ok"]
-            if payload.get("sessionId"):
-                details.append(f"session={payload.get('sessionId')}")
-            if payload.get("lastVideoName"):
-                details.append(f"video={payload.get('lastVideoName')}")
-            if payload.get("lastVideoSizeBytes") is not None:
-                details.append(f"size={format_bytes(payload.get('lastVideoSizeBytes'))}")
-            self.root.after(0, lambda text=" ".join(details): self.recording_log_write(text))
+            size_bytes = safe_int(payload.get("lastVideoSizeBytes"))
+            status = "ok"
+            reason = None
+            if event in {"STOP_SAVE", "SAVE"}:
+                if not payload.get("lastVideoName"):
+                    status = "error"
+                    reason = "missing_video_name"
+                elif size_bytes is not None and size_bytes <= 0:
+                    status = "error"
+                    reason = "zero_size"
+            self.root.after(
+                0,
+                lambda n=name, p=payload, s=status, r=reason, z=size_bytes: self.recording_event_write(
+                    event,
+                    device=n,
+                    status=s,
+                    reason=r,
+                    session=p.get("sessionId"),
+                    file=p.get("lastVideoName"),
+                    size_bytes=z,
+                ),
+            )
+
+    def stop_save_failures(self, results: list[tuple[str, str]], task: dict | None = None) -> list[str]:
+        failures = []
+        expected_session = str(task.get("session_id")) if task and task.get("session_id") else ""
+        for name, body in results:
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError:
+                failures.append(f"{name}: bad response")
+                continue
+            if not payload.get("ok", True):
+                failures.append(f"{name}: {payload.get('error', 'ERROR')}")
+                continue
+            size_bytes = safe_int(payload.get("lastVideoSizeBytes"))
+            if expected_session and str(payload.get("sessionId") or "") != expected_session:
+                failures.append(f"{name}: session mismatch ({payload.get('sessionId') or 'none'})")
+                continue
+            if not payload.get("lastVideoName"):
+                failures.append(f"{name}: no saved file confirmation")
+            elif size_bytes is not None and size_bytes <= 0:
+                failures.append(f"{name}: zero-byte file")
+        return failures
 
     def save_dataset(self) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
         self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
         self.dataset_state["background_mode"] = bool(self.background_var.get())
+        self.dataset_state["recording_status_by_word"] = self.recording_status_by_word
         save_dataset_state(self.dataset_state)
 
     def selected_signer_id(self) -> str:
@@ -1385,11 +1543,13 @@ class ControllerApp:
         if self.background_var.get():
             self.word_var.set("BACKGROUND")
             self.progress_var.set(f"Signer: {self.signer_var.get()} / background mode")
+            self.refresh_word_columns()
             return
         word = self.current_word()
         if not word:
             self.word_var.set("IMPORT PDF")
             self.progress_var.set("No words imported")
+            self.refresh_word_columns()
             return
         main_index = int(self.dataset_state.get("main_word_index", 0))
         view_index = int(self.dataset_state.get("view_word_index", main_index))
@@ -1400,6 +1560,52 @@ class ControllerApp:
         self.progress_var.set(
             f"{view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
         )
+        self.refresh_word_columns()
+
+    def refresh_word_columns(self) -> None:
+        if not hasattr(self, "word_trees"):
+            return
+        words = self.dataset_state.get("words", [])
+        view_index = int(self.dataset_state.get("view_word_index", 0))
+        midpoint = (len(words) + 1) // 2
+        for tree in self.word_trees:
+            tree.delete(*tree.get_children())
+        for column_index, column_words in enumerate((words[:midpoint], words[midpoint:])):
+            tree = self.word_trees[column_index]
+            offset = 0 if column_index == 0 else midpoint
+            for local_index, word in enumerate(column_words):
+                index = offset + local_index
+                key = word_key(word)
+                status = self.recording_status_by_word.get(key, "")
+                tags = []
+                if status == "ok":
+                    tags.append("ok")
+                elif status == "error":
+                    tags.append("error")
+                if index == view_index and not self.background_var.get():
+                    tags.append("current")
+                done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0))
+                word_id = word_number_prefix(word.get("word_id"))
+                label = f"{word_id} {word.get('uzbek', '')}".strip()
+                tree.insert("", "end", iid=str(index), values=(label, take_label(done + 1)), tags=tuple(tags))
+
+    def word_tree_selected(self, event=None) -> None:
+        widget = event.widget if event is not None else None
+        if widget is None:
+            return
+        selected = widget.selection()
+        if not selected:
+            return
+        index = safe_int(selected[0])
+        words = self.dataset_state.get("words", [])
+        if index is None or index < 0 or index >= len(words):
+            return
+        self.background_var.set(False)
+        self.dataset_state["background_mode"] = False
+        self.dataset_state["view_word_index"] = index
+        self.dataset_state["manual_back_mode"] = index != int(self.dataset_state.get("main_word_index", 0))
+        self.save_dataset()
+        self.refresh_dataset_labels()
 
     def signer_changed(self, _event=None) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
@@ -1442,6 +1648,7 @@ class ControllerApp:
             self.dataset_state["main_word_index"] = 0
             self.dataset_state["view_word_index"] = 0
             self.dataset_state["takes_done_by_word"] = {}
+            self.recording_status_by_word = {}
             self.dataset_state["manual_back_mode"] = False
             self.save_dataset()
             self.root.after(0, self.refresh_dataset_labels)
@@ -1461,14 +1668,15 @@ class ControllerApp:
                 "signer_name": signer_name,
                 "signer_dir": signer_dir_name(signer_id),
                 "mode": "background",
-            "word": BACKGROUND_WORD,
-            "word_id": "",
-            "list": "",
-            "word_dir": BACKGROUND_WORD,
+                "word": BACKGROUND_WORD,
+                "word_id": "",
+                "list": "",
+                "word_dir": BACKGROUND_WORD,
                 "take_number": 1,
                 "take_label": take_label(1),
                 "gesture_count": gesture_count,
                 "retake": False,
+                "app_version": APP_VERSION,
             }
         word = self.current_word()
         if not word:
@@ -1488,9 +1696,10 @@ class ControllerApp:
             "take_label": take_label(take_number),
             "gesture_count": gesture_count,
             "retake": bool(self.dataset_state.get("retake_mode", False)),
+            "app_version": APP_VERSION,
         }
 
-    def complete_current_task(self) -> None:
+    def complete_current_task(self, *, ok: bool = True) -> None:
         if self.background_var.get():
             return
         word = self.current_word()
@@ -1500,6 +1709,7 @@ class ControllerApp:
         key = word_key(word)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0)) + 1
         self.dataset_state.setdefault("takes_done_by_word", {})[key] = done
+        self.recording_status_by_word[key] = "ok" if ok else "error"
         if not self.dataset_state.get("manual_back_mode") and done >= gesture_count:
             words = self.dataset_state.get("words", [])
             next_index = min(int(self.dataset_state.get("main_word_index", 0)) + 1, max(0, len(words) - 1))
@@ -1531,6 +1741,7 @@ class ControllerApp:
         self.dataset_state["main_word_index"] = 0
         self.dataset_state["view_word_index"] = 0
         self.dataset_state["takes_done_by_word"] = {}
+        self.recording_status_by_word = {}
         self.dataset_state["manual_back_mode"] = False
         self.dataset_state["retake_mode"] = False
         self.save_dataset()
@@ -1714,15 +1925,22 @@ class ControllerApp:
             iid = str(index)
             device_key = phone.get("device_id") or phone.get("url")
             device_status = self.device_status_cache.get(device_key, {})
+            name = phone_display_name(phone)
+            state = self.camera_state_by_name.get(name) or ("online" if device_status.get("ok", True) else "offline")
             values = (
                 phone.get("device_slot", ""),
                 phone.get("camera_name", ""),
+                state,
                 phone.get("device_name") or phone.get("device_label") or phone.get("name", ""),
                 phone.get("url", ""),
                 device_status.get("free", "—"),
                 device_status.get("battery", "—"),
             )
-            tags = () if device_status.get("ok", True) else ("offline",)
+            tags = (
+                ("offline",)
+                if state in {"offline", "error"} or not device_status.get("ok", True)
+                else (("saved",) if state == "saved" else (("recording",) if state == "recording" else ()))
+            )
             self.devices_tree.insert("", "end", iid=iid, values=values, tags=tags)
         if selected_id and self.devices_tree.exists(selected_id):
             self.devices_tree.selection_set(selected_id)
@@ -1937,7 +2155,8 @@ class ControllerApp:
         self.set_http_recording_state(True)
         self._session_started_at["http"] = time.time()
         self.status.set("Starting recording...")
-        self.recording_log_write(f"START_PENDING {self.task_log_text(task)}")
+        self.camera_state_by_name = {phone_display_name(phone): "pending" for phone in configured_phones(self.config)}
+        self.recording_event_write("START_PENDING", **self.task_event_fields(task))
 
         def worker() -> None:
             try:
@@ -1949,8 +2168,13 @@ class ControllerApp:
                 message = format_results("Command sent:", results)
 
                 def apply_start_ack() -> None:
-                    self.recording_log_write(f"START {self.task_log_text(task)}")
+                    self.recording_event_write("START", **self.task_event_fields(task))
                     self.log_phone_results("START_ACK", results)
+                    self.camera_state_by_name.update({name: "recording" for name, body in results if not str(body).startswith("ERROR:")})
+                    for name, body in results:
+                        if str(body).startswith("ERROR:"):
+                            self.camera_state_by_name[name] = "error"
+                    self.refresh_device_table()
                     self.write(f"START task: {task_text}")
                     self.write(message)
                     if not self._stop_command_running:
@@ -1989,17 +2213,28 @@ class ControllerApp:
                     time.sleep(max(0.0, float(self.config.get("post_stop_video_refresh_delay_seconds", 1.5))))
                     videos = list_videos_all(self.config)
                 saved_log = self.save_recording_log_file()
+                failures = self.stop_save_failures(results, task)
 
                 def apply_stop() -> None:
-                    self.complete_current_task()
+                    self.complete_current_task(ok=not failures)
                     if videos is not None:
                         self.refresh_videos_table(videos)
                     self.record_session_history("http")
-                    self.recording_log_write(f"STOP {self.task_log_text(task)}")
+                    self.recording_event_write("STOP", **self.task_event_fields(task))
                     self.log_phone_results("STOP_SAVE", results)
-                    self.recording_log_write(f"LOG_SAVED path={saved_log}")
+                    failed_names = {item.split(":", 1)[0] for item in failures}
+                    for name, _body in results:
+                        self.camera_state_by_name[name] = "error" if name in failed_names else "saved"
+                    self.refresh_device_table()
+                    self.recording_event_write("LOG_SAVED", path=str(saved_log))
                     self.write(format_results("Command sent:", results))
-                    self.status.set("Ready")
+                    if failures:
+                        warning = "SAVE ERROR: " + "; ".join(failures)
+                        self.write(warning)
+                        self.status.set(warning)
+                        messagebox.showerror("Save confirmation failed", warning)
+                    else:
+                        self.status.set("Ready")
 
                 self.root.after(0, apply_stop)
             except Exception as error:

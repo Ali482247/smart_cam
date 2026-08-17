@@ -1,8 +1,0 @@
-2026-08-06T17:36:46 | START session=20260806_173645_0 index=0 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
-2026-08-06T17:36:46 | START_ACK device_1: ok
-2026-08-06T17:36:46 | START_ACK device_3: ok
-2026-08-06T17:36:46 | START_ACK device_2: ok
-2026-08-06T17:36:52 | STOP session=20260806_173645_0 index=0 signer=signer_2 word_id=1 word=Tashakkur, minnatdorchilik take=a
-2026-08-06T17:36:52 | STOP_SAVE device_3: ok session=20260806_173645_0
-2026-08-06T17:36:52 | STOP_SAVE device_2: ok session=20260806_173645_0
-2026-08-06T17:36:52 | STOP_SAVE device_1: ok session=20260806_173645_0

@@ -1,8 +1,0 @@
-2026-08-07T10:22:33 | START session=20260807_102232_0 index=0 signer=signer_1 word_id= word=background take=a
-2026-08-07T10:22:33 | START_ACK device_1: ok
-2026-08-07T10:22:33 | START_ACK device_2: ok
-2026-08-07T10:22:33 | START_ACK device_3: ok
-2026-08-07T10:22:55 | STOP session=20260807_102232_0 index=0 signer=signer_1 word_id= word=background take=a
-2026-08-07T10:22:55 | STOP_SAVE device_2: ok session=20260807_102232_0
-2026-08-07T10:22:55 | STOP_SAVE device_1: ok session=20260807_102232_0
-2026-08-07T10:22:55 | STOP_SAVE device_3: ok session=20260807_102232_0

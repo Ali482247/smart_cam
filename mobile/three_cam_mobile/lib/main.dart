@@ -16,7 +16,7 @@ const int discoveryPort = 8089;
 const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
 const int stableRecordingFps = 30;
-const String appVersion = '1.0.3';
+const String appVersion = '1.1.0';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -351,6 +351,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   int _sessionTakeNumber = 1;
   int _sessionGestureCount = 1;
   bool _sessionRetake = false;
+  String _sessionAppVersion = appVersion;
   int _localIndex = 0;
   Future<void> _operation = Future.value();
   WsClient? _wsClient;
@@ -640,6 +641,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               takeNumber: int.tryParse(params['take_number'] ?? ''),
               gestureCount: int.tryParse(params['gesture_count'] ?? ''),
               retake: params['retake'] == '1',
+              controllerAppVersion: params['app_version'],
             ),
           );
           _sendJson(request, {'ok': true, 'recording': _recording});
@@ -834,6 +836,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     int? takeNumber,
     int? gestureCount,
     bool? retake,
+    String? controllerAppVersion,
   }) async {
     final camera = _camera;
     if (camera == null || !camera.value.isInitialized) {
@@ -862,6 +865,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _sessionTakeLabel = _cleanName(takeLabel ?? _takeLabel(_sessionTakeNumber));
     _sessionGestureCount = (gestureCount ?? 1).clamp(1, 9999);
     _sessionRetake = retake ?? false;
+    _sessionAppVersion = (controllerAppVersion ?? appVersion).trim().isEmpty
+        ? appVersion
+        : controllerAppVersion!.trim();
     _sessionId =
         sessionId ??
         '${_compactDateStamp(now)}_${_timeStamp(now)}_$_sessionIndex';
@@ -927,14 +933,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       _recording = false;
       _status = 'Saving';
     });
-    unawaited(
-      _saveStoppedVideo(
-        file,
-        cameraName: stoppedCameraName,
-        date: stoppedDate,
-        time: stoppedTime,
-        index: stoppedIndex,
-      ),
+    await _saveStoppedVideo(
+      file,
+      cameraName: stoppedCameraName,
+      date: stoppedDate,
+      time: stoppedTime,
+      index: stoppedIndex,
     );
     unawaited(_startFpsStream(camera));
   }
@@ -998,14 +1002,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     final mirrorPath = '${mirrorDir.path}/$fileName';
     await File(file.path).copy(mirrorPath);
     _lastVideoName = fileName;
-    _lastVideoSizeBytes = await File(mirrorPath).length();
+    final copiedVideo = File(mirrorPath);
+    _lastVideoSizeBytes = await copiedVideo.length();
     try {
-      await _writeVideoMetadata(File(mirrorPath), _videoMetadataPayload(
-        savedCameraName: savedCameraName,
-        savedIndex: savedIndex,
-      ));
+      await _writeVideoMetadata(
+        copiedVideo,
+        _videoMetadataPayload(
+          savedCameraName: savedCameraName,
+          savedIndex: savedIndex,
+          sizeBytes: _lastVideoSizeBytes ?? 0,
+        ),
+      );
     } catch (_) {
-      final copiedVideo = File(mirrorPath);
       if (await copiedVideo.exists()) {
         await copiedVideo.delete();
       }
@@ -1034,6 +1042,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   Map<String, Object?> _videoMetadataPayload({
     required String savedCameraName,
     required int savedIndex,
+    required int sizeBytes,
   }) {
     final startedAt = _recordingStartedAt;
     final finishedAt = DateTime.now();
@@ -1042,28 +1051,37 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         : finishedAt.difference(startedAt).inMilliseconds;
     final signerNumber = _signerNumber(_sessionSignerId);
     final globalIndex = int.tryParse(_sessionWordId);
+    final status = sizeBytes > 0 ? 'ok' : 'error';
     return {
+      'record': savedIndex,
+      'signer': _sessionSignerId,
+      'word_id': globalIndex,
+      'word': _sessionWord,
+      'take': _sessionTakeLabel,
+      'device': _settings.deviceSlot,
+      'started_at': startedAt?.toIso8601String(),
+      'stopped_at': finishedAt.toIso8601String(),
+      'duration_ms': durationMs,
+      'size_bytes': sizeBytes,
+      'status': status,
+      'app_version': _sessionAppVersion,
       'session_id': _sessionId,
       'signer_id': signerNumber,
       'signer_name': _sessionSignerName,
       'list': _sessionList,
       'global_index': globalIndex ?? savedIndex,
       'gloss_uz': _sessionWord,
-      'take': _sessionTakeNumber,
+      'takeNumberValue': _sessionTakeNumber,
       'camera': savedCameraName,
-      'started_at': startedAt?.toIso8601String(),
-      'duration_ms': durationMs,
       'sync_offset_ms': 0,
-      'app_version': appVersion,
+      'mobile_app_version': appVersion,
       'device_id': _settings.deviceLabel,
-      'status': 'ok',
       'superseded': false,
       'created_at': finishedAt.toIso8601String(),
       'signerId': _sessionSignerId,
       'signerName': _sessionSignerName,
       'signerDir': _sessionSignerDir,
       'mode': _sessionMode,
-      'word': _sessionWord,
       'wordId': _sessionWordId,
       'wordDir': _sessionWordDir,
       'takeLabel': _sessionTakeLabel,
@@ -1313,10 +1331,13 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     final relativePath = await _relativeVideoPath(file);
     final fallbackStatus =
         metadata['superseded'] == true ||
-            file.uri.pathSegments.last.startsWith('RETAKE_')
+            file.uri.pathSegments.last.startsWith('RETAKE_') ||
+            file.uri.pathSegments.last.endsWith('_SUPERSEDED.mp4')
         ? 'superseded'
         : (file.uri.pathSegments.last.startsWith('BAD_') ||
-                  file.uri.pathSegments.last.startsWith('ERROR_')
+                  file.uri.pathSegments.last.startsWith('ERROR_') ||
+                  file.uri.pathSegments.last.endsWith('_BAD.mp4') ||
+                  file.uri.pathSegments.last.endsWith('_INCOMPLETE.mp4')
               ? 'error'
               : 'ok');
     final status = '${metadata['status'] ?? fallbackStatus}';
@@ -1344,7 +1365,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     if (!await file.exists() || !file.path.endsWith('.mp4')) {
       throw StateError('Video not found');
     }
-    final renamed = await _renameVideoWithMetadata(file, 'BAD_');
+    final renamed = await _renameVideoWithMetadata(file, '_BAD');
     final updatedFile = renamed.file;
     final metadata = renamed.metadata;
     await _renameDcimVideo(relativePath, updatedFile.uri.pathSegments.last);
@@ -1368,7 +1389,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     if (!await file.exists() || !file.path.endsWith('.mp4')) {
       throw StateError('Video not found');
     }
-    final renamed = await _renameVideoWithMetadata(file, 'RETAKE_');
+    final renamed = await _renameVideoWithMetadata(file, '_SUPERSEDED');
     final updatedFile = renamed.file;
     final metadata = renamed.metadata;
     await _renameDcimVideo(relativePath, updatedFile.uri.pathSegments.last);
@@ -1382,16 +1403,20 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 
   Future<RenamedVideo> _renameVideoWithMetadata(
     File file,
-    String prefix,
+    String suffix,
   ) async {
     final name = file.uri.pathSegments.last;
     final alreadyMarked =
         name.startsWith('BAD_') ||
         name.startsWith('RETAKE_') ||
-        name.startsWith('ERROR_');
+        name.startsWith('ERROR_') ||
+        name.endsWith('_BAD.mp4') ||
+        name.endsWith('_SUPERSEDED.mp4') ||
+        name.endsWith('_INCOMPLETE.mp4');
+    final stem = name.replaceFirst(RegExp(r'\.mp4$'), '');
     final target = alreadyMarked
         ? file
-        : File('${file.parent.path}${Platform.pathSeparator}$prefix$name');
+        : File('${file.parent.path}${Platform.pathSeparator}$stem$suffix.mp4');
     final metadata = await _readVideoMetadata(file);
     final oldMetadata = File(
       file.path.replaceFirst(RegExp(r'\.mp4$'), '.json'),

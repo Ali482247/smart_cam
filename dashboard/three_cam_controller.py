@@ -135,6 +135,7 @@ def default_dataset_state() -> dict:
         "view_word_index": 0,
         "gesture_count": 1,
         "takes_done_by_word": {},
+        "custom_signers": [],
         "background_mode": False,
         "manual_back_mode": False,
     }
@@ -160,6 +161,7 @@ def load_dataset_state() -> dict:
     state["manual_back_mode"] = bool(state.get("manual_back_mode", False))
     if not isinstance(state.get("takes_done_by_word"), dict):
         state["takes_done_by_word"] = {}
+    state["custom_signers"] = normalize_custom_signers(state.get("custom_signers", []))
     return state
 
 
@@ -212,8 +214,63 @@ def signer_label(signer_id: str) -> str:
     return f"{signer_id} - {name}"
 
 
+def signer_items(state: dict | None = None) -> list[tuple[str, str]]:
+    items = list(SIGNERS)
+    if state is not None:
+        items.extend(normalize_custom_signers(state.get("custom_signers", [])))
+    return items
+
+
+def signer_names(state: dict | None = None) -> dict[str, str]:
+    return dict(signer_items(state))
+
+
+def signer_label_for(signer_id: str, state: dict | None = None) -> str:
+    name = signer_names(state).get(signer_id, signer_id)
+    return f"{signer_id} - {name}"
+
+
+def normalize_custom_signers(value) -> list[tuple[str, str]]:
+    if not isinstance(value, list):
+        return []
+    normalized: dict[str, str] = {}
+    for item in value:
+        if isinstance(item, dict):
+            signer_id = str(item.get("id") or item.get("signer_id") or "").strip()
+            name = str(item.get("name") or item.get("signer_name") or "").strip()
+        elif isinstance(item, (list, tuple)) and len(item) >= 2:
+            signer_id = str(item[0]).strip()
+            name = str(item[1]).strip()
+        else:
+            continue
+        match = re.fullmatch(r"(?:signer_)?(\d{1,4})", signer_id)
+        if not match or not name:
+            continue
+        normalized[f"signer_{int(match.group(1))}"] = name
+    return sorted(normalized.items(), key=lambda item: safe_int(item[0].split("_", 1)[1], 0) or 0)
+
+
+def parse_signer_entry(value: str) -> tuple[str, str]:
+    text = value.strip()
+    match = re.match(r"^(?:signer[_\s-]*)?(\d{1,4})(?:\s+|[-:]+)(.+)$", text, flags=re.IGNORECASE)
+    if not match:
+        raise ValueError("Enter signer as: 15 Name")
+    number = int(match.group(1))
+    if number <= 0:
+        raise ValueError("Signer number must be greater than 0")
+    name = re.sub(r"\s+", " ", match.group(2).strip())
+    if not name:
+        raise ValueError("Signer name is required")
+    return f"signer_{number}", name
+
+
 def signer_dir_name(signer_id: str) -> str:
     name = SIGNER_NAMES.get(signer_id, signer_id)
+    return safe_name(f"{signer_id}_{name}")
+
+
+def signer_dir_name_for(signer_id: str, state: dict | None = None) -> str:
+    name = signer_names(state).get(signer_id, signer_id)
     return safe_name(f"{signer_id}_{name}")
 
 
@@ -1087,7 +1144,10 @@ class ControllerApp:
         self.root = root
         self.config = config
         self.dataset_state = load_dataset_state()
-        self.signer_var = StringVar(value=signer_label(self.dataset_state.get("selected_signer_id", "signer_1")))
+        self.signer_var = StringVar(
+            value=signer_label_for(self.dataset_state.get("selected_signer_id", "signer_1"), self.dataset_state)
+        )
+        self.new_signer_var = StringVar(value="")
         self.word_var = StringVar(value="")
         self.progress_var = StringVar(value="")
         self.gesture_count_var = IntVar(value=max(1, safe_int(self.dataset_state.get("gesture_count"), 1) or 1))
@@ -1158,12 +1218,19 @@ class ControllerApp:
         self.signer_combo = ttk.Combobox(
             dataset_top,
             textvariable=self.signer_var,
-            values=[signer_label(item[0]) for item in SIGNERS],
+            values=[signer_label_for(item[0], self.dataset_state) for item in signer_items(self.dataset_state)],
             state="readonly",
             width=34,
         )
         self.signer_combo.pack(side="left", padx=(6, 10))
         self.signer_combo.bind("<<ComboboxSelected>>", self.signer_changed)
+        ttk.Label(dataset_top, text="New signer").pack(side="left")
+        self.new_signer_entry = ttk.Entry(dataset_top, textvariable=self.new_signer_var, width=24)
+        self.new_signer_entry.pack(side="left", padx=(6, 6))
+        self.new_signer_entry.bind("<Return>", lambda _event: self.add_signer_clicked())
+        ttk.Button(dataset_top, text="ADD", command=self.add_signer_clicked).pack(side="left", padx=(0, 4))
+        ttk.Button(dataset_top, text="UPDATE", command=self.update_signer_clicked).pack(side="left", padx=(0, 4))
+        ttk.Button(dataset_top, text="DELETE", command=self.delete_signer_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(dataset_top, text="IMPORT PDF", command=self.import_pdf_clicked).pack(side="left", padx=(0, 8))
         ttk.Label(dataset_top, text="Gestures per word").pack(side="left")
         self.gesture_spin = ttk.Entry(dataset_top, textvariable=self.gesture_count_var, width=5)
@@ -1522,6 +1589,7 @@ class ControllerApp:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
         self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
         self.dataset_state["background_mode"] = bool(self.background_var.get())
+        self.dataset_state["custom_signers"] = normalize_custom_signers(self.dataset_state.get("custom_signers", []))
         self.dataset_state["recording_status_by_word"] = self.recording_status_by_word
         save_dataset_state(self.dataset_state)
 
@@ -1530,6 +1598,100 @@ class ControllerApp:
         if " - " in selected:
             return selected.split(" - ", 1)[0]
         return str(self.dataset_state.get("selected_signer_id") or "signer_1")
+
+    def refresh_signer_combo(self) -> None:
+        values = [signer_label_for(item[0], self.dataset_state) for item in signer_items(self.dataset_state)]
+        self.signer_combo.configure(values=values)
+        selected_id = self.dataset_state.get("selected_signer_id", self.selected_signer_id())
+        selected_label = signer_label_for(str(selected_id), self.dataset_state)
+        if selected_label in values:
+            self.signer_var.set(selected_label)
+
+    def custom_signer_map(self) -> dict[str, str]:
+        return dict(normalize_custom_signers(self.dataset_state.get("custom_signers", [])))
+
+    def set_custom_signers(self, custom: dict[str, str]) -> None:
+        self.dataset_state["custom_signers"] = sorted(
+            custom.items(), key=lambda item: safe_int(item[0].split("_", 1)[1], 0) or 0
+        )
+
+    def fill_signer_entry_from_selection(self) -> None:
+        signer_id = self.selected_signer_id()
+        custom = self.custom_signer_map()
+        if signer_id in custom:
+            number = signer_id.split("_", 1)[1]
+            self.new_signer_var.set(f"{number} {custom[signer_id]}")
+        else:
+            self.new_signer_var.set("")
+
+    def add_signer_clicked(self) -> None:
+        try:
+            signer_id, name = parse_signer_entry(self.new_signer_var.get())
+        except ValueError as error:
+            messagebox.showerror("Add signer", str(error))
+            return
+        if signer_id in SIGNER_NAMES:
+            messagebox.showerror("Add signer", f"{signer_id} already exists")
+            return
+        custom = self.custom_signer_map()
+        if signer_id in custom:
+            messagebox.showerror("Add signer", f"{signer_id} already exists")
+            return
+        custom[signer_id] = name
+        self.set_custom_signers(custom)
+        self.dataset_state["selected_signer_id"] = signer_id
+        self.signer_var.set(signer_label_for(signer_id, self.dataset_state))
+        self.new_signer_var.set("")
+        self.save_dataset()
+        self.refresh_signer_combo()
+        self.refresh_dataset_labels()
+        self.write(f"Signer added: {signer_label_for(signer_id, self.dataset_state)}")
+
+    def update_signer_clicked(self) -> None:
+        old_id = self.selected_signer_id()
+        custom = self.custom_signer_map()
+        if old_id not in custom:
+            messagebox.showerror("Update signer", "Only added signers can be changed")
+            return
+        try:
+            new_id, name = parse_signer_entry(self.new_signer_var.get())
+        except ValueError as error:
+            messagebox.showerror("Update signer", str(error))
+            return
+        if new_id in SIGNER_NAMES:
+            messagebox.showerror("Update signer", f"{new_id} already exists")
+            return
+        if new_id != old_id and new_id in custom:
+            messagebox.showerror("Update signer", f"{new_id} already exists")
+            return
+        custom.pop(old_id)
+        custom[new_id] = name
+        self.set_custom_signers(custom)
+        self.dataset_state["selected_signer_id"] = new_id
+        self.signer_var.set(signer_label_for(new_id, self.dataset_state))
+        self.new_signer_var.set("")
+        self.save_dataset()
+        self.refresh_signer_combo()
+        self.refresh_dataset_labels()
+        self.write(f"Signer updated: {old_id} -> {signer_label_for(new_id, self.dataset_state)}")
+
+    def delete_signer_clicked(self) -> None:
+        signer_id = self.selected_signer_id()
+        custom = self.custom_signer_map()
+        if signer_id not in custom:
+            messagebox.showerror("Delete signer", "Only added signers can be deleted")
+            return
+        if not messagebox.askyesno("Delete signer", f"Delete {signer_label_for(signer_id, self.dataset_state)}?"):
+            return
+        custom.pop(signer_id)
+        self.set_custom_signers(custom)
+        self.dataset_state["selected_signer_id"] = "signer_1"
+        self.signer_var.set(signer_label_for("signer_1", self.dataset_state))
+        self.new_signer_var.set("")
+        self.save_dataset()
+        self.refresh_signer_combo()
+        self.refresh_dataset_labels()
+        self.write(f"Signer deleted: {signer_id}")
 
     def current_word(self) -> dict | None:
         words = self.dataset_state.get("words", [])
@@ -1609,6 +1771,7 @@ class ControllerApp:
 
     def signer_changed(self, _event=None) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
+        self.fill_signer_entry_from_selection()
         self.save_dataset()
         self.refresh_dataset_labels()
         self.write(f"Signer selected: {self.signer_var.get()}")
@@ -1660,13 +1823,13 @@ class ControllerApp:
 
     def build_current_task(self) -> dict:
         signer_id = self.selected_signer_id()
-        signer_name = SIGNER_NAMES.get(signer_id, signer_id)
+        signer_name = signer_names(self.dataset_state).get(signer_id, signer_id)
         gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
         if self.background_var.get():
             return {
                 "signer_id": signer_id,
                 "signer_name": signer_name,
-                "signer_dir": signer_dir_name(signer_id),
+                "signer_dir": signer_dir_name_for(signer_id, self.dataset_state),
                 "mode": "background",
                 "word": BACKGROUND_WORD,
                 "word_id": "",
@@ -1686,7 +1849,7 @@ class ControllerApp:
         return {
             "signer_id": signer_id,
             "signer_name": signer_name,
-            "signer_dir": signer_dir_name(signer_id),
+            "signer_dir": signer_dir_name_for(signer_id, self.dataset_state),
             "mode": "word",
             "word": word.get("uzbek", ""),
             "word_id": word.get("word_id", ""),

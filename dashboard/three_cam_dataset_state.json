@@ -1,5 +1,5 @@
 {
-  "selected_signer_id": "signer_11",
+  "selected_signer_id": "signer_15",
   "words": [
     {
       "word_id": 701,
@@ -805,8 +805,14 @@
     "797": 1,
     "798": 2,
     "799": 1,
-    "800": 2
+    "800": 4
   },
+  "custom_signers": [
+    [
+      "signer_15",
+      "Азиза"
+    ]
+  ],
   "background_mode": false,
   "manual_back_mode": false,
   "retake_mode": false,
@@ -910,6 +916,6 @@
     "797": "ok",
     "798": "ok",
     "799": "ok",
-    "800": "ok"
+    "800": "error"
   }
 }

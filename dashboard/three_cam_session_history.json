@@ -1,17 +1,5 @@
 [
   {
-    "started_at": "2026-08-16T12:34:42",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:34:49",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
     "started_at": "2026-08-16T12:34:58",
     "mode": "http",
     "duration_seconds": 7,
@@ -1197,6 +1185,18 @@
     "started_at": "2026-08-16T13:08:19",
     "mode": "http",
     "duration_seconds": 18,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T11:25:25",
+    "mode": "http",
+    "duration_seconds": 22,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T11:26:08",
+    "mode": "http",
+    "duration_seconds": 26,
     "phones": 3
   }
 ]

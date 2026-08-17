@@ -1,0 +1,20 @@
+{"ts":"2026-08-17T11:25:03.118+05:00","event":"START_PENDING","app_version":"1.1.0","signer":"signer_11","signer_name":"Нигора_под_вопросом","word_id":800,"word":"Ko'rik","take":"c","mode":"word"}
+{"ts":"2026-08-17T11:25:11.185+05:00","event":"START","app_version":"1.1.0","session":"20260817_112503_7257","record":7257,"signer":"signer_11","signer_name":"Нигора_под_вопросом","word_id":800,"word":"Ko'rik","take":"c","mode":"word"}
+{"ts":"2026-08-17T11:25:11.199+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_1","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:11.250+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_3","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:11.262+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_2","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:25.131+05:00","event":"STOP","app_version":"1.1.0","session":"20260817_112503_7257","record":7257,"signer":"signer_11","signer_name":"Нигора_под_вопросом","word_id":800,"word":"Ko'rik","take":"c","mode":"word"}
+{"ts":"2026-08-17T11:25:25.152+05:00","event":"LOG_SAVED","app_version":"1.1.0","path":"C:\\Users\\Aliakbar Abdullayev\\Desktop\\smart_cam\\dashboard\\recording_logs\\recording_log_20260817.ndjson"}
+{"ts":"2026-08-17T11:25:25.174+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_1","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:25.176+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_3","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:25.190+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_2","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:41.949+05:00","event":"START_PENDING","app_version":"1.1.0","signer":"signer_15","signer_name":"Азиза","word_id":800,"word":"Ko'rik","take":"d","mode":"word"}
+{"ts":"2026-08-17T11:25:49.977+05:00","event":"START","app_version":"1.1.0","session":"20260817_112541_7258","record":7258,"signer":"signer_15","signer_name":"Азиза","word_id":800,"word":"Ko'rik","take":"d","mode":"word"}
+{"ts":"2026-08-17T11:25:50.005+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_2","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:50.016+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_3","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:25:50.032+05:00","event":"START_ACK","app_version":"1.1.0","device":"device_1","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:26:08.195+05:00","event":"STOP","app_version":"1.1.0","session":"20260817_112541_7258","record":7258,"signer":"signer_15","signer_name":"Азиза","word_id":800,"word":"Ko'rik","take":"d","mode":"word"}
+{"ts":"2026-08-17T11:26:08.227+05:00","event":"LOG_SAVED","app_version":"1.1.0","path":"C:\\Users\\Aliakbar Abdullayev\\Desktop\\smart_cam\\dashboard\\recording_logs\\recording_log_20260817.ndjson"}
+{"ts":"2026-08-17T11:26:08.266+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_2","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:26:08.286+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_3","status":"error","reason":"ERROR: <urlopen error timed out>"}
+{"ts":"2026-08-17T11:26:08.304+05:00","event":"STOP_SAVE","app_version":"1.1.0","device":"device_1","status":"error","reason":"ERROR: <urlopen error timed out>"}

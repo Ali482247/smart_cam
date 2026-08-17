@@ -8,7 +8,7 @@
   "video_list_timeout_seconds": 30.0,
   "post_stop_video_refresh_delay_seconds": 1.5,
   "auto_refresh_videos_after_stop": false,
-  "next_index": 7257,
+  "next_index": 7259,
   "next_device_slot": 1,
   "required_phone_count": 3,
   "block_recording_if_missing_phones": true,

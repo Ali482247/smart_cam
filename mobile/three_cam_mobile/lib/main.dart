@@ -17,6 +17,13 @@ const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
 const int stableRecordingFps = 30;
 const String appVersion = '1.1.0';
+const List<String> reticleModes = [
+  'off',
+  'dot',
+  'cross',
+  'splitCross',
+  'frameCross',
+];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +61,7 @@ class AppSettings {
     required this.deviceSlot,
     required this.deviceLabel,
     required this.gridMode,
+    required this.reticleMode,
     required this.resolutionPreset,
     required this.fps,
     required this.recordingOrientation,
@@ -70,6 +78,7 @@ class AppSettings {
   final int deviceSlot;
   final String deviceLabel;
   final String gridMode;
+  final String reticleMode;
   final String resolutionPreset;
   final int fps;
   final String recordingOrientation;
@@ -87,6 +96,7 @@ class AppSettings {
       deviceSlot: 1,
       deviceLabel: 'device_1',
       gridMode: 'off',
+      reticleMode: 'cross',
       resolutionPreset: 'veryHigh',
       fps: stableRecordingFps,
       recordingOrientation: 'portrait',
@@ -109,6 +119,7 @@ class AppSettings {
       deviceSlot: slot,
       deviceLabel: prefs.getString('deviceLabel') ?? 'device_$slot',
       gridMode: prefs.getString('gridMode') ?? defaults.gridMode,
+      reticleMode: prefs.getString('reticleMode') ?? defaults.reticleMode,
       resolutionPreset:
           prefs.getString('resolutionPreset') ?? defaults.resolutionPreset,
       fps: stableRecordingFps,
@@ -131,6 +142,7 @@ class AppSettings {
     await prefs.setInt('deviceSlot', deviceSlot);
     await prefs.setString('deviceLabel', deviceLabel);
     await prefs.setString('gridMode', gridMode);
+    await prefs.setString('reticleMode', reticleMode);
     await prefs.setString('resolutionPreset', resolutionPreset);
     await prefs.setInt('fps', stableRecordingFps);
     await prefs.setString('recordingOrientation', recordingOrientation);
@@ -148,6 +160,7 @@ class AppSettings {
     int? deviceSlot,
     String? deviceLabel,
     String? gridMode,
+    String? reticleMode,
     String? resolutionPreset,
     int? fps,
     String? recordingOrientation,
@@ -165,6 +178,7 @@ class AppSettings {
       deviceSlot: nextSlot,
       deviceLabel: deviceLabel ?? this.deviceLabel,
       gridMode: gridMode ?? this.gridMode,
+      reticleMode: reticleMode ?? this.reticleMode,
       resolutionPreset: resolutionPreset ?? this.resolutionPreset,
       fps: stableRecordingFps,
       recordingOrientation: recordingOrientation ?? this.recordingOrientation,
@@ -188,6 +202,7 @@ class AppSettings {
       deviceSlot: safeSlot,
       deviceLabel: safeLabel,
       filePrefix: _cleanLabel(filePrefix),
+      reticleMode: reticleModes.contains(reticleMode) ? reticleMode : 'cross',
       recordingOrientation: recordingOrientation == 'landscape'
           ? 'landscape'
           : 'portrait',
@@ -260,12 +275,30 @@ class AppSettings {
     }
   }
 
+  bool get showReticle => reticleMode != 'off';
+
+  String get reticleLabel {
+    switch (reticleMode) {
+      case 'dot':
+        return 'Dot';
+      case 'cross':
+        return 'Cross';
+      case 'splitCross':
+        return 'Split cross';
+      case 'frameCross':
+        return 'Frame cross';
+      default:
+        return 'Off';
+    }
+  }
+
   Map<String, Object?> toJson() {
     final size = targetSizeForPreset(resolutionPreset);
     return {
       'deviceSlot': deviceSlot,
       'deviceLabel': deviceLabel,
       'gridMode': gridMode,
+      'reticleMode': reticleMode,
       'resolutionPreset': resolutionPreset,
       'width': size.$1,
       'height': size.$2,
@@ -1528,6 +1561,17 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _setZoom(_zoom + (delta * step));
   }
 
+  Future<void> _cycleReticleMode() async {
+    final currentIndex = reticleModes.indexOf(_settings.reticleMode);
+    final nextMode =
+        reticleModes[(currentIndex < 0 ? 0 : currentIndex + 1) %
+            reticleModes.length];
+    final nextSettings = _settings.copyWith(reticleMode: nextMode).normalized();
+    setState(() => _settings = nextSettings);
+    await nextSettings.save();
+    _showSnack('Reticle: ${nextSettings.reticleLabel}');
+  }
+
   double _smartZoomStep() {
     final range = (_maxZoom - _minZoom).abs();
     if (range <= 1) return 0.1;
@@ -1671,6 +1715,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
                 ),
               ),
             ),
+          if (_settings.showReticle)
+            IgnorePointer(
+              child: CustomPaint(
+                painter: ReticleOverlayPainter(mode: _settings.reticleMode),
+              ),
+            ),
           Positioned(
             left: 16,
             right: 16,
@@ -1712,6 +1762,21 @@ class _CameraControlScreenState extends State<CameraControlScreen>
                 maxZoom: _maxZoom,
                 onZoomOut: () => unawaited(_zoomBy(-1)),
                 onZoomIn: () => unawaited(_zoomBy(1)),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            bottom: 28,
+            child: SafeArea(
+              top: false,
+              child: IconButton.filledTonal(
+                tooltip: 'Reticle: ${_settings.reticleLabel}',
+                onPressed: () => unawaited(_cycleReticleMode()),
+                icon: CustomPaint(
+                  size: const Size.square(26),
+                  painter: ReticleIconPainter(mode: _settings.reticleMode),
+                ),
               ),
             ),
           ),
@@ -2030,6 +2095,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late int _deviceSlot;
   late String _gridMode;
+  late String _reticleMode;
   late String _resolutionPreset;
   late int _fps;
   late String _recordingOrientation;
@@ -2049,6 +2115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final settings = widget.initialSettings;
     _deviceSlot = settings.deviceSlot;
     _gridMode = settings.gridMode;
+    _reticleMode = settings.reticleMode;
     _resolutionPreset = settings.resolutionPreset;
     _fps = stableRecordingFps;
     _recordingOrientation = settings.recordingOrientation;
@@ -2076,6 +2143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         deviceSlot: _deviceSlot,
         deviceLabel: _labelController.text,
         gridMode: _gridMode,
+        reticleMode: _reticleMode,
         resolutionPreset: _resolutionPreset,
         fps: stableRecordingFps,
         recordingOrientation: _recordingOrientation,
@@ -2217,6 +2285,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _reticleMode,
+            decoration: const InputDecoration(
+              labelText: 'Reticle',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'off', child: Text('Off')),
+              DropdownMenuItem(value: 'dot', child: Text('Dot')),
+              DropdownMenuItem(value: 'cross', child: Text('Cross')),
+              DropdownMenuItem(value: 'splitCross', child: Text('Split cross')),
+              DropdownMenuItem(value: 'frameCross', child: Text('Frame cross')),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _reticleMode = value);
+            },
+          ),
+          const SizedBox(height: 12),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Auto brightness'),
@@ -2308,6 +2395,202 @@ class GridOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant GridOverlayPainter oldDelegate) {
     return columns != oldDelegate.columns || rows != oldDelegate.rows;
+  }
+}
+
+class ReticleOverlayPainter extends CustomPainter {
+  const ReticleOverlayPainter({required this.mode});
+
+  final String mode;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mode == 'off' || size.isEmpty) return;
+
+    final center = size.center(Offset.zero);
+    final unit = size.shortestSide;
+    final paint = Paint()
+      ..color = _reticleColor(mode).withValues(alpha: _reticleAlpha(mode))
+      ..strokeWidth = (unit * 0.0046).clamp(2.0, 4.0)
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    switch (mode) {
+      case 'dot':
+        canvas.drawCircle(center, (unit * 0.0065).clamp(2.2, 5.0), paint);
+        break;
+      case 'splitCross':
+        _drawSplitCross(canvas, center, unit, paint);
+        break;
+      case 'frameCross':
+        _drawFrameCross(canvas, center, unit, paint);
+        break;
+      case 'cross':
+      default:
+        _drawCross(canvas, center, unit, paint);
+        break;
+    }
+  }
+
+  static Color _reticleColor(String mode) {
+    switch (mode) {
+      case 'cross':
+      case 'splitCross':
+        return const Color(0xff85c8ff);
+      default:
+        return Colors.white;
+    }
+  }
+
+  static double _reticleAlpha(String mode) {
+    switch (mode) {
+      case 'dot':
+        return 0.55;
+      case 'frameCross':
+        return 0.42;
+      default:
+        return 0.72;
+    }
+  }
+
+  static void _drawCross(
+    Canvas canvas,
+    Offset center,
+    double unit,
+    Paint paint,
+  ) {
+    final half = unit * 0.105;
+    canvas.drawLine(
+      Offset(center.dx - half, center.dy),
+      Offset(center.dx + half, center.dy),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - half),
+      Offset(center.dx, center.dy + half),
+      paint,
+    );
+  }
+
+  static void _drawSplitCross(
+    Canvas canvas,
+    Offset center,
+    double unit,
+    Paint paint,
+  ) {
+    final inner = unit * 0.034;
+    final outer = unit * 0.086;
+    canvas.drawLine(
+      Offset(center.dx - outer, center.dy),
+      Offset(center.dx - inner, center.dy),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx + inner, center.dy),
+      Offset(center.dx + outer, center.dy),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - outer),
+      Offset(center.dx, center.dy - inner),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy + inner),
+      Offset(center.dx, center.dy + outer),
+      paint,
+    );
+  }
+
+  static void _drawFrameCross(
+    Canvas canvas,
+    Offset center,
+    double unit,
+    Paint paint,
+  ) {
+    final halfLength = unit * 0.105;
+    final halfGap = unit * 0.017;
+    final verticalHalf = unit * 0.102;
+    final horizontalGap = unit * 0.022;
+    canvas.drawLine(
+      Offset(center.dx - halfLength, center.dy - halfGap),
+      Offset(center.dx + halfLength, center.dy - halfGap),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx - halfLength, center.dy + halfGap),
+      Offset(center.dx + halfLength, center.dy + halfGap),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx - horizontalGap, center.dy - verticalHalf),
+      Offset(center.dx - horizontalGap, center.dy + verticalHalf),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx + horizontalGap, center.dy - verticalHalf),
+      Offset(center.dx + horizontalGap, center.dy + verticalHalf),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant ReticleOverlayPainter oldDelegate) {
+    return mode != oldDelegate.mode;
+  }
+}
+
+class ReticleIconPainter extends CustomPainter {
+  const ReticleIconPainter({required this.mode});
+
+  final String mode;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unit = size.shortestSide;
+    final paint = Paint()
+      ..color = mode == 'off' ? Colors.white70 : const Color(0xff39a2ff)
+      ..strokeWidth = (unit * 0.08).clamp(1.8, 2.4)
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final boxPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = paint.strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(unit * 0.18)),
+      boxPaint,
+    );
+
+    switch (mode) {
+      case 'off':
+        canvas.drawLine(
+          Offset(unit * 0.22, unit * 0.78),
+          Offset(unit * 0.78, unit * 0.22),
+          paint,
+        );
+        break;
+      case 'dot':
+        canvas.drawCircle(center, unit * 0.08, paint);
+        break;
+      case 'splitCross':
+        ReticleOverlayPainter._drawSplitCross(canvas, center, unit, paint);
+        break;
+      case 'frameCross':
+        ReticleOverlayPainter._drawFrameCross(canvas, center, unit, paint);
+        break;
+      case 'cross':
+      default:
+        ReticleOverlayPainter._drawCross(canvas, center, unit, paint);
+        break;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant ReticleIconPainter oldDelegate) {
+    return mode != oldDelegate.mode;
   }
 }
 

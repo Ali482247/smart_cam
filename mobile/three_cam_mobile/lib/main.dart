@@ -365,6 +365,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String? _lastVideoPath;
   String? _lastVideoName;
   int? _lastVideoSizeBytes;
+  Map<String, Object?>? _lastVideoMetadata;
   String? _activeVideoName;
   DateTime? _recordingStartedAt;
   String? _sessionId;
@@ -677,7 +678,15 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               controllerAppVersion: params['app_version'],
             ),
           );
-          _sendJson(request, {'ok': true, 'recording': _recording});
+          _sendJson(request, {
+            'ok': true,
+            'recording': _recording,
+            'activeVideoName': _activeVideoName,
+            'sessionId': _sessionId,
+            'deviceId': _nativeDeviceId,
+            'deviceSlot': _settings.deviceSlot,
+            'deviceLabel': _settings.deviceLabel,
+          });
         } else if (path == '/stop') {
           await _queue(_stopRecording);
           _sendJson(request, {
@@ -686,7 +695,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
             'lastVideoPath': _lastVideoPath,
             'lastVideoName': _lastVideoName,
             'lastVideoSizeBytes': _lastVideoSizeBytes,
+            'lastVideoMetadata': _lastVideoMetadata,
+            'recordIndex': _lastVideoMetadata?['recordIndex'],
+            'startedAt': _lastVideoMetadata?['started_at'],
+            'stoppedAt': _lastVideoMetadata?['stopped_at'],
             'sessionId': _sessionId,
+            'deviceId': _nativeDeviceId,
+            'deviceSlot': _settings.deviceSlot,
+            'deviceLabel': _settings.deviceLabel,
           });
         } else if (path == '/toggle') {
           await _queue(_toggleRecording);
@@ -696,7 +712,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
             'lastVideoPath': _lastVideoPath,
             'lastVideoName': _lastVideoName,
             'lastVideoSizeBytes': _lastVideoSizeBytes,
+            'lastVideoMetadata': _lastVideoMetadata,
+            'recordIndex': _lastVideoMetadata?['recordIndex'],
+            'startedAt': _lastVideoMetadata?['started_at'],
+            'stoppedAt': _lastVideoMetadata?['stopped_at'],
             'sessionId': _sessionId,
+            'deviceId': _nativeDeviceId,
+            'deviceSlot': _settings.deviceSlot,
+            'deviceLabel': _settings.deviceLabel,
           });
         } else if (path == '/status') {
           _sendJson(request, await _statusJson());
@@ -876,10 +899,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       throw StateError('Camera is not ready');
     }
     if (_recording || camera.value.isRecordingVideo) {
-      return;
+      throw StateError('Already recording session ${_sessionId ?? 'unknown'}');
     }
 
     final now = DateTime.now();
+    _lastVideoPath = null;
+    _lastVideoName = null;
+    _lastVideoSizeBytes = null;
+    _lastVideoMetadata = null;
     _sessionCameraName = _cleanName(cameraName ?? _settings.deviceLabel);
     _sessionDate = date ?? _dateStamp(now);
     _sessionTime = time ?? _timeStamp(now);
@@ -939,11 +966,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
     );
     _fpsStreamActive = true;
-    if (!mounted) return;
-    setState(() {
-      _recording = true;
-      _status = 'Recording';
-    });
+    _recording = true;
+    _status = 'Recording';
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _stopRecording() async {
@@ -952,7 +979,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       throw StateError('Camera is not ready');
     }
     if (!_recording && !camera.value.isRecordingVideo) {
-      return;
+      throw StateError('Camera is not recording');
     }
 
     final file = await camera.stopVideoRecording();
@@ -961,11 +988,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     final stoppedTime = _sessionTime;
     final stoppedIndex = _sessionIndex;
     _fpsStreamActive = false;
-    if (!mounted) return;
-    setState(() {
-      _recording = false;
-      _status = 'Saving';
-    });
+    _recording = false;
+    _status = 'Saving';
+    if (mounted) {
+      setState(() {});
+    }
     await _saveStoppedVideo(
       file,
       cameraName: stoppedCameraName,
@@ -991,16 +1018,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         time: time,
         index: index,
       );
+      _lastVideoPath = savedPath;
       if (!mounted) return;
       setState(() {
-        _lastVideoPath = savedPath;
         _status = 'Saved';
       });
     } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _status = 'Save error: $error';
-      });
+      if (mounted) {
+        setState(() {
+          _status = 'Save error: $error';
+        });
+      }
+      rethrow;
     }
   }
 
@@ -1037,19 +1066,25 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _lastVideoName = fileName;
     final copiedVideo = File(mirrorPath);
     _lastVideoSizeBytes = await copiedVideo.length();
+    if ((_lastVideoSizeBytes ?? 0) <= 0) {
+      if (await copiedVideo.exists()) {
+        await copiedVideo.delete();
+      }
+      throw StateError('Saved video is empty: $fileName');
+    }
+    final metadata = _videoMetadataPayload(
+      savedCameraName: savedCameraName,
+      savedIndex: savedIndex,
+      sizeBytes: _lastVideoSizeBytes ?? 0,
+    );
+    _lastVideoMetadata = metadata;
     try {
-      await _writeVideoMetadata(
-        copiedVideo,
-        _videoMetadataPayload(
-          savedCameraName: savedCameraName,
-          savedIndex: savedIndex,
-          sizeBytes: _lastVideoSizeBytes ?? 0,
-        ),
-      );
+      await _writeVideoMetadata(copiedVideo, metadata);
     } catch (_) {
       if (await copiedVideo.exists()) {
         await copiedVideo.delete();
       }
+      _lastVideoMetadata = null;
       rethrow;
     }
     _activeVideoName = null;
@@ -1108,7 +1143,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'camera': savedCameraName,
       'sync_offset_ms': 0,
       'mobile_app_version': appVersion,
-      'device_id': _settings.deviceLabel,
+      'device_id': _nativeDeviceId ?? _settings.deviceLabel,
+      'device_name': _nativeDeviceName,
       'superseded': false,
       'created_at': finishedAt.toIso8601String(),
       'signerId': _sessionSignerId,
@@ -1121,6 +1157,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'takeNumber': _sessionTakeNumber,
       'gestureCount': _sessionGestureCount,
       'recordIndex': savedIndex,
+      'deviceId': _nativeDeviceId,
+      'deviceName': _nativeDeviceName,
       'deviceLabel': _settings.deviceLabel,
       'cameraName': savedCameraName,
       'sessionId': _sessionId,

@@ -1,113 +1,5 @@
 [
   {
-    "started_at": "2026-08-16T12:34:58",
-    "mode": "http",
-    "duration_seconds": 7,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:06",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:14",
-    "mode": "http",
-    "duration_seconds": 7,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:20",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:28",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:33",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:38",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:45",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:51",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:35:58",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:04",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:10",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:17",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:24",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:30",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:36",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:44",
-    "mode": "http",
-    "duration_seconds": 6,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-08-16T12:36:49",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
     "started_at": "2026-08-16T12:36:55",
     "mode": "http",
     "duration_seconds": 5,
@@ -1197,6 +1089,114 @@
     "started_at": "2026-08-17T11:26:08",
     "mode": "http",
     "duration_seconds": 26,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:26:21",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:26:28",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:26:36",
+    "mode": "http",
+    "duration_seconds": 3,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:26:43",
+    "mode": "http",
+    "duration_seconds": 1,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:26:55",
+    "mode": "http",
+    "duration_seconds": 7,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:27:12",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:28:42",
+    "mode": "http",
+    "duration_seconds": 3,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:28:49",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:28:56",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:29:04",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:29:10",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:37:50",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:38:07",
+    "mode": "http",
+    "duration_seconds": 4,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:43:16",
+    "mode": "http",
+    "duration_seconds": 3,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:44:32",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:44:46",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:44:53",
+    "mode": "http",
+    "duration_seconds": 3,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-08-17T15:45:01",
+    "mode": "http",
+    "duration_seconds": 3,
     "phones": 3
   }
 ]

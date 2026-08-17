@@ -89,6 +89,9 @@ def default_config() -> dict:
         "timeout_seconds": 1.5,
         "record_command_timeout_seconds": 8.0,
         "video_list_timeout_seconds": 30.0,
+        "stop_grace_seconds": 0.75,
+        "stop_retry_count": 2,
+        "stop_retry_delay_seconds": 0.15,
         "post_stop_video_refresh_delay_seconds": 1.5,
         "auto_refresh_videos_after_stop": False,
         "next_index": 0,
@@ -343,16 +346,24 @@ def normalize_word_items(items: list) -> list[dict]:
         text = normalize_word_text(str(item.get("uzbek") or item.get("word") or ""))
         if not text:
             continue
+        gesture_count = safe_int(item.get("gesture_count") or item.get("counts") or item.get("count"), 1) or 1
         normalized.append(
             {
                 "word_id": safe_int(item.get("word_id"), index + 1),
                 "page": safe_int(item.get("page")),
+                "count": max(1, gesture_count),
                 "uzbek": text,
                 "source_pdf": str(item.get("source_pdf") or ""),
                 "source_set": str(item.get("source_set") or ""),
             }
         )
     return normalized
+
+
+def word_gesture_count(word: dict | None, default: int = 1) -> int:
+    if not word:
+        return max(1, safe_int(default, 1) or 1)
+    return max(1, safe_int(word.get("count") or word.get("gesture_count") or word.get("counts"), default) or default)
 
 
 def source_set_from_pdf(path: Path) -> str:
@@ -370,27 +381,195 @@ def extract_words_from_pdf(path: Path) -> list[dict]:
 def extract_words_with_pypdf(path: Path) -> list[dict]:
     from pypdf import PdfReader  # type: ignore
 
-    text = "\n".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
+    page_texts = [page.extract_text() or "" for page in PdfReader(str(path)).pages]
+    text = "\n".join(page_texts)
+    separate_count_items = extract_words_from_separate_count_column(page_texts, path)
+    if separate_count_items:
+        return separate_count_items
     items = []
     for line in text.splitlines():
         line = normalize_word_text(line)
-        match = re.match(r"^(\d{1,4})\s+(\d{1,4})\s+(.+)$", line)
+        match = re.match(r"^(\d{1,4})\s+(\d{1,4})(?:\s+(\d{1,3}))?\s+(.+?)(?:\s+(\d{1,3}))?$", line)
         if not match:
             continue
-        word_text = normalize_word_text(match.group(3))
+        word_text = normalize_word_text(match.group(4))
         if should_skip_pdf_word(word_text):
             continue
         items.append(
             {
                 "word_id": int(match.group(1)),
                 "page": int(match.group(2)),
+                "count": max(1, safe_int(match.group(3) or match.group(5), 1) or 1),
                 "uzbek": word_text,
                 "source_pdf": path.name,
                 "source_set": source_set_from_pdf(path),
             }
         )
     if not items:
+        items = extract_words_from_pypdf_lines(text, path)
+    if not items:
         raise RuntimeError("pypdf did not extract table rows")
+    return items
+
+
+def extract_words_from_separate_count_column(page_texts: list[str], path: Path) -> list[dict]:
+    all_rows: list[dict] = []
+    global_seen_ids: set[int] = set()
+    for text in page_texts:
+        lines = [normalize_word_text(line) for line in text.splitlines()]
+        lines = [line for line in lines if line]
+        rows: list[dict] = []
+        page_seen_ids: set[int] = set()
+        for line in lines:
+            match = re.match(r"^(\d{1,4})\s+(\d{1,4})\s+(.+)$", line)
+            if not match:
+                continue
+            word_id = int(match.group(1))
+            if word_id in page_seen_ids:
+                continue
+            word_text = normalize_word_text(match.group(3))
+            if should_skip_pdf_word(word_text):
+                continue
+            page_seen_ids.add(word_id)
+            rows.append(
+                {
+                    "word_id": word_id,
+                    "page": int(match.group(2)),
+                    "count": 1,
+                    "uzbek": word_text,
+                    "source_pdf": path.name,
+                    "source_set": source_set_from_pdf(path),
+                }
+            )
+        if not rows:
+            continue
+
+        counts: list[int] = []
+        for index, line in enumerate(lines):
+            if line.lower() != "count":
+                continue
+            for count_line in lines[index + 1 :]:
+                value = safe_int(count_line)
+                if value is None or not 1 <= value <= 50:
+                    break
+                counts.append(value)
+            break
+        if len(counts) < len(rows):
+            suffix_counts = []
+            for line in reversed(lines):
+                value = safe_int(line)
+                if value is None or not 1 <= value <= 50:
+                    break
+                suffix_counts.append(value)
+            counts = list(reversed(suffix_counts))
+        if len(counts) < len(rows):
+            continue
+        for row, count in zip(rows, counts[-len(rows) :]):
+            if int(row["word_id"]) in global_seen_ids:
+                continue
+            row["count"] = max(1, count)
+            global_seen_ids.add(int(row["word_id"]))
+            all_rows.append(row)
+    if all_rows:
+        return all_rows
+
+    text = "\n".join(page_texts)
+    lines = [normalize_word_text(line) for line in text.splitlines()]
+    rows: list[dict] = []
+    seen_ids: set[int] = set()
+    counts: list[int] = []
+    in_count_column = False
+    for line in lines:
+        if not line:
+            in_count_column = False
+            continue
+        lowered = line.lower()
+        if lowered == "count":
+            in_count_column = True
+            continue
+        if in_count_column:
+            value = safe_int(line)
+            if value is not None and 1 <= value <= 50:
+                counts.append(value)
+                continue
+            in_count_column = False
+
+        match = re.match(r"^(\d{1,4})\s+(\d{1,4})\s+(.+)$", line)
+        if not match:
+            continue
+        word_id = int(match.group(1))
+        if word_id in seen_ids:
+            continue
+        word_text = normalize_word_text(match.group(3))
+        if should_skip_pdf_word(word_text):
+            continue
+        seen_ids.add(word_id)
+        rows.append(
+            {
+                "word_id": word_id,
+                "page": int(match.group(2)),
+                "count": 1,
+                "uzbek": word_text,
+                "source_pdf": path.name,
+                "source_set": source_set_from_pdf(path),
+            }
+        )
+    if not rows or len(counts) < len(rows):
+        return []
+    for row, count in zip(rows, counts):
+        row["count"] = max(1, count)
+    return rows
+
+
+def extract_words_from_pypdf_lines(text: str, path: Path) -> list[dict]:
+    lines = [normalize_word_text(line) for line in text.splitlines()]
+    lines = [
+        line
+        for line in lines
+        if line and not should_skip_pdf_word(line) and not re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", line)
+    ]
+    items = []
+    index = 0
+    while index + 2 < len(lines):
+        word_id = safe_int(lines[index])
+        page = safe_int(lines[index + 1])
+        if word_id is None or page is None:
+            index += 1
+            continue
+        cursor = index + 2
+        next_word_id = safe_int(lines[cursor])
+        if next_word_id == word_id + 1 and cursor + 1 < len(lines):
+            cursor += 1
+        gesture_count = 1
+        possible_count = safe_int(lines[cursor])
+        if possible_count is not None and 1 <= possible_count <= 50 and cursor + 1 < len(lines):
+            gesture_count = possible_count
+            cursor += 1
+        word_text = normalize_word_text(lines[cursor])
+        next_cursor = cursor + 1
+        possible_trailing_count = safe_int(lines[next_cursor]) if next_cursor < len(lines) else None
+        next_row_word_id = safe_int(lines[next_cursor + 1]) if next_cursor + 1 < len(lines) else None
+        if (
+            possible_trailing_count is not None
+            and 1 <= possible_trailing_count <= 50
+            and (next_row_word_id == word_id + 1 or next_cursor + 2 >= len(lines))
+        ):
+            gesture_count = possible_trailing_count
+            next_cursor += 1
+        if should_skip_pdf_word(word_text) or re.match(r"^\d+$", word_text):
+            index += 1
+            continue
+        items.append(
+            {
+                "word_id": word_id,
+                "page": page,
+                "count": gesture_count,
+                "uzbek": word_text,
+                "source_pdf": path.name,
+                "source_set": source_set_from_pdf(path),
+            }
+        )
+        index = next_cursor
     return items
 
 
@@ -495,16 +674,22 @@ def extract_words_from_google_sheets_pdf(path: Path) -> list[dict]:
     for _, cells in sorted(rows.items()):
         word_id_text = ""
         page_text = ""
+        count_text = ""
         word_parts = []
         for x, text in sorted(cells):
             if x < 55:
                 word_id_text += text
             elif x < 90:
                 page_text += text
-            elif x < 362:
+            elif x < 130 and re.fullmatch(r"\d{1,3}", text.strip()):
+                count_text += text
+            elif x < 385:
                 word_parts.append(text)
+            elif x < 430 and re.fullmatch(r"\d{1,3}", text.strip()):
+                count_text += text
         word_id = safe_int(re.sub(r"\D+", "", word_id_text))
         page = safe_int(re.sub(r"\D+", "", page_text))
+        gesture_count = safe_int(re.sub(r"\D+", "", count_text), 1) or 1
         word_text = normalize_word_text("".join(word_parts))
         if word_id is None or page is None or should_skip_pdf_word(word_text):
             continue
@@ -512,6 +697,7 @@ def extract_words_from_google_sheets_pdf(path: Path) -> list[dict]:
             {
                 "word_id": word_id,
                 "page": page,
+                "count": max(1, gesture_count),
                 "uzbek": word_text,
                 "source_pdf": path.name,
                 "source_set": source_set_from_pdf(path),
@@ -558,6 +744,13 @@ def phone_display_name(phone: dict) -> str:
         or phone.get("url")
         or "camera"
     )
+
+
+def short_device_id(value) -> str:
+    text = str(value or "")
+    if len(text) <= 14:
+        return text
+    return f"{text[:7]}...{text[-4:]}"
 
 
 def normalize_url(url: str) -> str:
@@ -792,10 +985,23 @@ def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tupl
     if endpoint == "/start" and config.get("block_recording_if_missing_phones", True):
         check_all_configured_phones_online(config, timeout)
     endpoint_by_phone = build_endpoint_map(config, phones, endpoint, task=task)
+    retries = max(1, int(config.get("stop_retry_count", 2))) if endpoint == "/stop" else 1
+    retry_delay = max(0.0, float(config.get("stop_retry_delay_seconds", 0.15)))
+
+    def request_with_retry(phone: dict) -> tuple[str, str]:
+        last_result = (phone_display_name(phone), "ERROR: not sent")
+        for attempt in range(retries):
+            last_result = request_phone(phone, endpoint_by_phone[id(phone)], timeout)
+            if not str(last_result[1]).startswith("ERROR:"):
+                return last_result
+            if attempt + 1 < retries and retry_delay:
+                time.sleep(retry_delay)
+        return last_result
+
     results = []
     with ThreadPoolExecutor(max_workers=len(phones)) as executor:
         futures = {
-            executor.submit(request_phone, phone, endpoint_by_phone[id(phone)], timeout): phone
+            executor.submit(request_with_retry, phone): phone
             for phone in phones
         }
         for future in as_completed(futures):
@@ -833,8 +1039,8 @@ def build_endpoint_map(
     endpoints = {}
     for phone in phones:
         camera_name = (
-            safe_name(str(phone.get("device_label") or ""))
-            or phone.get("camera_name")
+            phone.get("camera_name")
+            or safe_name(str(phone.get("device_label") or ""))
             or camera_name_from_slot(safe_int(phone.get("device_slot")))
         )
         params = {
@@ -893,6 +1099,27 @@ def send_start_fast(config: dict, task: dict | None = None) -> list[tuple[str, s
         for future in as_completed(futures):
             results.append(future.result())
     return results
+
+
+def start_result_failures(results: list[tuple[str, str]], required: int) -> list[str]:
+    failures = []
+    ok_count = 0
+    for name, body in results:
+        if str(body).startswith("ERROR:"):
+            failures.append(f"{name}: {body}")
+            continue
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError:
+            failures.append(f"{name}: bad response")
+            continue
+        if not payload.get("ok", True) or not payload.get("recording", False):
+            failures.append(f"{name}: {payload.get('error', body)}")
+            continue
+        ok_count += 1
+    if ok_count < required:
+        failures.append(f"connected started {ok_count}/{required}")
+    return failures
 
 
 def check_all_configured_phones_online(config: dict, timeout: float) -> None:
@@ -1285,14 +1512,16 @@ class ControllerApp:
         for column_index in range(2):
             tree = ttk.Treeview(
                 word_columns,
-                columns=("word", "take"),
+                columns=("word", "count", "take"),
                 show="headings",
                 height=6,
                 selectmode="browse",
             )
             tree.heading("word", text="Word")
+            tree.heading("count", text="count")
             tree.heading("take", text="Take")
-            tree.column("word", width=430, stretch=True)
+            tree.column("word", width=390, stretch=True)
+            tree.column("count", width=48, stretch=False, anchor="center")
             tree.column("take", width=64, stretch=False, anchor="center")
             tree.tag_configure("ok", foreground="#1e8449")
             tree.tag_configure("error", foreground="#c0392b")
@@ -1342,7 +1571,7 @@ class ControllerApp:
 
         self.devices_tree = ttk.Treeview(
             devices,
-            columns=("slot", "camera", "state", "device", "url", "free", "battery"),
+            columns=("slot", "camera", "state", "device_id", "device", "url", "free", "battery"),
             show="headings",
             height=4,
             selectmode="browse",
@@ -1350,6 +1579,7 @@ class ControllerApp:
         self.devices_tree.heading("slot", text="Slot")
         self.devices_tree.heading("camera", text="Camera name")
         self.devices_tree.heading("state", text="State")
+        self.devices_tree.heading("device_id", text="Device ID")
         self.devices_tree.heading("device", text="Device")
         self.devices_tree.heading("url", text="URL")
         self.devices_tree.heading("free", text="Free")
@@ -1357,8 +1587,9 @@ class ControllerApp:
         self.devices_tree.column("slot", width=52, stretch=False)
         self.devices_tree.column("camera", width=110, stretch=False)
         self.devices_tree.column("state", width=90, stretch=False)
-        self.devices_tree.column("device", width=150, stretch=True)
-        self.devices_tree.column("url", width=190, stretch=True)
+        self.devices_tree.column("device_id", width=120, stretch=False)
+        self.devices_tree.column("device", width=135, stretch=True)
+        self.devices_tree.column("url", width=175, stretch=True)
         self.devices_tree.column("free", width=90, stretch=False)
         self.devices_tree.column("battery", width=90, stretch=False)
         self.devices_tree.tag_configure("offline", foreground="#c0392b")
@@ -1509,6 +1740,16 @@ class ControllerApp:
     def task_event_fields(self, task: dict | None) -> dict:
         if not task:
             return {"record": None}
+        devices = [
+            {
+                "device": phone_display_name(phone),
+                "device_id": phone.get("device_id"),
+                "slot": safe_int(phone.get("device_slot")),
+                "camera": phone.get("camera_name"),
+                "url": phone.get("url"),
+            }
+            for phone in configured_phones(self.config)
+        ]
         return {
             "session": task.get("session_id"),
             "record": task.get("record_index"),
@@ -1519,6 +1760,7 @@ class ControllerApp:
             "take": task.get("take_label"),
             "mode": task.get("mode"),
             "app_version": task.get("app_version") or APP_VERSION,
+            "devices": devices,
         }
 
     def log_phone_results(self, event: str, results: list[tuple[str, str]]) -> None:
@@ -1534,6 +1776,9 @@ class ControllerApp:
                     lambda n=name, p=payload: self.recording_event_write(
                         event,
                         device=n,
+                        device_id=p.get("deviceId"),
+                        device_slot=safe_int(p.get("deviceSlot")),
+                        device_label=p.get("deviceLabel"),
                         status="error",
                         reason=p.get("error", p),
                         session=p.get("sessionId"),
@@ -1555,10 +1800,13 @@ class ControllerApp:
                 lambda n=name, p=payload, s=status, r=reason, z=size_bytes: self.recording_event_write(
                     event,
                     device=n,
+                    device_id=p.get("deviceId"),
+                    device_slot=safe_int(p.get("deviceSlot")),
+                    device_label=p.get("deviceLabel"),
                     status=s,
                     reason=r,
                     session=p.get("sessionId"),
-                    file=p.get("lastVideoName"),
+                    file=p.get("lastVideoName") or p.get("activeVideoName"),
                     size_bytes=z,
                 ),
             )
@@ -1566,6 +1814,7 @@ class ControllerApp:
     def stop_save_failures(self, results: list[tuple[str, str]], task: dict | None = None) -> list[str]:
         failures = []
         expected_session = str(task.get("session_id")) if task and task.get("session_id") else ""
+        expected_record = safe_int(task.get("record_index")) if task else None
         for name, body in results:
             try:
                 payload = json.loads(body)
@@ -1578,6 +1827,11 @@ class ControllerApp:
             size_bytes = safe_int(payload.get("lastVideoSizeBytes"))
             if expected_session and str(payload.get("sessionId") or "") != expected_session:
                 failures.append(f"{name}: session mismatch ({payload.get('sessionId') or 'none'})")
+                continue
+            metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else {}
+            actual_record = safe_int(payload.get("recordIndex") or metadata.get("recordIndex") or metadata.get("record"))
+            if expected_record is not None and actual_record is not None and actual_record != expected_record:
+                failures.append(f"{name}: record mismatch ({actual_record})")
                 continue
             if not payload.get("lastVideoName"):
                 failures.append(f"{name}: no saved file confirmation")
@@ -1715,7 +1969,9 @@ class ControllerApp:
             return
         main_index = int(self.dataset_state.get("main_word_index", 0))
         view_index = int(self.dataset_state.get("view_word_index", main_index))
-        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        gesture_count = word_gesture_count(word, self.dataset_state.get("gesture_count", 1))
+        if safe_int(self.gesture_count_var.get(), 1) != gesture_count:
+            self.gesture_count_var.set(gesture_count)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
         self.word_var.set(word_display(word))
@@ -1749,7 +2005,13 @@ class ControllerApp:
                 done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0))
                 word_id = word_number_prefix(word.get("word_id"))
                 label = f"{word_id} {word.get('uzbek', '')}".strip()
-                tree.insert("", "end", iid=str(index), values=(label, take_label(done + 1)), tags=tuple(tags))
+                tree.insert(
+                    "",
+                    "end",
+                    iid=str(index),
+                    values=(label, word_gesture_count(word, self.dataset_state.get("gesture_count", 1)), take_label(done + 1)),
+                    tags=tuple(tags),
+                )
 
     def word_tree_selected(self, event=None) -> None:
         widget = event.widget if event is not None else None
@@ -1777,7 +2039,11 @@ class ControllerApp:
         self.write(f"Signer selected: {self.signer_var.get()}")
 
     def gesture_count_changed(self) -> None:
-        self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        self.dataset_state["gesture_count"] = gesture_count
+        word = self.current_word()
+        if word:
+            word["count"] = gesture_count
         self.save_dataset()
         self.refresh_dataset_labels()
 
@@ -1824,7 +2090,7 @@ class ControllerApp:
     def build_current_task(self) -> dict:
         signer_id = self.selected_signer_id()
         signer_name = signer_names(self.dataset_state).get(signer_id, signer_id)
-        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        gesture_count = word_gesture_count(None, self.gesture_count_var.get())
         if self.background_var.get():
             return {
                 "signer_id": signer_id,
@@ -1844,6 +2110,9 @@ class ControllerApp:
         word = self.current_word()
         if not word:
             raise RuntimeError("Import PDF before recording")
+        gesture_count = word_gesture_count(word, self.dataset_state.get("gesture_count", 1))
+        if safe_int(self.gesture_count_var.get(), 1) != gesture_count:
+            self.gesture_count_var.set(gesture_count)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         take_number = done + 1
         return {
@@ -1868,7 +2137,7 @@ class ControllerApp:
         word = self.current_word()
         if not word:
             return
-        gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
+        gesture_count = word_gesture_count(word, self.dataset_state.get("gesture_count", 1))
         key = word_key(word)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0)) + 1
         self.dataset_state.setdefault("takes_done_by_word", {})[key] = done
@@ -2089,11 +2358,15 @@ class ControllerApp:
             device_key = phone.get("device_id") or phone.get("url")
             device_status = self.device_status_cache.get(device_key, {})
             name = phone_display_name(phone)
-            state = self.camera_state_by_name.get(name) or ("online" if device_status.get("ok", True) else "offline")
+            known_status = bool(device_status)
+            state = self.camera_state_by_name.get(name) or (
+                "online" if device_status.get("ok", False) else ("unknown" if not known_status else "offline")
+            )
             values = (
                 phone.get("device_slot", ""),
                 phone.get("camera_name", ""),
                 state,
+                short_device_id(phone.get("device_id")),
                 phone.get("device_name") or phone.get("device_label") or phone.get("name", ""),
                 phone.get("url", ""),
                 device_status.get("free", "—"),
@@ -2101,7 +2374,7 @@ class ControllerApp:
             )
             tags = (
                 ("offline",)
-                if state in {"offline", "error"} or not device_status.get("ok", True)
+                if state in {"offline", "error"} or (known_status and not device_status.get("ok", False))
                 else (("saved",) if state == "saved" else (("recording",) if state == "recording" else ()))
             )
             self.devices_tree.insert("", "end", iid=iid, values=values, tags=tags)
@@ -2314,16 +2587,29 @@ class ControllerApp:
             self.write(f"ERROR: {error}")
             self.status.set("Error")
             return
-        self.active_task = task
-        self.set_http_recording_state(True)
-        self._session_started_at["http"] = time.time()
-        self.status.set("Starting recording...")
-        self.camera_state_by_name = {phone_display_name(phone): "pending" for phone in configured_phones(self.config)}
-        self.recording_event_write("START_PENDING", **self.task_event_fields(task))
+
+        phones = configured_phones(self.config)
+        required = int(self.config.get("required_phone_count", self.config.get("min_phones", len(phones) or 1)))
+        self.record_button.configure(state=DISABLED)
+        self.status.set("Checking devices...")
 
         def worker() -> None:
             try:
+                timeout = float(self.config.get("timeout_seconds", 3))
+                check_all_configured_phones_online(self.config, timeout)
+                check_ready_for_recording(self.config, phones, timeout)
+                self.root.after(
+                    0,
+                    lambda: self.recording_event_write("START_PENDING", **self.task_event_fields(task)),
+                )
                 results = send_start_fast(self.config, task=task)
+                failures = start_result_failures(results, required)
+                if failures:
+                    try:
+                        send_all(self.config, "/stop", task=task)
+                    except Exception:
+                        pass
+                    raise RuntimeError("START blocked: " + "; ".join(failures))
                 task_text = (
                     f"{task.get('mode')} / {task.get('word')} "
                     f"/ take {task.get('take_label')}"
@@ -2331,6 +2617,10 @@ class ControllerApp:
                 message = format_results("Command sent:", results)
 
                 def apply_start_ack() -> None:
+                    self.active_task = task
+                    self.set_http_recording_state(True)
+                    self.record_button.configure(state=NORMAL)
+                    self._session_started_at["http"] = time.time()
                     self.recording_event_write("START", **self.task_event_fields(task))
                     self.log_phone_results("START_ACK", results)
                     self.camera_state_by_name.update({name: "recording" for name, body in results if not str(body).startswith("ERROR:")})
@@ -2351,6 +2641,13 @@ class ControllerApp:
                     if self.recording and self.active_task is task:
                         self.set_http_recording_state(False)
                         self._session_started_at.pop("http", None)
+                    self.record_button.configure(state=NORMAL)
+                    self.camera_state_by_name = {
+                        phone_display_name(phone): "error"
+                        for phone in configured_phones(self.config)
+                    }
+                    self.refresh_device_table()
+                    self.recording_event_write("START_FAILED", reason=message, **self.task_event_fields(task))
                     self.write(message)
                     self.status.set("Error")
 
@@ -2364,12 +2661,14 @@ class ControllerApp:
 
         task = self.active_task
         self._stop_command_running = True
-        self.set_http_recording_state(False)
         self.record_button.configure(state=DISABLED)
         self.status.set("Stopping recording...")
 
         def worker() -> None:
             try:
+                stop_grace = max(0.0, float(self.config.get("stop_grace_seconds", 0.75)))
+                if stop_grace:
+                    time.sleep(stop_grace)
                 results = send_all(self.config, "/stop", task=task)
                 videos = None
                 if self.config.get("auto_refresh_videos_after_stop", False):
@@ -2379,6 +2678,7 @@ class ControllerApp:
                 failures = self.stop_save_failures(results, task)
 
                 def apply_stop() -> None:
+                    self.set_http_recording_state(False)
                     self.complete_current_task(ok=not failures)
                     if videos is not None:
                         self.refresh_videos_table(videos)
@@ -2386,6 +2686,16 @@ class ControllerApp:
                     self.recording_event_write("STOP", **self.task_event_fields(task))
                     self.log_phone_results("STOP_SAVE", results)
                     failed_names = {item.split(":", 1)[0] for item in failures}
+                    required = int(self.config.get("required_phone_count", self.config.get("min_phones", len(results) or 1)))
+                    saved_ok = max(0, len(results) - len(failed_names))
+                    self.recording_event_write(
+                        "SESSION_CHECK",
+                        expected=required,
+                        saved_ok=saved_ok,
+                        failed=len(failed_names),
+                        failures=failures,
+                        **self.task_event_fields(task),
+                    )
                     for name, _body in results:
                         self.camera_state_by_name[name] = "error" if name in failed_names else "saved"
                     self.refresh_device_table()

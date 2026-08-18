@@ -390,6 +390,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   Future<void> _operation = Future.value();
   WsClient? _wsClient;
   String _wsStatus = 'idle';
+  bool _reticleMenuOpen = false;
 
   @override
   void initState() {
@@ -1599,15 +1600,13 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _setZoom(_zoom + (delta * step));
   }
 
-  Future<void> _cycleReticleMode() async {
-    final currentIndex = reticleModes.indexOf(_settings.reticleMode);
-    final nextMode =
-        reticleModes[(currentIndex < 0 ? 0 : currentIndex + 1) %
-            reticleModes.length];
-    final nextSettings = _settings.copyWith(reticleMode: nextMode).normalized();
-    setState(() => _settings = nextSettings);
+  Future<void> _setReticleMode(String mode) async {
+    final nextSettings = _settings.copyWith(reticleMode: mode).normalized();
+    setState(() {
+      _settings = nextSettings;
+      _reticleMenuOpen = false;
+    });
     await nextSettings.save();
-    _showSnack('Reticle: ${nextSettings.reticleLabel}');
   }
 
   double _smartZoomStep() {
@@ -1803,18 +1802,42 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               ),
             ),
           ),
+          if (_reticleMenuOpen)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => setState(() => _reticleMenuOpen = false),
+                child: const SizedBox.expand(),
+              ),
+            ),
           Positioned(
             left: 16,
             bottom: 28,
             child: SafeArea(
               top: false,
-              child: IconButton.filledTonal(
-                tooltip: 'Reticle: ${_settings.reticleLabel}',
-                onPressed: () => unawaited(_cycleReticleMode()),
-                icon: CustomPaint(
-                  size: const Size.square(26),
-                  painter: ReticleIconPainter(mode: _settings.reticleMode),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_reticleMenuOpen)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: ReticleModePicker(
+                        selectedMode: _settings.reticleMode,
+                        onSelected: (mode) => unawaited(_setReticleMode(mode)),
+                      ),
+                    ),
+                  IconButton.filledTonal(
+                    tooltip: 'Reticle: ${_settings.reticleLabel}',
+                    onPressed: () {
+                      setState(() => _reticleMenuOpen = !_reticleMenuOpen);
+                    },
+                    icon: CustomPaint(
+                      size: const Size.square(26),
+                      painter: ReticleIconPainter(mode: _settings.reticleMode),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -2118,6 +2141,79 @@ class ZoomControls extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class ReticleModePicker extends StatelessWidget {
+  const ReticleModePicker({
+    super.key,
+    required this.selectedMode,
+    required this.onSelected,
+  });
+
+  final String selectedMode;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final mode in reticleModes)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: IconButton(
+                  tooltip: _label(mode),
+                  onPressed: () => onSelected(mode),
+                  style: IconButton.styleFrom(
+                    backgroundColor: selectedMode == mode
+                        ? const Color(0xff39a2ff)
+                        : Colors.white.withValues(alpha: 0.08),
+                    foregroundColor: Colors.white,
+                    fixedSize: const Size.square(44),
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: CustomPaint(
+                    size: const Size.square(24),
+                    painter: ReticleIconPainter(
+                      mode: mode,
+                      selected: selectedMode == mode,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _label(String mode) {
+    switch (mode) {
+      case 'off':
+        return 'Off';
+      case 'dot':
+        return 'Dot';
+      case 'cross':
+        return 'Cross';
+      case 'splitCross':
+        return 'Split cross';
+      case 'frameCross':
+        return 'Frame cross';
+      default:
+        return mode;
+    }
   }
 }
 
@@ -2579,16 +2675,19 @@ class ReticleOverlayPainter extends CustomPainter {
 }
 
 class ReticleIconPainter extends CustomPainter {
-  const ReticleIconPainter({required this.mode});
+  const ReticleIconPainter({required this.mode, this.selected = false});
 
   final String mode;
+  final bool selected;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final unit = size.shortestSide;
     final paint = Paint()
-      ..color = mode == 'off' ? Colors.white70 : const Color(0xff39a2ff)
+      ..color = selected
+          ? Colors.white
+          : (mode == 'off' ? Colors.white70 : const Color(0xff39a2ff))
       ..strokeWidth = (unit * 0.08).clamp(1.8, 2.4)
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -2628,7 +2727,7 @@ class ReticleIconPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ReticleIconPainter oldDelegate) {
-    return mode != oldDelegate.mode;
+    return mode != oldDelegate.mode || selected != oldDelegate.selected;
   }
 }
 

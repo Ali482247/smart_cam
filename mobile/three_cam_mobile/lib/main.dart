@@ -1196,7 +1196,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
     debugPrint(
       'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
-      'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
+      'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation} '
+      'previewSize=${camera.value.previewSize}',
     );
     _fpsStreamActive = true;
     _recording = true;
@@ -1995,13 +1996,28 @@ class _CameraControlScreenState extends State<CameraControlScreen>
                 );
               }
 
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: (details) =>
-                    unawaited(_handleFocusTap(details, constraints)),
-                onScaleStart: _handleScaleStart,
-                onScaleUpdate: _handleScaleUpdate,
-                child: _buildFullscreenPreview(camera, constraints),
+              // CameraController extends ValueNotifier<CameraValue>, but nothing was
+              // listening to it directly - _buildFullscreenPreview only ever recomputed
+              // on our OWN explicit setState() calls (init/start/stop/zoom/...), not
+              // when the plugin updates camera.value on its own. That mattered a lot
+              // right here: CameraX can report a new previewSize slightly AFTER
+              // startVideoRecording()'s future resolves (it rebinds Preview alongside
+              // VideoCapture asynchronously), which happens after our one setState() at
+              // record-start already ran - so the preview box kept using the now-stale
+              // previewSize for the rest of the recording, only correcting itself at the
+              // next setState(), i.e. STOP. Wrapping in ListenableBuilder makes the
+              // preview box recompute on every CameraController change, including that
+              // late one, without touching any other state in the widget.
+              return ListenableBuilder(
+                listenable: camera,
+                builder: (context, _) => GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (details) =>
+                      unawaited(_handleFocusTap(details, constraints)),
+                  onScaleStart: _handleScaleStart,
+                  onScaleUpdate: _handleScaleUpdate,
+                  child: _buildFullscreenPreview(camera, constraints),
+                ),
               );
             },
           ),

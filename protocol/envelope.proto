@@ -31,5 +31,6 @@ message Envelope {
     Event event = 18;
     UploadTicket upload_ticket = 19;
     UploadProgress upload_progress = 20;
+    HeartbeatAck heartbeat_ack = 21;
   }
 }

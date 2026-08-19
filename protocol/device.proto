@@ -13,6 +13,20 @@ message Hello {
   string device_label = 6;
   string android_id = 7;      // optional debug metadata only, never the canonical identity
   string app_version = 8;
+
+  // Generated fresh in memory on every full app/process start (never persisted) - lets
+  // the server tell "the same install reconnecting" (device_id unchanged) apart from
+  // "the process was killed and relaunched" (app_instance_id changed). Combined with
+  // connection_generation below, this is what lets ConnectionManager.register() safely
+  // treat an incoming Hello from a genuinely new process as authoritative over a stale
+  // connection object it hasn't yet noticed is dead (connection_lifecycle.md).
+  string app_instance_id = 9;
+  // Monotonically increasing per app_instance_id, incremented once per WS connection
+  // attempt (ConnectionSupervisor owns the counter). Purely a diagnostic/ordering aid
+  // server-side; the server does not need to validate it strictly since device_id +
+  // "newest connection wins" already provides the safety property, but it makes stale-
+  // vs-current connection reasoning legible in logs/telemetry.
+  uint64 connection_generation = 10;
 }
 
 // Sent by the server in reply to Hello. protocol_version mismatch -> error is set and

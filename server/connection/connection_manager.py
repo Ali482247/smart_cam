@@ -47,9 +47,16 @@ class ConnectionManager:
 
         existing = self._connections.get(connection.device_id)
         if existing is not None and existing is not connection:
+            previous_session = self._session_manager.get(connection.device_id)
+            same_instance = bool(
+                previous_session
+                and previous_session.capabilities.app_instance_id
+                and previous_session.capabilities.app_instance_id == hello.app_instance_id
+            )
             logger.warning(
-                "device_id=%s already had a live connection; closing the older one",
-                connection.device_id,
+                "device_id=%s already had a live connection; closing the older one "
+                "(same_app_instance=%s, new_generation=%s)",
+                connection.device_id, same_instance, hello.connection_generation,
             )
             await existing.close()
 

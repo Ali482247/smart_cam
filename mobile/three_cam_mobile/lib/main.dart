@@ -8,13 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ws/connection_supervisor.dart';
 import 'ws/recording_controller.dart';
-import 'ws/ws_client.dart';
 
 const int controlPort = 8088;
 const int discoveryPort = 8089;
 const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
+const EventChannel connectivityEventChannel = EventChannel('three_cam/connectivity');
 const int stableRecordingFps = 30;
 const String appVersion = '1.1.0';
 const List<String> reticleModes = [
@@ -388,9 +389,22 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String _sessionAppVersion = appVersion;
   int _localIndex = 0;
   Future<void> _operation = Future.value();
-  WsClient? _wsClient;
+  ConnectionSupervisor? _wsClient;
   String _wsStatus = 'idle';
   bool _reticleMenuOpen = false;
+  bool _disposed = false;
+  Timer? _serverWatchdogTimer;
+  int _serverRestartAttempts = 0;
+  int _discoveryRestartAttempts = 0;
+  bool _serverRestartScheduled = false;
+  bool _discoveryRestartScheduled = false;
+  StreamSubscription<dynamic>? _connectivitySubscription;
+  IOSink? _connectionLogSink;
+
+  // Same backoff shape as the WS reconnect table in docs/failure_recovery.md
+  // (1s, 2s, 4s, 8s, then 15s repeating) - reused here for restarting the local
+  // HTTP/UDP sockets when Android's Doze/battery-saver kills them out from under us.
+  static const List<int> _restartBackoffSeconds = [1, 2, 4, 8, 15];
 
   @override
   void initState() {
@@ -404,15 +418,120 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _settings.save();
     await _applyPreferredOrientations();
     await _applyKeepScreenOn();
+    await _acquireWakeLocks();
+    unawaited(_requestBatteryOptimizationExemption());
     await _initCamera();
     await _startServer();
     await _loadIpAddress();
     await _refreshNativeStatus();
     await _startDiscovery();
     _startWsClient();
+    _startServerWatchdog();
     if (!mounted) return;
     setState(() {
       _booted = true;
+    });
+  }
+
+  // Keeps the CPU (and, separately, the Wi-Fi radio) from being suspended by
+  // Android's Doze/App Standby once the battery gets low - see MainActivity.kt
+  // acquireWakeLocks(). Safe to call even on native builds that predate this
+  // method: the channel call just fails silently and the app runs as before.
+  Future<void> _acquireWakeLocks() async {
+    try {
+      await mediaChannel.invokeMethod<bool>('acquireWakeLocks');
+    } catch (_) {
+      // Older native build without this method - degrade gracefully.
+    }
+  }
+
+  // Prompts (once - Android remembers the choice) to exempt this app from battery
+  // optimizations, which is what actually stops the OS from throttling background
+  // network sockets when the automatic Battery Saver kicks in around 15%.
+  Future<void> _requestBatteryOptimizationExemption() async {
+    try {
+      final ignoring = await mediaChannel.invokeMethod<bool>(
+        'isIgnoringBatteryOptimizations',
+      );
+      if (ignoring != true) {
+        await mediaChannel.invokeMethod<bool>('requestIgnoreBatteryOptimizations');
+      }
+    } catch (_) {
+      // Older native build without this method - nothing to do.
+    }
+  }
+
+  // Periodically confirms the control HTTP server is actually still answering
+  // requests (not just that `_server` is non-null - Doze can kill the underlying
+  // socket while the Dart object reference survives). A failed self-check forces a
+  // rebind, closing the gap this bug report described: previously nothing detected
+  // the dead server, so only a manual app relaunch via the bat script recovered it.
+  void _startServerWatchdog() {
+    _serverWatchdogTimer?.cancel();
+    _serverWatchdogTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      unawaited(_checkServerHealth());
+    });
+  }
+
+  Future<void> _checkServerHealth() async {
+    if (_disposed) return;
+    if (_server == null) {
+      _scheduleServerRestart();
+      return;
+    }
+    final client = HttpClient();
+    try {
+      final request = await client
+          .getUrl(Uri.parse('http://127.0.0.1:$controlPort/status'))
+          .timeout(const Duration(seconds: 5));
+      final response = await request.close().timeout(const Duration(seconds: 5));
+      await response.drain<void>();
+      if (response.statusCode != HttpStatus.ok) {
+        _scheduleServerRestart();
+      }
+    } catch (_) {
+      _scheduleServerRestart();
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  void _scheduleServerRestart() {
+    if (_disposed || _serverRestartScheduled) return;
+    _serverRestartScheduled = true;
+    final server = _server;
+    _server = null;
+    if (server != null) {
+      unawaited(server.close(force: true).catchError((_) {}));
+    }
+    final delaySeconds = _restartBackoffSeconds[_serverRestartAttempts.clamp(
+      0,
+      _restartBackoffSeconds.length - 1,
+    )];
+    _serverRestartAttempts++;
+    _setStatus('Server unresponsive, restarting in ${delaySeconds}s...');
+    Timer(Duration(seconds: delaySeconds), () {
+      _serverRestartScheduled = false;
+      if (_disposed || _server != null) return;
+      unawaited(_startServer());
+    });
+  }
+
+  void _scheduleDiscoveryRestart() {
+    if (_disposed || _discoveryRestartScheduled) return;
+    _discoveryRestartScheduled = true;
+    final socket = _discoverySocket;
+    _discoverySocket = null;
+    socket?.close();
+    final delaySeconds = _restartBackoffSeconds[_discoveryRestartAttempts.clamp(
+      0,
+      _restartBackoffSeconds.length - 1,
+    )];
+    _discoveryRestartAttempts++;
+    Timer(Duration(seconds: delaySeconds), () {
+      _discoveryRestartScheduled = false;
+      if (_disposed || _discoverySocket != null) return;
+      unawaited(_startDiscovery());
     });
   }
 
@@ -420,28 +539,106 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   /// legacy HTTP server above - per the migration rules, HTTP stays fully operational
   /// until the WS path is verified with real devices; this does not replace it yet.
   void _startWsClient() {
-    _wsClient = WsClient(
+    _wsClient = ConnectionSupervisor(
       recordingController: _ScreenRecordingController(this),
       deviceStatusProvider: _nativeStatus,
       deviceLabel: _settings.deviceLabel,
       deviceSlot: _settings.deviceSlot,
+      appVersion: appVersion,
       onStatusChanged: (status) {
         if (!mounted) return;
         setState(() {
           _wsStatus = status;
         });
       },
+      onTelemetryEvent: _logConnectionTelemetry,
+      // Circuit breaker tripped (audit §16 Layer 6): the WS path alone has failed
+      // enough times to give up on the normal per-attempt backoff. Nudge the HTTP
+      // server and UDP discovery socket too, so all three control-plane paths get a
+      // coordinated clean slate instead of only WS quietly retrying forever.
+      onFullResetRequested: () {
+        _scheduleServerRestart();
+        _scheduleDiscoveryRestart();
+      },
     );
+    _startConnectivityListener();
+  }
+
+  /// Bridges Kotlin's `ConnectivityManager.NetworkCallback` (MainActivity.kt
+  /// registerNetworkCallback()) to [ConnectionSupervisor.onNetworkAvailable]/
+  /// [ConnectionSupervisor.onNetworkLost] - audit §10: real OS connectivity events
+  /// instead of polling as the primary signal.
+  void _startConnectivityListener() {
+    _connectivitySubscription?.cancel();
+    _connectivitySubscription = connectivityEventChannel.receiveBroadcastStream().listen(
+      (dynamic event) {
+        if (event is! String) return;
+        Map<String, dynamic> payload;
+        try {
+          payload = jsonDecode(event) as Map<String, dynamic>;
+        } catch (_) {
+          return;
+        }
+        final available = payload['available'] == true;
+        final wifi = payload['wifi'] == true;
+        if (available) {
+          _wsClient?.onNetworkAvailable(wifi: wifi);
+        } else {
+          _wsClient?.onNetworkLost();
+        }
+      },
+      onError: (_) {
+        // The platform channel itself failing shouldn't take anything else down -
+        // ConnectionSupervisor's own backoff/heartbeat-timeout paths still work as a
+        // fallback, just without the immediate-retry-on-Wi-Fi-restore optimization.
+      },
+    );
+  }
+
+  /// Structured connection telemetry (audit §18) - appended as NDJSON, one file per day
+  /// like the existing dashboard recording log convention (dashboard/three_cam_controller.py
+  /// recording_event_write), so a connection-reliability incident can be reconstructed
+  /// after the fact from the phone's own local file even if it never reached the Director.
+  void _logConnectionTelemetry(ConnectionTelemetryEvent event) {
+    final payload = event.toJson(
+      deviceId: _wsClient?.deviceId ?? _nativeDeviceId,
+      appInstanceId: _wsClient?.appInstanceId ?? '',
+      connectionGeneration: _wsClient?.generation ?? 0,
+    );
+    unawaited(_appendConnectionLogLine(jsonEncode(payload)));
+  }
+
+  Future<void> _appendConnectionLogLine(String line) async {
+    try {
+      var sink = _connectionLogSink;
+      if (sink == null) {
+        final dir = await getApplicationDocumentsDirectory();
+        final stamp = DateTime.now().toIso8601String().substring(0, 10);
+        final file = File('${dir.path}/connection_log_$stamp.ndjson');
+        sink = file.openWrite(mode: FileMode.append);
+        _connectionLogSink = sink;
+      }
+      sink.writeln(line);
+    } catch (_) {
+      // Best-effort local diagnostics only - must never affect the connection itself.
+    }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_applyKeepScreenOn());
+      unawaited(_acquireWakeLocks());
       unawaited(_loadIpAddress());
       unawaited(_refreshNativeStatus());
       unawaited(_applyAutoExposureAndFocus());
       unawaited(_startFpsStream());
+      // Coming back from background/screen-off is exactly when a Doze-killed
+      // server/discovery socket would otherwise stay dead until a manual relaunch.
+      unawaited(_checkServerHealth());
+      if (_discoverySocket == null) {
+        unawaited(_startDiscovery());
+      }
     }
   }
 
@@ -601,9 +798,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         shared: true,
       );
       _server = server;
+      _serverRestartAttempts = 0;
       unawaited(_serve(server));
     } catch (error) {
       _setStatus('Server error: $error');
+      _scheduleServerRestart();
     }
   }
 
@@ -616,44 +815,60 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         reusePort: true,
       );
       _discoverySocket = socket;
-      socket.listen((event) {
-        if (event != RawSocketEvent.read) return;
-        final datagram = socket.receive();
-        if (datagram == null) return;
+      _discoveryRestartAttempts = 0;
+      socket.listen(
+        (event) {
+          if (event != RawSocketEvent.read) return;
+          final datagram = socket.receive();
+          if (datagram == null) return;
 
-        final message = utf8.decode(datagram.data, allowMalformed: true).trim();
-        if (message != discoveryMessage) return;
+          final message = utf8.decode(datagram.data, allowMalformed: true).trim();
+          if (message != discoveryMessage) return;
 
-        final payload = jsonEncode({
-          'app': 'three_cam',
-          'name': _settings.deviceLabel,
-          'deviceId': _nativeDeviceId ?? Platform.localHostname,
-          'deviceName': _nativeDeviceName ?? Platform.localHostname,
-          'deviceSlot': _settings.deviceSlot,
-          'deviceLabel': _settings.deviceLabel,
-          'ip': _ip,
-          'port': controlPort,
-          'recording': _recording,
-          'actualFps': _actualFps,
-          'zoom': _zoom,
-          'settings': _settings.toJson(),
-        });
-        socket.send(utf8.encode(payload), datagram.address, datagram.port);
+          final payload = jsonEncode({
+            'app': 'three_cam',
+            'name': _settings.deviceLabel,
+            'deviceId': _nativeDeviceId ?? Platform.localHostname,
+            'deviceName': _nativeDeviceName ?? Platform.localHostname,
+            'deviceSlot': _settings.deviceSlot,
+            'deviceLabel': _settings.deviceLabel,
+            'ip': _ip,
+            'port': controlPort,
+            'recording': _recording,
+            'actualFps': _actualFps,
+            'zoom': _zoom,
+            'settings': _settings.toJson(),
+          });
+          socket.send(utf8.encode(payload), datagram.address, datagram.port);
 
-        // The discovery probe's sender is the PC - this is also the address the new
-        // WS client connects out to (network_architecture.md §Discovery Layer: the
-        // wire format is unchanged, but the same packet now also bootstraps the WS
-        // connection instead of requiring a separate discovery step for it).
-        unawaited(_wsClient?.connectTo(datagram.address.address));
-      });
+          // The discovery probe's sender is the PC - this is also the address the new
+          // WS client connects out to (network_architecture.md §Discovery Layer: the
+          // wire format is unchanged, but the same packet now also bootstraps the WS
+          // connection instead of requiring a separate discovery step for it).
+          unawaited(_wsClient?.connectTo(datagram.address.address));
+        },
+        onError: (_) {
+          if (identical(_discoverySocket, socket)) {
+            _scheduleDiscoveryRestart();
+          }
+        },
+        onDone: () {
+          if (identical(_discoverySocket, socket)) {
+            _discoverySocket = null;
+            _scheduleDiscoveryRestart();
+          }
+        },
+      );
     } catch (error) {
       _setStatus('Discovery error: $error');
+      _scheduleDiscoveryRestart();
     }
   }
 
   Future<void> _serve(HttpServer server) async {
-    await for (final request in server) {
-      try {
+    try {
+      await for (final request in server) {
+        try {
         final path = request.uri.path;
         if (path == '/start') {
           final params = request.uri.queryParameters;
@@ -753,6 +968,20 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       } catch (error) {
         request.response.statusCode = HttpStatus.internalServerError;
         _sendJson(request, {'ok': false, 'error': '$error'});
+      }
+      }
+    } catch (error) {
+      _setStatus('Server loop error: $error');
+    } finally {
+      // The await-for loop above only returns when the server's socket closes -
+      // either we closed it on purpose (dispose(), or _scheduleServerRestart()
+      // replacing a dead one - both already null out `_server` before doing so, so
+      // `identical` below is false for those and we correctly skip re-restarting),
+      // or Android's Doze/battery-saver silently killed the underlying socket, which
+      // is exactly the case this should recover from.
+      if (!_disposed && identical(_server, server)) {
+        _server = null;
+        _scheduleServerRestart();
       }
     }
   }
@@ -855,9 +1084,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
           .map((address) => address.address)
           .where((address) => !address.startsWith('127.'))
           .toList();
+      final ip = addresses.isEmpty ? 'not connected' : addresses.first;
+      _wsClient?.updateKnownIp(ip);
       if (!mounted) return;
       setState(() {
-        _ip = addresses.isEmpty ? 'not connected' : addresses.first;
+        _ip = ip;
       });
     } catch (_) {
       if (!mounted) return;
@@ -1670,15 +1901,22 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 
   @override
   void dispose() {
+    _disposed = true;
+    _serverWatchdogTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_server?.close(force: true));
+    _server = null;
     _discoverySocket?.close();
+    _discoverySocket = null;
     unawaited(_wsClient?.stop());
+    unawaited(_connectivitySubscription?.cancel());
+    unawaited(_connectionLogSink?.close());
     unawaited(_stopFpsStream());
     unawaited(_camera?.dispose());
     unawaited(
       mediaChannel.invokeMethod<bool>('setKeepScreenOn', {'enabled': false}),
     );
+    unawaited(mediaChannel.invokeMethod<bool>('releaseWakeLocks'));
     super.dispose();
   }
 
@@ -1884,9 +2122,10 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 }
 
 /// Adapts `_CameraControlScreenState`'s existing start/stop/status methods (already
-/// used by the legacy HTTP handlers) to the `RecordingController` interface `WsClient`
-/// depends on - this is the only bridge between the two; `WsClient` itself never
-/// references `_CameraControlScreenState` or the `camera` plugin.
+/// used by the legacy HTTP handlers) to the `RecordingController` interface
+/// `ConnectionSupervisor` depends on - this is the only bridge between the two;
+/// `ConnectionSupervisor` itself never references `_CameraControlScreenState` or the
+/// `camera` plugin.
 class _ScreenRecordingController implements RecordingController {
   _ScreenRecordingController(this._state);
 

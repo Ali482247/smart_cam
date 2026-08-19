@@ -29,6 +29,8 @@ class Hello extends $pb.GeneratedMessage {
     $core.String? deviceLabel,
     $core.String? androidId,
     $core.String? appVersion,
+    $core.String? appInstanceId,
+    $fixnum.Int64? connectionGeneration,
   }) {
     final result = create();
     if (deviceId != null) result.deviceId = deviceId;
@@ -39,6 +41,9 @@ class Hello extends $pb.GeneratedMessage {
     if (deviceLabel != null) result.deviceLabel = deviceLabel;
     if (androidId != null) result.androidId = androidId;
     if (appVersion != null) result.appVersion = appVersion;
+    if (appInstanceId != null) result.appInstanceId = appInstanceId;
+    if (connectionGeneration != null)
+      result.connectionGeneration = connectionGeneration;
     return result;
   }
 
@@ -63,6 +68,10 @@ class Hello extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'deviceLabel')
     ..aOS(7, _omitFieldNames ? '' : 'androidId')
     ..aOS(8, _omitFieldNames ? '' : 'appVersion')
+    ..aOS(9, _omitFieldNames ? '' : 'appInstanceId')
+    ..a<$fixnum.Int64>(
+        10, _omitFieldNames ? '' : 'connectionGeneration', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -154,6 +163,35 @@ class Hello extends $pb.GeneratedMessage {
   $core.bool hasAppVersion() => $_has(7);
   @$pb.TagNumber(8)
   void clearAppVersion() => $_clearField(8);
+
+  /// Generated fresh in memory on every full app/process start (never persisted) - lets
+  /// the server tell "the same install reconnecting" (device_id unchanged) apart from
+  /// "the process was killed and relaunched" (app_instance_id changed). Combined with
+  /// connection_generation below, this is what lets ConnectionManager.register() safely
+  /// treat an incoming Hello from a genuinely new process as authoritative over a stale
+  /// connection object it hasn't yet noticed is dead (connection_lifecycle.md).
+  @$pb.TagNumber(9)
+  $core.String get appInstanceId => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set appInstanceId($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasAppInstanceId() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearAppInstanceId() => $_clearField(9);
+
+  /// Monotonically increasing per app_instance_id, incremented once per WS connection
+  /// attempt (ConnectionSupervisor owns the counter). Purely a diagnostic/ordering aid
+  /// server-side; the server does not need to validate it strictly since device_id +
+  /// "newest connection wins" already provides the safety property, but it makes stale-
+  /// vs-current connection reasoning legible in logs/telemetry.
+  @$pb.TagNumber(10)
+  $fixnum.Int64 get connectionGeneration => $_getI64(9);
+  @$pb.TagNumber(10)
+  set connectionGeneration($fixnum.Int64 value) => $_setInt64(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasConnectionGeneration() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearConnectionGeneration() => $_clearField(10);
 }
 
 /// Sent by the server in reply to Hello. protocol_version mismatch -> error is set and

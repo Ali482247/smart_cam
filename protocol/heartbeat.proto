@@ -24,3 +24,14 @@ message Heartbeat {
   // exclude it from the first command (scheduler.md §Algorithm step 3).
   float last_rtt_ms = 8;
 }
+
+// Server -> node, sent immediately on receipt of a Heartbeat (bidirectional liveness -
+// connection_lifecycle.md §Heartbeat/keepalive). A node that considers itself connected
+// but stops receiving these is exactly the half-open-connection case (the node's socket
+// looks alive locally, but the server has already dropped it, e.g. after a NAT/AP
+// hiccup that only broke one direction): after a few consecutive missed acks the node
+// must not wait for a TCP-level timeout - it force-closes and reconnects itself.
+message HeartbeatAck {
+  uint64 heartbeat_seq = 1;   // echoes the Heartbeat envelope's sequence_number
+  int64 server_time_ms = 2;
+}

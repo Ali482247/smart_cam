@@ -171,6 +171,80 @@ class Heartbeat extends $pb.GeneratedMessage {
   void clearLastRttMs() => $_clearField(8);
 }
 
+/// Server -> node, sent immediately on receipt of a Heartbeat (bidirectional liveness -
+/// connection_lifecycle.md §Heartbeat/keepalive). A node that considers itself connected
+/// but stops receiving these is exactly the half-open-connection case (the node's socket
+/// looks alive locally, but the server has already dropped it, e.g. after a NAT/AP
+/// hiccup that only broke one direction): after a few consecutive missed acks the node
+/// must not wait for a TCP-level timeout - it force-closes and reconnects itself.
+class HeartbeatAck extends $pb.GeneratedMessage {
+  factory HeartbeatAck({
+    $fixnum.Int64? heartbeatSeq,
+    $fixnum.Int64? serverTimeMs,
+  }) {
+    final result = create();
+    if (heartbeatSeq != null) result.heartbeatSeq = heartbeatSeq;
+    if (serverTimeMs != null) result.serverTimeMs = serverTimeMs;
+    return result;
+  }
+
+  HeartbeatAck._();
+
+  factory HeartbeatAck.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HeartbeatAck.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HeartbeatAck',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'threecam.v1'),
+      createEmptyInstance: create)
+    ..a<$fixnum.Int64>(
+        1, _omitFieldNames ? '' : 'heartbeatSeq', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(2, _omitFieldNames ? '' : 'serverTimeMs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HeartbeatAck clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HeartbeatAck copyWith(void Function(HeartbeatAck) updates) =>
+      super.copyWith((message) => updates(message as HeartbeatAck))
+          as HeartbeatAck;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static HeartbeatAck create() => HeartbeatAck._();
+  @$core.override
+  HeartbeatAck createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static HeartbeatAck getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<HeartbeatAck>(create);
+  static HeartbeatAck? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get heartbeatSeq => $_getI64(0);
+  @$pb.TagNumber(1)
+  set heartbeatSeq($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHeartbeatSeq() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHeartbeatSeq() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get serverTimeMs => $_getI64(1);
+  @$pb.TagNumber(2)
+  set serverTimeMs($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasServerTimeMs() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearServerTimeMs() => $_clearField(2);
+}
+
 const $core.bool _omitFieldNames =
     $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames =

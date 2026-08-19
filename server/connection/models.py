@@ -52,6 +52,14 @@ class Capabilities:
     device_label: str = ""
     android_id: str = ""
     app_version: str = ""
+    # Connection reliability audit §7: app_instance_id is generated fresh per process
+    # start (never persisted), so comparing it across Hello messages for the same
+    # device_id tells "the same running app reconnecting" apart from "the process was
+    # killed and relaunched" - useful diagnostics even though the transport layer's
+    # "newest WS connection wins" rule (ConnectionManager.register) already provides the
+    # actual safety property regardless of whether the instance changed.
+    app_instance_id: str = ""
+    connection_generation: int = 0
 
 
 @dataclass

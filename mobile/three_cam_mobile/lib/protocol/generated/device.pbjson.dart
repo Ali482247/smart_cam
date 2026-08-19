@@ -27,6 +27,14 @@ const Hello$json = {
     {'1': 'device_label', '3': 6, '4': 1, '5': 9, '10': 'deviceLabel'},
     {'1': 'android_id', '3': 7, '4': 1, '5': 9, '10': 'androidId'},
     {'1': 'app_version', '3': 8, '4': 1, '5': 9, '10': 'appVersion'},
+    {'1': 'app_instance_id', '3': 9, '4': 1, '5': 9, '10': 'appInstanceId'},
+    {
+      '1': 'connection_generation',
+      '3': 10,
+      '4': 1,
+      '5': 4,
+      '10': 'connectionGeneration'
+    },
   ],
 };
 
@@ -36,7 +44,9 @@ final $typed_data.Uint8List helloDescriptor = $convert.base64Decode(
     'gJUgpkZXZpY2VOYW1lEiIKDG1hbnVmYWN0dXJlchgDIAEoCVIMbWFudWZhY3R1cmVyEh0KCm9z'
     'X3ZlcnNpb24YBCABKAlSCW9zVmVyc2lvbhIfCgtkZXZpY2Vfc2xvdBgFIAEoBVIKZGV2aWNlU2'
     'xvdBIhCgxkZXZpY2VfbGFiZWwYBiABKAlSC2RldmljZUxhYmVsEh0KCmFuZHJvaWRfaWQYByAB'
-    'KAlSCWFuZHJvaWRJZBIfCgthcHBfdmVyc2lvbhgIIAEoCVIKYXBwVmVyc2lvbg==');
+    'KAlSCWFuZHJvaWRJZBIfCgthcHBfdmVyc2lvbhgIIAEoCVIKYXBwVmVyc2lvbhImCg9hcHBfaW'
+    '5zdGFuY2VfaWQYCSABKAlSDWFwcEluc3RhbmNlSWQSMwoVY29ubmVjdGlvbl9nZW5lcmF0aW9u'
+    'GAogASgEUhRjb25uZWN0aW9uR2VuZXJhdGlvbg==');
 
 @$core.Deprecated('Use welcomeDescriptor instead')
 const Welcome$json = {

@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- Below ~15% battery, Android's Doze/App Standby (and aggressive OEM battery
+         savers on Xiaomi/Huawei/Samsung) are free to suspend this app's background
+         HTTP/UDP sockets unless it holds a wake lock and is exempted from battery
+         optimizations - see MainActivity.kt acquireWakeLocks()/requestIgnoreBatteryOptimizations(). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
 
     <application

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fheartbeat.proto\x12\x0bthreecam.v1\"\xcf\x01\n\tHeartbeat\x12\x13\n\x0b\x62\x61ttery_pct\x18\x01 \x01(\x02\x12\x1a\n\x12\x66ree_storage_bytes\x18\x02 \x01(\x04\x12\x1b\n\x13total_storage_bytes\x18\x03 \x01(\x04\x12\x15\n\rtemperature_c\x18\x04 \x01(\x02\x12\x11\n\trecording\x18\x05 \x01(\x08\x12\x17\n\x0f\x63lock_offset_ms\x18\x06 \x01(\x03\x12\x1c\n\x14\x63lock_uncertainty_ms\x18\x07 \x01(\r\x12\x13\n\x0blast_rtt_ms\x18\x08 \x01(\x02\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fheartbeat.proto\x12\x0bthreecam.v1\"\xcf\x01\n\tHeartbeat\x12\x13\n\x0b\x62\x61ttery_pct\x18\x01 \x01(\x02\x12\x1a\n\x12\x66ree_storage_bytes\x18\x02 \x01(\x04\x12\x1b\n\x13total_storage_bytes\x18\x03 \x01(\x04\x12\x15\n\rtemperature_c\x18\x04 \x01(\x02\x12\x11\n\trecording\x18\x05 \x01(\x08\x12\x17\n\x0f\x63lock_offset_ms\x18\x06 \x01(\x03\x12\x1c\n\x14\x63lock_uncertainty_ms\x18\x07 \x01(\r\x12\x13\n\x0blast_rtt_ms\x18\x08 \x01(\x02\"=\n\x0cHeartbeatAck\x12\x15\n\rheartbeat_seq\x18\x01 \x01(\x04\x12\x16\n\x0eserver_time_ms\x18\x02 \x01(\x03\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,4 +33,6 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_HEARTBEAT']._serialized_start=33
   _globals['_HEARTBEAT']._serialized_end=240
+  _globals['_HEARTBEATACK']._serialized_start=242
+  _globals['_HEARTBEATACK']._serialized_end=303
 # @@protoc_insertion_point(module_scope)

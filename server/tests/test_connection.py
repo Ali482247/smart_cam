@@ -108,6 +108,22 @@ async def test_send_and_broadcast():
     assert len(conn_b.sent) == 1
 
 
+@pytest.mark.asyncio
+async def test_session_captures_app_instance_id_and_generation():
+    """Connection reliability audit §7: app_instance_id/connection_generation must
+    reach the Session's Capabilities so a device_id reconnecting from a genuinely new
+    app process is distinguishable in logs/telemetry from the same process reconnecting."""
+    session_manager = SessionManager()
+    connection_manager = ConnectionManager(session_manager, EventBus())
+
+    connection = FakeConnection("dev-1")
+    hello = make_hello(app_instance_id="instance-a", connection_generation=3)
+    session, _ = await connection_manager.register(connection, hello)
+
+    assert session.capabilities.app_instance_id == "instance-a"
+    assert session.capabilities.connection_generation == 3
+
+
 def test_rtt_p99_tracks_samples():
     bus = EventBus()
     session_manager = SessionManager()

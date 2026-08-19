@@ -94,6 +94,27 @@ async def test_heartbeat_seeds_rtt_and_offset(running_server):
 
 
 @pytest.mark.asyncio
+async def test_heartbeat_gets_bidirectional_ack(running_server):
+    """Connection reliability audit §8-9: the phone can only detect a half-open
+    connection (it thinks it's connected, the Director already dropped it) if the
+    server actually acks every heartbeat rather than heartbeats being fire-and-forget."""
+    async with connect(f"ws://127.0.0.1:{TEST_PORT}") as ws:
+        hello = new_envelope(device_id="dev-hb-ack", sequence_number=1)
+        hello.hello.device_name = "Test Phone"
+        await ws.send(hello.SerializeToString())
+        await asyncio.wait_for(ws.recv(), timeout=2)  # welcome
+
+        heartbeat = new_envelope(device_id="dev-hb-ack", session_id="", sequence_number=42)
+        heartbeat.heartbeat.battery_pct = 90.0
+        await ws.send(heartbeat.SerializeToString())
+
+        ack = decode_envelope(await asyncio.wait_for(ws.recv(), timeout=2))
+
+        assert ack.WhichOneof("payload") == "heartbeat_ack"
+        assert ack.heartbeat_ack.heartbeat_seq == 42
+
+
+@pytest.mark.asyncio
 async def test_scheduled_command_is_delivered_and_acked(running_server):
     connection_manager, offset_store, scheduler, _ = running_server
 
@@ -111,9 +132,17 @@ async def test_scheduled_command_is_delivered_and_acked(running_server):
         await asyncio.sleep(0.1)
 
         async def ack_it():
-            raw = await asyncio.wait_for(ws.recv(), timeout=2)
-            command = decode_envelope(raw)
-            assert command.WhichOneof("payload") == "sched_cmd"
+            # The server now replies to every heartbeat with a heartbeat_ack (connection
+            # reliability audit §8-9: bidirectional liveness) - skip over it to get to
+            # the sched_cmd this test actually cares about.
+            command = None
+            for _ in range(5):
+                raw = await asyncio.wait_for(ws.recv(), timeout=2)
+                envelope = decode_envelope(raw)
+                if envelope.WhichOneof("payload") == "sched_cmd":
+                    command = envelope
+                    break
+            assert command is not None, "did not receive sched_cmd"
             ack = new_envelope(device_id="dev-4", session_id=session_id, sequence_number=3)
             ack.ack.command_id = command.sched_cmd.command_id
             await ws.send(ack.SerializeToString())

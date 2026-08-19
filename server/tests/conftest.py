@@ -20,5 +20,15 @@ class FakeConnection:
         self.closed = True
 
 
-def make_hello(device_name: str = "Test Phone", device_slot: int = 1) -> device_pb2.Hello:
-    return device_pb2.Hello(device_name=device_name, device_slot=device_slot)
+def make_hello(
+    device_name: str = "Test Phone",
+    device_slot: int = 1,
+    app_instance_id: str = "",
+    connection_generation: int = 0,
+) -> device_pb2.Hello:
+    return device_pb2.Hello(
+        device_name=device_name,
+        device_slot=device_slot,
+        app_instance_id=app_instance_id,
+        connection_generation=connection_generation,
+    )

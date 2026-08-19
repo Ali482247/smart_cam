@@ -124,6 +124,15 @@ const Envelope$json = {
       '9': 0,
       '10': 'uploadProgress'
     },
+    {
+      '1': 'heartbeat_ack',
+      '3': 21,
+      '4': 1,
+      '5': 11,
+      '6': '.threecam.v1.HeartbeatAck',
+      '9': 0,
+      '10': 'heartbeatAck'
+    },
   ],
   '8': [
     {'1': 'payload'},
@@ -147,4 +156,5 @@ final $typed_data.Uint8List envelopeDescriptor = $convert.base64Decode(
     'MhIudGhyZWVjYW0udjEuRXZlbnRIAFIFZXZlbnQSQAoNdXBsb2FkX3RpY2tldBgTIAEoCzIZLn'
     'RocmVlY2FtLnYxLlVwbG9hZFRpY2tldEgAUgx1cGxvYWRUaWNrZXQSRgoPdXBsb2FkX3Byb2dy'
     'ZXNzGBQgASgLMhsudGhyZWVjYW0udjEuVXBsb2FkUHJvZ3Jlc3NIAFIOdXBsb2FkUHJvZ3Jlc3'
-    'NCCQoHcGF5bG9hZA==');
+    'MSQAoNaGVhcnRiZWF0X2FjaxgVIAEoCzIZLnRocmVlY2FtLnYxLkhlYXJ0YmVhdEFja0gAUgxo'
+    'ZWFydGJlYXRBY2tCCQoHcGF5bG9hZA==');

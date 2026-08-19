@@ -163,6 +163,16 @@ class WebSocketServer:
 
         if payload == "heartbeat":
             self._heartbeat_manager.record_heartbeat(device_id, envelope.heartbeat)
+            # Bidirectional liveness (connection reliability audit §8-9): without this
+            # reply, a node has no way to tell "I'm still sending heartbeats and the
+            # process is alive" apart from "the Director silently dropped me" (a
+            # half-open connection) short of waiting on a TCP-level timeout. Echoing the
+            # heartbeat's own sequence_number lets the node correlate if it ever needs
+            # to, though today it treats any fresh ack as proof of a live round trip.
+            ack_envelope = new_envelope(device_id=device_id, session_id=session.session_id)
+            ack_envelope.heartbeat_ack.heartbeat_seq = envelope.sequence_number
+            ack_envelope.heartbeat_ack.server_time_ms = server_now_ms()
+            await self._connection_manager.send(device_id, ack_envelope)
 
         elif payload == "clock_req":
             reply = respond_to_request(envelope.clock_req)

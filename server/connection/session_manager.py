@@ -45,6 +45,8 @@ class SessionManager:
             device_label=hello.device_label,
             android_id=hello.android_id,
             app_version=hello.app_version,
+            app_instance_id=hello.app_instance_id,
+            connection_generation=hello.connection_generation,
         )
 
         existing = self._sessions.get(device_id)

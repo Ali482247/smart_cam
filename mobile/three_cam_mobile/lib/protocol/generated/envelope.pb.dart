@@ -35,6 +35,7 @@ enum Envelope_Payload {
   event,
   uploadTicket,
   uploadProgress,
+  heartbeatAck,
   notSet
 }
 
@@ -60,6 +61,7 @@ class Envelope extends $pb.GeneratedMessage {
     $3.Event? event,
     $4.UploadTicket? uploadTicket,
     $4.UploadProgress? uploadProgress,
+    $1.HeartbeatAck? heartbeatAck,
   }) {
     final result = create();
     if (protocolVersion != null) result.protocolVersion = protocolVersion;
@@ -79,6 +81,7 @@ class Envelope extends $pb.GeneratedMessage {
     if (event != null) result.event = event;
     if (uploadTicket != null) result.uploadTicket = uploadTicket;
     if (uploadProgress != null) result.uploadProgress = uploadProgress;
+    if (heartbeatAck != null) result.heartbeatAck = heartbeatAck;
     return result;
   }
 
@@ -103,13 +106,14 @@ class Envelope extends $pb.GeneratedMessage {
     18: Envelope_Payload.event,
     19: Envelope_Payload.uploadTicket,
     20: Envelope_Payload.uploadProgress,
+    21: Envelope_Payload.heartbeatAck,
     0: Envelope_Payload.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Envelope',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'threecam.v1'),
       createEmptyInstance: create)
-    ..oo(0, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    ..oo(0, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
     ..aI(1, _omitFieldNames ? '' : 'protocolVersion',
         fieldType: $pb.PbFieldType.OU3)
     ..aOS(2, _omitFieldNames ? '' : 'appVersion')
@@ -140,6 +144,8 @@ class Envelope extends $pb.GeneratedMessage {
         subBuilder: $4.UploadTicket.create)
     ..aOM<$4.UploadProgress>(20, _omitFieldNames ? '' : 'uploadProgress',
         subBuilder: $4.UploadProgress.create)
+    ..aOM<$1.HeartbeatAck>(21, _omitFieldNames ? '' : 'heartbeatAck',
+        subBuilder: $1.HeartbeatAck.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -171,6 +177,7 @@ class Envelope extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
+  @$pb.TagNumber(21)
   Envelope_Payload whichPayload() => _Envelope_PayloadByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
@@ -183,6 +190,7 @@ class Envelope extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
+  @$pb.TagNumber(21)
   void clearPayload() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -359,6 +367,17 @@ class Envelope extends $pb.GeneratedMessage {
   void clearUploadProgress() => $_clearField(20);
   @$pb.TagNumber(20)
   $4.UploadProgress ensureUploadProgress() => $_ensure(16);
+
+  @$pb.TagNumber(21)
+  $1.HeartbeatAck get heartbeatAck => $_getN(17);
+  @$pb.TagNumber(21)
+  set heartbeatAck($1.HeartbeatAck value) => $_setField(21, value);
+  @$pb.TagNumber(21)
+  $core.bool hasHeartbeatAck() => $_has(17);
+  @$pb.TagNumber(21)
+  void clearHeartbeatAck() => $_clearField(21);
+  @$pb.TagNumber(21)
+  $1.HeartbeatAck ensureHeartbeatAck() => $_ensure(17);
 }
 
 const $core.bool _omitFieldNames =

@@ -27,7 +27,12 @@ def _run_fake_phone(port: int, device_id: str, results: dict) -> None:
         ws.send(heartbeat.SerializeToString())
         time.sleep(0.2)
 
+        # The server now replies to every heartbeat with a heartbeat_ack (connection
+        # reliability audit §8-9: bidirectional liveness) - skip over it to get to the
+        # sched_cmd this test actually cares about.
         command = decode_envelope(ws.recv())
+        if command.WhichOneof("payload") == "heartbeat_ack":
+            command = decode_envelope(ws.recv())
         results["command_type"] = command.sched_cmd.type
         ack = new_envelope(device_id=device_id, session_id=welcome.welcome.session_id, sequence_number=3)
         ack.ack.command_id = command.sched_cmd.command_id

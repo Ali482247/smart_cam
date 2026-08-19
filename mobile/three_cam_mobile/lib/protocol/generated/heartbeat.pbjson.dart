@@ -56,3 +56,17 @@ final $typed_data.Uint8List heartbeatDescriptor = $convert.base64Decode(
     'BlcmF0dXJlQxIcCglyZWNvcmRpbmcYBSABKAhSCXJlY29yZGluZxImCg9jbG9ja19vZmZzZXRf'
     'bXMYBiABKANSDWNsb2NrT2Zmc2V0TXMSMAoUY2xvY2tfdW5jZXJ0YWludHlfbXMYByABKA1SEm'
     'Nsb2NrVW5jZXJ0YWludHlNcxIeCgtsYXN0X3J0dF9tcxgIIAEoAlIJbGFzdFJ0dE1z');
+
+@$core.Deprecated('Use heartbeatAckDescriptor instead')
+const HeartbeatAck$json = {
+  '1': 'HeartbeatAck',
+  '2': [
+    {'1': 'heartbeat_seq', '3': 1, '4': 1, '5': 4, '10': 'heartbeatSeq'},
+    {'1': 'server_time_ms', '3': 2, '4': 1, '5': 3, '10': 'serverTimeMs'},
+  ],
+};
+
+/// Descriptor for `HeartbeatAck`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List heartbeatAckDescriptor = $convert.base64Decode(
+    'CgxIZWFydGJlYXRBY2sSIwoNaGVhcnRiZWF0X3NlcRgBIAEoBFIMaGVhcnRiZWF0U2VxEiQKDn'
+    'NlcnZlcl90aW1lX21zGAIgASgDUgxzZXJ2ZXJUaW1lTXM=');

@@ -1947,31 +1947,40 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       return Center(child: camera.buildPreview());
     }
 
-    // The swap decision is derived from the DECIDED target orientation
-    // (_settings.recordingOrientation, owned by CameraOrientationManager), not by
-    // re-comparing live `previewSize` against the current layout `constraints` on every
-    // build. previewSize reflects the camera's native sensor buffer shape and can
-    // legitimately fluctuate for a moment around a platform-side session
-    // reconfiguration (e.g. when recording starts); deriving the swap from it directly
-    // made this box's aspect ratio - and therefore what looked like the preview's
-    // rotation - depend on that transient timing instead of the operator's actual
-    // orientation choice. See previewNeedsDimensionSwap's doc comment.
-    final needsSwap = previewNeedsDimensionSwap(
-      recordingOrientation: _settings.recordingOrientation,
-      previewSize: previewSize,
+    // camera_android_camerax's lockCaptureOrientation() only calls setTargetRotation on
+    // imageCapture/imageAnalysis/videoCapture - never on the Preview use case (confirmed
+    // by reading android_camera_camerax.dart directly). That's exactly why the saved
+    // MP4 is always correctly oriented (verified from a real recorded file's tkhd box:
+    // 1080x1920, rotation_deg=0) while the live preview could still show the wrong
+    // orientation - nothing told Preview's Texture to ignore how this particular phone
+    // is physically mounted and just show our fixed, locked target instead. This
+    // RotatedBox supplies that missing compensation using the standard Camera2/CameraX
+    // sensor-orientation formula (see previewRotationQuarterTurns's doc comment).
+    //
+    // RotatedBox itself swaps the effective layout footprint when the rotation is
+    // 90/270 degrees, so the box below uses the RAW (unrotated) previewSize directly -
+    // no separate manual width/height swap needed, which is what the previous version
+    // of this method tried to do by re-deriving a swap decision from live `previewSize`
+    // vs. screen `constraints` on every rebuild. That heuristic could size the box
+    // correctly while the CONTENT inside was still the wrong rotation entirely - sizing
+    // the box was never the actual fix; compensating the rotation is.
+    final quarterTurns = previewRotationQuarterTurns(
+      sensorOrientation: camera.description.sensorOrientation,
+      target: _orientationManager.lockedOrientation ?? camera.value.deviceOrientation,
     );
-    final previewWidth = needsSwap ? previewSize.height : previewSize.width;
-    final previewHeight = needsSwap ? previewSize.width : previewSize.height;
 
     return ColoredBox(
       color: Colors.black,
       child: Center(
         child: FittedBox(
           fit: BoxFit.contain,
-          child: SizedBox(
-            width: previewWidth,
-            height: previewHeight,
-            child: camera.buildPreview(),
+          child: RotatedBox(
+            quarterTurns: quarterTurns,
+            child: SizedBox(
+              width: previewSize.width,
+              height: previewSize.height,
+              child: camera.buildPreview(),
+            ),
           ),
         ),
       ),

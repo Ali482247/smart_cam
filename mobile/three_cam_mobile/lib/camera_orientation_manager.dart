@@ -2,21 +2,45 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-/// Pure decision used by the fullscreen-preview widget: does the raw preview buffer
-/// need its width/height swapped to correctly represent [recordingOrientation]
-/// (`'landscape'`/`'portrait'`), independent of live layout constraints? Extracted as a
-/// free function - no `BuildContext`/`CameraController` involved - specifically so it's
-/// unit-testable without a device: this is the piece that used to re-derive orientation
-/// from live `previewSize` vs. screen `constraints` on every rebuild, which made the
-/// preview's apparent rotation depend on transient timing instead of the operator's
-/// actual orientation choice (see the widget's call site in main.dart).
-bool previewNeedsDimensionSwap({
-  required String recordingOrientation,
-  required Size previewSize,
+/// Clockwise degrees of [orientation] relative to the device's natural (portraitUp)
+/// orientation - the same convention Android's `Surface.ROTATION_*`/sensor-orientation
+/// values use, which is what makes this composable with [previewRotationQuarterTurns].
+int deviceOrientationDegrees(DeviceOrientation orientation) {
+  switch (orientation) {
+    case DeviceOrientation.portraitUp:
+      return 0;
+    case DeviceOrientation.landscapeLeft:
+      return 90;
+    case DeviceOrientation.portraitDown:
+      return 180;
+    case DeviceOrientation.landscapeRight:
+      return 270;
+  }
+}
+
+/// Compensating rotation (in `RotatedBox.quarterTurns` units, clockwise) needed to
+/// display the back camera's live Preview `Texture` in [target] orientation.
+///
+/// Root cause this exists to fix: `camera_android_camerax` 0.7.2's
+/// `lockCaptureOrientation()` (android_camera_camerax.dart) only calls
+/// `setTargetRotation` on `imageCapture`/`imageAnalysis`/`videoCapture` - it never
+/// touches the `Preview` use case. That's why the saved MP4 is always correctly
+/// oriented (verified directly from a real recorded file's `tkhd` box: 1080x1920,
+/// rotation_deg=0) while the live preview can still show the wrong orientation: nothing
+/// tells Preview's Texture to ignore how the phone is actually physically held/mounted
+/// and just show our fixed, locked target instead. This is the standard Camera2/CameraX
+/// sensor-orientation compensation formula (same one Android's own camera samples use),
+/// applied against the FIXED target rather than live device orientation - we want the
+/// preview visually pinned to match what's being recorded (and what the other
+/// CameraNodes in a Three Cam rig show), not chasing whichever way this one phone
+/// happens to be mounted.
+int previewRotationQuarterTurns({
+  required int sensorOrientation,
+  required DeviceOrientation target,
 }) {
-  final targetIsLandscape = recordingOrientation == 'landscape';
-  final previewIsLandscape = previewSize.width >= previewSize.height;
-  return targetIsLandscape != previewIsLandscape;
+  final compensation =
+      (sensorOrientation - deviceOrientationDegrees(target) + 360) % 360;
+  return (compensation ~/ 90) % 4;
 }
 
 /// Single owner of every camera-orientation decision (camera orientation audit):

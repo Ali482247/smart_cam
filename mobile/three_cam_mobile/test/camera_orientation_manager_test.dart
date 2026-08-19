@@ -50,41 +50,63 @@ void main() {
     });
   });
 
-  group('previewNeedsDimensionSwap', () {
-    test('landscape target with a landscape-shaped sensor buffer needs no swap', () {
-      final needsSwap = previewNeedsDimensionSwap(
-        recordingOrientation: 'landscape',
-        previewSize: const Size(1920, 1080),
+  group('previewRotationQuarterTurns', () {
+    // sensorOrientation=90 is the standard value for a back-facing camera (confirmed
+    // live via debug logging on a real device: "sensorOrientation=90").
+    test('sensorOrientation=90, target=portraitUp needs 1 quarter turn (90 CW)', () {
+      final turns = previewRotationQuarterTurns(
+        sensorOrientation: 90,
+        target: DeviceOrientation.portraitUp,
       );
-      expect(needsSwap, isFalse);
+      expect(turns, 1);
     });
 
-    test('portrait target with a landscape-shaped sensor buffer needs a swap', () {
-      // This is the common real-world case: the camera's native sensor buffer is
-      // landscape-shaped regardless of the operator's chosen recording orientation.
-      final needsSwap = previewNeedsDimensionSwap(
-        recordingOrientation: 'portrait',
-        previewSize: const Size(1920, 1080),
+    test('sensorOrientation=90, target=landscapeLeft needs no rotation', () {
+      // Camera2/CameraX's rotation-compensation formula: when sensorOrientation
+      // equals the target's degrees, no compensation is needed - the raw buffer
+      // already matches what we want to show.
+      final turns = previewRotationQuarterTurns(
+        sensorOrientation: 90,
+        target: DeviceOrientation.landscapeLeft,
       );
-      expect(needsSwap, isTrue);
+      expect(turns, 0);
     });
 
-    test(
-      'decision depends only on target orientation and buffer shape, not any live layout size',
-      () {
-        // Same target + same buffer shape must always give the same answer regardless
-        // of what the caller's screen constraints happen to be at that moment - the
-        // whole point of removing the old constraints-based heuristic.
-        final a = previewNeedsDimensionSwap(
-          recordingOrientation: 'portrait',
-          previewSize: const Size(1280, 720),
-        );
-        final b = previewNeedsDimensionSwap(
-          recordingOrientation: 'portrait',
-          previewSize: const Size(3840, 2160),
-        );
-        expect(a, b);
-      },
-    );
+    test('sensorOrientation=90, target=portraitDown needs 3 quarter turns (270 CW)', () {
+      final turns = previewRotationQuarterTurns(
+        sensorOrientation: 90,
+        target: DeviceOrientation.portraitDown,
+      );
+      expect(turns, 3);
+    });
+
+    test('sensorOrientation=90, target=landscapeRight needs 2 quarter turns', () {
+      final turns = previewRotationQuarterTurns(
+        sensorOrientation: 90,
+        target: DeviceOrientation.landscapeRight,
+      );
+      expect(turns, 2);
+    });
+
+    test('result is always in 0..3', () {
+      for (final sensorOrientation in [0, 90, 180, 270]) {
+        for (final target in DeviceOrientation.values) {
+          final turns = previewRotationQuarterTurns(
+            sensorOrientation: sensorOrientation,
+            target: target,
+          );
+          expect(turns, inInclusiveRange(0, 3));
+        }
+      }
+    });
+  });
+
+  group('deviceOrientationDegrees', () {
+    test('matches the standard clockwise Android rotation convention', () {
+      expect(deviceOrientationDegrees(DeviceOrientation.portraitUp), 0);
+      expect(deviceOrientationDegrees(DeviceOrientation.landscapeLeft), 90);
+      expect(deviceOrientationDegrees(DeviceOrientation.portraitDown), 180);
+      expect(deviceOrientationDegrees(DeviceOrientation.landscapeRight), 270);
+    });
   });
 }

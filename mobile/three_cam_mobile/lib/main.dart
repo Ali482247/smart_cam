@@ -1964,10 +1964,20 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     // vs. screen `constraints` on every rebuild. That heuristic could size the box
     // correctly while the CONTENT inside was still the wrong rotation entirely - sizing
     // the box was never the actual fix; compensating the rotation is.
-    final quarterTurns = previewRotationQuarterTurns(
-      sensorOrientation: camera.description.sensorOrientation,
-      target: _orientationManager.lockedOrientation ?? camera.value.deviceOrientation,
-    );
+    //
+    // Only applied while actually recording: real-device feedback showed the IDLE
+    // preview was already correctly oriented on its own (CameraX's un-locked Preview
+    // auto-tracks live device orientation just fine at rest) - unconditionally applying
+    // this compensation broke that idle case. It's specifically the CameraX session
+    // rebind that happens when VideoCapture joins Preview at startVideoRecording() that
+    // introduces the un-compensated rotation this exists to fix, so it must only apply
+    // once camera.value.isRecordingVideo is true.
+    final quarterTurns = camera.value.isRecordingVideo
+        ? previewRotationQuarterTurns(
+            sensorOrientation: camera.description.sensorOrientation,
+            target: _orientationManager.lockedOrientation ?? camera.value.deviceOrientation,
+          )
+        : 0;
 
     return ColoredBox(
       color: Colors.black,

@@ -2,6 +2,24 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+/// Pure decision used by the fullscreen-preview widget: does the raw preview buffer
+/// need its width/height swapped to correctly represent [recordingOrientation]
+/// (`'landscape'`/`'portrait'`), independent of live layout constraints? Restored
+/// (2026-08-19) after being removed in favor of a RotatedBox-based rotation fix that
+/// had to be reverted - without this, the preview box is sized directly from the raw
+/// (landscape-shaped) camera buffer regardless of the portrait target, producing large
+/// letterboxing bars top/bottom instead of filling the screen. This does not rotate any
+/// pixels - it only sizes the bounding box FittedBox fits the (unrotated) preview
+/// Texture into, exactly like it did before the RotatedBox detour.
+bool previewNeedsDimensionSwap({
+  required String recordingOrientation,
+  required Size previewSize,
+}) {
+  final targetIsLandscape = recordingOrientation == 'landscape';
+  final previewIsLandscape = previewSize.width >= previewSize.height;
+  return targetIsLandscape != previewIsLandscape;
+}
+
 /// Clockwise degrees of [orientation] relative to the device's natural (portraitUp)
 /// orientation - the same convention Android's `Surface.ROTATION_*`/sensor-orientation
 /// values use, which is what makes this composable with [previewRotationQuarterTurns].

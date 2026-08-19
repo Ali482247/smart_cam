@@ -1947,32 +1947,34 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       return Center(child: camera.buildPreview());
     }
 
-    // REVERTED (2026-08-19): two live-device attempts at compensating the Preview
-    // rotation via previewRotationQuarterTurns() both made things worse on real
-    // hardware - unconditional compensation broke the previously-correct idle preview,
-    // and gating it to isRecordingVideo produced an upside-down (not just sideways)
-    // recording preview. Guessing the compensation sign/timing further without a way to
-    // actually see the live screen (no viable adb screen/logcat access on the test
-    // devices) risks another regression, so this is pinned back to zero rotation - the
-    // known-safe state where the box is at least correctly SIZED and the idle preview is
-    // correct, even though the recording-time crop/orientation issue this was meant to
-    // fix (previewRotationQuarterTurns is still defined in camera_orientation_manager.dart,
-    // unused) remains open. See the conversation history for the two reverted attempts
-    // and what real-device feedback ruled out.
-    const quarterTurns = 0;
+    // Rotation compensation (RotatedBox) was tried and reverted after two live-device
+    // regressions - see previewRotationQuarterTurns's doc comment and the conversation
+    // history. Rotation stays at 0 (no pixel rotation) until there's a real way to
+    // verify the correct compensation on device.
+    //
+    // The box-sizing swap below is a SEPARATE, independently-confirmed fix: real
+    // screenshots (both idle and recording) showed the preview letterboxed into a thin
+    // horizontal strip with large black bars top/bottom - the box was being sized
+    // directly from the raw (landscape-shaped) camera buffer regardless of the portrait
+    // target. previewNeedsDimensionSwap fixes that sizing only - it swaps the bounding
+    // box's width/height so FittedBox fills the portrait screen properly, without
+    // touching pixel rotation.
+    final needsSwap = previewNeedsDimensionSwap(
+      recordingOrientation: _settings.recordingOrientation,
+      previewSize: previewSize,
+    );
+    final previewWidth = needsSwap ? previewSize.height : previewSize.width;
+    final previewHeight = needsSwap ? previewSize.width : previewSize.height;
 
     return ColoredBox(
       color: Colors.black,
       child: Center(
         child: FittedBox(
           fit: BoxFit.contain,
-          child: RotatedBox(
-            quarterTurns: quarterTurns,
-            child: SizedBox(
-              width: previewSize.width,
-              height: previewSize.height,
-              child: camera.buildPreview(),
-            ),
+          child: SizedBox(
+            width: previewWidth,
+            height: previewHeight,
+            child: camera.buildPreview(),
           ),
         ),
       ),

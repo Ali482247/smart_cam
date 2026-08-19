@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'camera_orientation_manager.dart';
 import 'ws/connection_supervisor.dart';
 import 'ws/recording_controller.dart';
 
@@ -345,6 +346,7 @@ class CameraControlScreen extends StatefulWidget {
 class _CameraControlScreenState extends State<CameraControlScreen>
     with WidgetsBindingObserver {
   CameraController? _camera;
+  final _orientationManager = CameraOrientationManager(onLog: debugPrint);
   HttpServer? _server;
   RawDatagramSocket? _discoverySocket;
   AppSettings _settings = AppSettings.defaults();
@@ -670,11 +672,15 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         fps: _settings.fps,
       );
       await controller.initialize();
-      try {
-        await controller.lockCaptureOrientation(_settings.captureOrientation);
-      } catch (_) {
-        // Some CameraX backends ignore capture orientation locks.
-      }
+      // A brand-new CameraController has no lock of its own regardless of what the
+      // manager last applied to a previous (now-disposed) controller instance.
+      _orientationManager.reset();
+      await _orientationManager.apply(
+        camera: controller,
+        target: _settings.captureOrientation,
+        preferredUiOrientations: _settings.preferredOrientations,
+        force: true,
+      );
       await _configureCameraAutomation(controller);
       await _startFpsStream(controller);
 
@@ -1178,20 +1184,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 
     await _stopFpsStream(camera);
     _resetFpsCounter();
-    try {
-      await camera.lockCaptureOrientation(_settings.captureOrientation);
-      debugPrint('ThreeCam: lockCaptureOrientation (pre-record) OK');
-    } catch (error) {
-      debugPrint(
-        'ThreeCam: lockCaptureOrientation (pre-record) FAILED: $error',
-      );
-    }
-    debugPrint(
-      'ThreeCam: sensorOrientation=${camera.description.sensorOrientation} '
-      'previewSize=${camera.value.previewSize} '
-      'deviceOrientation=${camera.value.deviceOrientation} '
-      'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
-    );
+    // Deliberately NOT re-locking capture orientation here. Orientation is now always
+    // established the instant it's decided - at camera init and at settings save (see
+    // CameraOrientationManager) - never deferred to this point. A native
+    // lockCaptureOrientation call sitting on the record-start path was the actual root
+    // cause of the visible rotation-on-START bug (it was often the first time a changed
+    // orientation setting actually reached the camera) and would also add avoidable
+    // jitter right on the ScheduledCommand execute_at path. This is a read-only check.
+    _orientationManager.logPreRecordState(camera);
     await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
     debugPrint(
       'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
@@ -1798,10 +1798,26 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _applyPreferredOrientations();
     await _applyKeepScreenOn();
     if (shouldRestart) {
+      // _initCamera() re-locks orientation on the fresh controller by itself.
       await _initCamera();
     } else {
       await _applyAutoExposureAndFocus();
       await _setZoom(normalized.zoomLevel, persist: false);
+      // needsCameraRestart() deliberately does NOT cover recordingOrientation (a full
+      // camera reinit is unnecessary just to change orientation) - but the capture-
+      // orientation lock still has to be re-applied right here, immediately, whenever
+      // it changed. Without this, the camera silently kept recording under the OLD
+      // orientation until the next START, where a leftover redundant lock call used to
+      // apply the new orientation for the first time - a visible rotation snap exactly
+      // when the operator pressed START. See CameraOrientationManager's doc comment.
+      final camera = _camera;
+      if (camera != null && camera.value.isInitialized) {
+        await _orientationManager.apply(
+          camera: camera,
+          target: _settings.captureOrientation,
+          preferredUiOrientations: _settings.preferredOrientations,
+        );
+      }
     }
     _showSnack('Settings saved');
   }
@@ -1929,14 +1945,21 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       return Center(child: camera.buildPreview());
     }
 
-    final screenIsPortrait = constraints.maxHeight >= constraints.maxWidth;
-    final previewIsLandscape = previewSize.width >= previewSize.height;
-    final previewWidth = screenIsPortrait && previewIsLandscape
-        ? previewSize.height
-        : previewSize.width;
-    final previewHeight = screenIsPortrait && previewIsLandscape
-        ? previewSize.width
-        : previewSize.height;
+    // The swap decision is derived from the DECIDED target orientation
+    // (_settings.recordingOrientation, owned by CameraOrientationManager), not by
+    // re-comparing live `previewSize` against the current layout `constraints` on every
+    // build. previewSize reflects the camera's native sensor buffer shape and can
+    // legitimately fluctuate for a moment around a platform-side session
+    // reconfiguration (e.g. when recording starts); deriving the swap from it directly
+    // made this box's aspect ratio - and therefore what looked like the preview's
+    // rotation - depend on that transient timing instead of the operator's actual
+    // orientation choice. See previewNeedsDimensionSwap's doc comment.
+    final needsSwap = previewNeedsDimensionSwap(
+      recordingOrientation: _settings.recordingOrientation,
+      previewSize: previewSize,
+    );
+    final previewWidth = needsSwap ? previewSize.height : previewSize.width;
+    final previewHeight = needsSwap ? previewSize.width : previewSize.height;
 
     return ColoredBox(
       color: Colors.black,

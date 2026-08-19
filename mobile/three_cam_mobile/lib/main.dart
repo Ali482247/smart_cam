@@ -1947,37 +1947,19 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       return Center(child: camera.buildPreview());
     }
 
-    // camera_android_camerax's lockCaptureOrientation() only calls setTargetRotation on
-    // imageCapture/imageAnalysis/videoCapture - never on the Preview use case (confirmed
-    // by reading android_camera_camerax.dart directly). That's exactly why the saved
-    // MP4 is always correctly oriented (verified from a real recorded file's tkhd box:
-    // 1080x1920, rotation_deg=0) while the live preview could still show the wrong
-    // orientation - nothing told Preview's Texture to ignore how this particular phone
-    // is physically mounted and just show our fixed, locked target instead. This
-    // RotatedBox supplies that missing compensation using the standard Camera2/CameraX
-    // sensor-orientation formula (see previewRotationQuarterTurns's doc comment).
-    //
-    // RotatedBox itself swaps the effective layout footprint when the rotation is
-    // 90/270 degrees, so the box below uses the RAW (unrotated) previewSize directly -
-    // no separate manual width/height swap needed, which is what the previous version
-    // of this method tried to do by re-deriving a swap decision from live `previewSize`
-    // vs. screen `constraints` on every rebuild. That heuristic could size the box
-    // correctly while the CONTENT inside was still the wrong rotation entirely - sizing
-    // the box was never the actual fix; compensating the rotation is.
-    //
-    // Only applied while actually recording: real-device feedback showed the IDLE
-    // preview was already correctly oriented on its own (CameraX's un-locked Preview
-    // auto-tracks live device orientation just fine at rest) - unconditionally applying
-    // this compensation broke that idle case. It's specifically the CameraX session
-    // rebind that happens when VideoCapture joins Preview at startVideoRecording() that
-    // introduces the un-compensated rotation this exists to fix, so it must only apply
-    // once camera.value.isRecordingVideo is true.
-    final quarterTurns = camera.value.isRecordingVideo
-        ? previewRotationQuarterTurns(
-            sensorOrientation: camera.description.sensorOrientation,
-            target: _orientationManager.lockedOrientation ?? camera.value.deviceOrientation,
-          )
-        : 0;
+    // REVERTED (2026-08-19): two live-device attempts at compensating the Preview
+    // rotation via previewRotationQuarterTurns() both made things worse on real
+    // hardware - unconditional compensation broke the previously-correct idle preview,
+    // and gating it to isRecordingVideo produced an upside-down (not just sideways)
+    // recording preview. Guessing the compensation sign/timing further without a way to
+    // actually see the live screen (no viable adb screen/logcat access on the test
+    // devices) risks another regression, so this is pinned back to zero rotation - the
+    // known-safe state where the box is at least correctly SIZED and the idle preview is
+    // correct, even though the recording-time crop/orientation issue this was meant to
+    // fix (previewRotationQuarterTurns is still defined in camera_orientation_manager.dart,
+    // unused) remains open. See the conversation history for the two reverted attempts
+    // and what real-device feedback ruled out.
+    const quarterTurns = 0;
 
     return ColoredBox(
       color: Colors.black,

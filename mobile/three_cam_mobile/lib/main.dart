@@ -1163,9 +1163,10 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _sessionTakeLabel = _cleanName(takeLabel ?? _takeLabel(_sessionTakeNumber));
     _sessionGestureCount = (gestureCount ?? 1).clamp(1, 9999);
     _sessionRetake = retake ?? false;
-    _sessionAppVersion = (controllerAppVersion ?? appVersion).trim().isEmpty
+    final trimmedControllerAppVersion = controllerAppVersion?.trim() ?? '';
+    _sessionAppVersion = trimmedControllerAppVersion.isEmpty
         ? appVersion
-        : controllerAppVersion!.trim();
+        : trimmedControllerAppVersion;
     _sessionId =
         sessionId ??
         '${_compactDateStamp(now)}_${_timeStamp(now)}_$_sessionIndex';

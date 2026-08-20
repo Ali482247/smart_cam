@@ -1193,22 +1193,26 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     // orientation setting actually reached the camera) and would also add avoidable
     // jitter right on the ScheduledCommand execute_at path. This is a read-only check.
     _orientationManager.logPreRecordState(camera);
+    await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
     // Lock exposure to whatever the auto-exposure algorithm has already converged on,
-    // right before recording starts - without this, AE keeps hunting/re-metering
-    // during the take (e.g. on hand motion or a shadow crossing the frame), visibly
-    // changing brightness mid-recording. Only applies when the operator has auto
-    // exposure enabled at all (_settings.autoExposure) - if they already locked it
-    // permanently in Settings, ExposureMode.locked is already in effect and this is a
-    // no-op. Restored to auto in _stopRecording() so the next take can re-meter for
-    // whatever comes next.
+    // AFTER recording has actually started (not before - see commit history: calling
+    // setExposureMode() before startVideoRecording() caused CameraX to rebind the
+    // capture session at exactly the wrong moment, same failure class as the earlier
+    // lockCaptureOrientation-before-start bug, and the recording session never
+    // properly initialized - the saved file came out 0 bytes ("Saved video is
+    // empty"), a real data-loss regression). Without this, AE keeps hunting/
+    // re-metering during the take (e.g. on hand motion or a shadow crossing the
+    // frame), visibly changing brightness mid-recording. Only applies when the
+    // operator has auto exposure enabled at all (_settings.autoExposure) - if they
+    // already locked it permanently in Settings, this is a no-op. Restored to auto in
+    // _stopRecording() so the next take can re-meter for whatever comes next.
     if (_settings.autoExposure) {
       try {
         await camera.setExposureMode(ExposureMode.locked);
       } catch (error) {
-        debugPrint('ThreeCam: setExposureMode(locked) pre-record FAILED: $error');
+        debugPrint('ThreeCam: setExposureMode(locked) post-start FAILED: $error');
       }
     }
-    await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
     debugPrint(
       'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
       'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation} '
@@ -1909,11 +1913,52 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   ) async {
     final camera = _camera;
     if (camera == null || !camera.value.isInitialized) return;
+    final previewSize = camera.value.previewSize;
+    if (previewSize == null) return;
 
-    final point = Offset(
-      (details.localPosition.dx / constraints.maxWidth).clamp(0, 1),
-      (details.localPosition.dy / constraints.maxHeight).clamp(0, 1),
+    // The old version mapped the tap directly against the full screen constraints -
+    // wrong whenever the preview doesn't exactly fill the screen (FittedBox(contain)
+    // almost always leaves some letterbox margin, since the camera's fixed aspect
+    // ratio rarely matches the screen's exactly), which is most of the time. That
+    // mismatch silently sent focus/exposure points that didn't correspond to where the
+    // operator actually tapped - "focus doesn't work". Fixed by computing the actual
+    // displayed preview rect (same BoxFit.contain math FittedBox itself uses) and
+    // mapping the tap relative to THAT rect instead.
+    final childSize = _previewFittedChildSize(camera, previewSize);
+    final containerSize = constraints.biggest;
+    final displaySize = applyBoxFit(BoxFit.contain, childSize, containerSize)
+        .destination;
+    final rect = Alignment.center.inscribe(
+      displaySize,
+      Offset.zero & containerSize,
     );
+    if (!rect.contains(details.localPosition)) {
+      // Tapped on the black letterbox margin, not the actual preview - nothing to
+      // focus on.
+      return;
+    }
+
+    final nx = ((details.localPosition.dx - rect.left) / rect.width).clamp(
+      0.0,
+      1.0,
+    );
+    final ny = ((details.localPosition.dy - rect.top) / rect.height).clamp(
+      0.0,
+      1.0,
+    );
+
+    double px = nx;
+    double py = ny;
+    if (camera.value.isRecordingVideo) {
+      // Undo RotatedBox(quarterTurns: 3)'s display rotation to map the tap back into
+      // the preview Texture's own (unrotated) coordinate system - the same rotation
+      // _buildFullscreenPreview applies while recording. Derived analytically (not
+      // independently device-verified) from the same quarterTurns: 3 correction; see
+      // that method's doc comment for how quarterTurns: 3 itself was derived.
+      px = 1 - ny;
+      py = nx;
+    }
+    final point = Offset(px, py);
 
     try {
       if (_settings.autoExposure) {
@@ -2021,6 +2066,25 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         child: FittedBox(fit: BoxFit.contain, child: sizedPreview),
       ),
     );
+  }
+
+  /// The intrinsic size fed to the outer FittedBox by [_buildFullscreenPreview] -
+  /// shared with [_handleFocusTap] so tap-to-focus coordinates are computed against
+  /// the SAME rect the preview is actually drawn into, not the full screen
+  /// constraints. Must be kept in exact sync with [_buildFullscreenPreview]'s own
+  /// sizing logic (both swap-based and rotation-based) or the two silently drift apart.
+  Size _previewFittedChildSize(CameraController camera, Size previewSize) {
+    if (camera.value.isRecordingVideo) {
+      // RotatedBox(quarterTurns: 3) swaps the effective layout footprint (odd turns).
+      return Size(previewSize.height, previewSize.width);
+    }
+    final needsSwap = previewNeedsDimensionSwap(
+      recordingOrientation: _settings.recordingOrientation,
+      previewSize: previewSize,
+    );
+    return needsSwap
+        ? Size(previewSize.height, previewSize.width)
+        : previewSize;
   }
 
   @override

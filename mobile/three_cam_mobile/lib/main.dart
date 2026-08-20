@@ -1947,36 +1947,53 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       return Center(child: camera.buildPreview());
     }
 
-    // Rotation compensation (RotatedBox) was tried and reverted after two live-device
-    // regressions - see previewRotationQuarterTurns's doc comment and the conversation
-    // history. Rotation stays at 0 (no pixel rotation) until there's a real way to
-    // verify the correct compensation on device.
+    // Two prior live-device experiments, read together, pin down the fix precisely
+    // instead of guessing a third time:
+    //   1. Unconditional +90 (quarterTurns: 1) broke the previously-correct IDLE
+    //      preview -> idle's true error is 0, adding +90 produced the reported
+    //      "horizontal" (90 off).
+    //   2. +90 gated to isRecordingVideo produced an UPSIDE-DOWN (180) recording
+    //      preview, not just sideways -> the uncompensated recording state must
+    //      already be +90 off on its own (this is the known open Flutter bug
+    //      flutter/flutter#163857: CameraX's Preview miscalculates rotation once
+    //      capture orientation is locked); adding another +90 landed at +180.
+    // To cancel an existing +90 and land on 0, the correction is -90 (270 clockwise),
+    // not +90 - so quarterTurns: 3, applied only while recording (idle already needs
+    // no rotation, only the box-sizing swap below).
     //
-    // The box-sizing swap below is a SEPARATE, independently-confirmed fix: real
-    // screenshots (both idle and recording) showed the preview letterboxed into a thin
-    // horizontal strip with large black bars top/bottom - the box was being sized
-    // directly from the raw (landscape-shaped) camera buffer regardless of the portrait
-    // target. previewNeedsDimensionSwap fixes that sizing only - it swaps the bounding
-    // box's width/height so FittedBox fills the portrait screen properly, without
-    // touching pixel rotation.
-    final needsSwap = previewNeedsDimensionSwap(
-      recordingOrientation: _settings.recordingOrientation,
-      previewSize: previewSize,
-    );
-    final previewWidth = needsSwap ? previewSize.height : previewSize.width;
-    final previewHeight = needsSwap ? previewSize.width : previewSize.height;
+    // RotatedBox itself swaps the effective layout footprint for odd quarterTurns
+    // (1 or 3), so when rotating, the box below must use the RAW (unswapped)
+    // previewSize - applying the manual swap AND an odd RotatedBox rotation together
+    // would swap the footprint twice, undoing the fix. The manual
+    // previewNeedsDimensionSwap-based swap is used only for the (unrotated) idle case.
+    final isRecording = camera.value.isRecordingVideo;
+
+    final Widget sizedPreview;
+    if (isRecording) {
+      sizedPreview = RotatedBox(
+        quarterTurns: 3,
+        child: SizedBox(
+          width: previewSize.width,
+          height: previewSize.height,
+          child: camera.buildPreview(),
+        ),
+      );
+    } else {
+      final needsSwap = previewNeedsDimensionSwap(
+        recordingOrientation: _settings.recordingOrientation,
+        previewSize: previewSize,
+      );
+      sizedPreview = SizedBox(
+        width: needsSwap ? previewSize.height : previewSize.width,
+        height: needsSwap ? previewSize.width : previewSize.height,
+        child: camera.buildPreview(),
+      );
+    }
 
     return ColoredBox(
       color: Colors.black,
       child: Center(
-        child: FittedBox(
-          fit: BoxFit.contain,
-          child: SizedBox(
-            width: previewWidth,
-            height: previewHeight,
-            child: camera.buildPreview(),
-          ),
-        ),
+        child: FittedBox(fit: BoxFit.contain, child: sizedPreview),
       ),
     );
   }

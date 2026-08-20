@@ -1193,6 +1193,21 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     // orientation setting actually reached the camera) and would also add avoidable
     // jitter right on the ScheduledCommand execute_at path. This is a read-only check.
     _orientationManager.logPreRecordState(camera);
+    // Lock exposure to whatever the auto-exposure algorithm has already converged on,
+    // right before recording starts - without this, AE keeps hunting/re-metering
+    // during the take (e.g. on hand motion or a shadow crossing the frame), visibly
+    // changing brightness mid-recording. Only applies when the operator has auto
+    // exposure enabled at all (_settings.autoExposure) - if they already locked it
+    // permanently in Settings, ExposureMode.locked is already in effect and this is a
+    // no-op. Restored to auto in _stopRecording() so the next take can re-meter for
+    // whatever comes next.
+    if (_settings.autoExposure) {
+      try {
+        await camera.setExposureMode(ExposureMode.locked);
+      } catch (error) {
+        debugPrint('ThreeCam: setExposureMode(locked) pre-record FAILED: $error');
+      }
+    }
     await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
     debugPrint(
       'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
@@ -1217,6 +1232,16 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     }
 
     final file = await camera.stopVideoRecording();
+    // Undo the pre-record exposure lock (see _startRecording) so the next take can
+    // re-meter for whatever scene/lighting comes next, rather than staying stuck on
+    // this take's locked exposure.
+    if (_settings.autoExposure) {
+      try {
+        await camera.setExposureMode(ExposureMode.auto);
+      } catch (error) {
+        debugPrint('ThreeCam: setExposureMode(auto) post-record FAILED: $error');
+      }
+    }
     final stoppedCameraName = _sessionCameraName;
     final stoppedDate = _sessionDate;
     final stoppedTime = _sessionTime;

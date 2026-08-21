@@ -1,5 +1,5 @@
 {
-  "selected_signer_id": "signer_3",
+  "selected_signer_id": "signer_15",
   "words": [
     {
       "word_id": 1,
@@ -802,12 +802,31 @@
       "source_set": "set_01"
     }
   ],
-  "main_word_index": 1,
-  "view_word_index": 1,
+  "main_word_index": 20,
+  "view_word_index": 20,
   "gesture_count": 2,
   "takes_done_by_word": {
     "1": 2,
-    "2": 1
+    "2": 2,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1,
+    "9": 1,
+    "10": 1,
+    "11": 1,
+    "12": 2,
+    "13": 1,
+    "14": 1,
+    "15": 1,
+    "16": 2,
+    "17": 1,
+    "18": 1,
+    "19": 1,
+    "20": 1,
+    "21": 1
   },
   "custom_signers": [
     [
@@ -820,6 +839,25 @@
   "retake_mode": false,
   "recording_status_by_word": {
     "1": "ok",
-    "2": "ok"
+    "2": "ok",
+    "3": "ok",
+    "4": "ok",
+    "5": "ok",
+    "6": "ok",
+    "7": "ok",
+    "8": "ok",
+    "9": "ok",
+    "10": "ok",
+    "11": "ok",
+    "12": "ok",
+    "13": "ok",
+    "14": "ok",
+    "15": "ok",
+    "16": "ok",
+    "17": "ok",
+    "18": "ok",
+    "19": "ok",
+    "20": "ok",
+    "21": "ok"
   }
 }

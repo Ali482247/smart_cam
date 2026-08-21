@@ -16,7 +16,7 @@ const int discoveryPort = 8089;
 const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
 const int stableRecordingFps = 30;
-const String appVersion = '1.1.0';
+const String appVersion = '1.1.2';
 const List<String> reticleModes = [
   'off',
   'dot',
@@ -212,7 +212,8 @@ class AppSettings {
 
   bool needsCameraRestart(AppSettings other) {
     return resolutionPreset != other.resolutionPreset ||
-        enableAudio != other.enableAudio;
+        enableAudio != other.enableAudio ||
+        recordingOrientation != other.recordingOrientation;
   }
 
   List<DeviceOrientation> get preferredOrientations {
@@ -360,6 +361,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   double _zoomAtScaleStart = 1;
   int _fpsFrameCount = 0;
   DateTime? _fpsWindowStartedAt;
+  Size? _previewReferenceSize;
   String? _nativeDeviceId;
   String? _nativeDeviceName;
   String? _lastVideoPath;
@@ -451,6 +453,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       if (oldCamera != null) {
         await _stopFpsStream(oldCamera);
         _camera = null;
+        _previewReferenceSize = null;
         await oldCamera.dispose();
       }
       _cameraAutomationReady = false;
@@ -479,6 +482,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         // Some CameraX backends ignore capture orientation locks.
       }
       await _configureCameraAutomation(controller);
+      _previewReferenceSize = _normalPreviewSize(controller);
       await _startFpsStream(controller);
 
       if (!mounted) return;
@@ -951,26 +955,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
 
     await _stopFpsStream(camera);
     _resetFpsCounter();
-    try {
-      await camera.lockCaptureOrientation(_settings.captureOrientation);
-      debugPrint('ThreeCam: lockCaptureOrientation (pre-record) OK');
-    } catch (error) {
-      debugPrint(
-        'ThreeCam: lockCaptureOrientation (pre-record) FAILED: $error',
-      );
-    }
     debugPrint(
       'ThreeCam: sensorOrientation=${camera.description.sensorOrientation} '
       'previewSize=${camera.value.previewSize} '
       'deviceOrientation=${camera.value.deviceOrientation} '
       'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
     );
-    await camera.startVideoRecording(onAvailable: (_) => _trackFrame());
+    await camera.startVideoRecording();
     debugPrint(
       'ThreeCam: after startVideoRecording deviceOrientation=${camera.value.deviceOrientation} '
       'lockedCaptureOrientation=${camera.value.lockedCaptureOrientation}',
     );
-    _fpsStreamActive = true;
+    _fpsStreamActive = false;
     _recording = true;
     _status = 'Recording';
     if (mounted) {
@@ -1690,7 +1686,10 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     CameraController camera,
     BoxConstraints constraints,
   ) {
-    final previewSize = camera.value.previewSize;
+    if (!_recording && !camera.value.isRecordingVideo) {
+      _previewReferenceSize = _normalPreviewSize(camera);
+    }
+    final previewSize = _previewReferenceSize ?? _normalPreviewSize(camera);
     if (previewSize == null) {
       return Center(child: camera.buildPreview());
     }
@@ -1717,6 +1716,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         ),
       ),
     );
+  }
+
+  Size? _normalPreviewSize(CameraController camera) {
+    final previewSize = camera.value.previewSize;
+    if (previewSize == null || previewSize.isEmpty) return null;
+    return previewSize;
   }
 
   @override

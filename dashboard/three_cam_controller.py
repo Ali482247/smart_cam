@@ -92,6 +92,8 @@ def default_config() -> dict:
         "stop_grace_seconds": 0.75,
         "stop_retry_count": 2,
         "stop_retry_delay_seconds": 0.15,
+        "post_stop_confirm_timeout_seconds": 12.0,
+        "post_stop_confirm_interval_seconds": 0.75,
         "post_stop_video_refresh_delay_seconds": 1.5,
         "auto_refresh_videos_after_stop": False,
         "next_index": 0,
@@ -1255,6 +1257,137 @@ def list_videos_all(config: dict) -> list[dict]:
                 )
     videos.sort(key=lambda item: str(item.get("modified", "")), reverse=True)
     return videos
+
+
+def payload_video_matches_task(payload: dict, task: dict | None) -> bool:
+    video_name = str(payload.get("lastVideoName") or payload.get("name") or "")
+    if not task:
+        return bool(video_name)
+    expected_session = str(task.get("session_id") or "")
+    expected_record = safe_int(task.get("record_index"))
+    metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else payload
+    actual_session = str(
+        payload.get("sessionId")
+        or payload.get("session_id")
+        or metadata.get("sessionId")
+        or metadata.get("session_id")
+        or ""
+    )
+    actual_record = safe_int(
+        payload.get("recordIndex")
+        or payload.get("record")
+        or metadata.get("recordIndex")
+        or metadata.get("record")
+    )
+    if expected_session and actual_session and actual_session != expected_session:
+        return False
+    if expected_record is not None and actual_record is not None and actual_record != expected_record:
+        return False
+    if expected_session and expected_session not in video_name and actual_record is None:
+        return False
+    return bool(video_name)
+
+
+def stop_payload_is_confirmed(body: str, task: dict | None) -> bool:
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return False
+    if not payload.get("ok", True):
+        return False
+    size_bytes = safe_int(payload.get("lastVideoSizeBytes") or payload.get("size") or payload.get("size_bytes"))
+    if size_bytes is not None and size_bytes <= 0:
+        return False
+    return payload_video_matches_task(payload, task)
+
+
+def stop_payload_from_video(phone: dict, video: dict) -> dict:
+    metadata = dict(video)
+    return {
+        "ok": True,
+        "recording": False,
+        "lastVideoPath": video.get("relativePath") or video.get("relative_path") or video.get("path"),
+        "lastVideoName": video.get("name"),
+        "lastVideoSizeBytes": safe_int(video.get("size") or video.get("size_bytes")),
+        "lastVideoMetadata": metadata,
+        "recordIndex": safe_int(video.get("recordIndex") or video.get("record")),
+        "startedAt": video.get("started_at") or video.get("startedAt"),
+        "stoppedAt": video.get("stopped_at") or video.get("created_at") or video.get("createdAt"),
+        "sessionId": video.get("sessionId") or video.get("session_id"),
+        "deviceId": phone.get("device_id"),
+        "deviceSlot": safe_int(phone.get("device_slot")),
+        "deviceLabel": phone.get("device_label") or phone.get("name"),
+        "confirmedBy": "videos_poll",
+    }
+
+
+def find_saved_video_on_phone(phone: dict, task: dict | None, timeout: float) -> dict | None:
+    status = get_json(phone, "/status", timeout)
+    if stop_payload_is_confirmed(json.dumps(status, ensure_ascii=False), task):
+        status["ok"] = True
+        status["recording"] = False
+        status["confirmedBy"] = "status_poll"
+        return status
+    payload = get_json(phone, "/videos", timeout)
+    for video in payload.get("videos", []):
+        if isinstance(video, dict) and payload_video_matches_task(video, task):
+            return stop_payload_from_video(phone, video)
+    return None
+
+
+def confirm_stop_saves(
+    config: dict,
+    stop_results: list[tuple[str, str]],
+    task: dict | None,
+) -> list[tuple[str, str]]:
+    phones = configured_phones(config)
+    timeout = float(config.get("timeout_seconds", 3))
+    video_timeout = float(config.get("video_list_timeout_seconds", max(8.0, timeout)))
+    confirm_timeout = max(0.0, float(config.get("post_stop_confirm_timeout_seconds", 12.0)))
+    interval = max(0.1, float(config.get("post_stop_confirm_interval_seconds", 0.75)))
+    result_by_name = {name: body for name, body in stop_results}
+    confirmed: dict[str, str] = {}
+    pending = []
+    for phone in phones:
+        name = phone_display_name(phone)
+        body = result_by_name.get(name, "ERROR: no stop response")
+        if stop_payload_is_confirmed(body, task):
+            confirmed[name] = body
+        else:
+            pending.append(phone)
+
+    deadline = time.time() + confirm_timeout
+    last_error_by_name: dict[str, str] = {
+        phone_display_name(phone): result_by_name.get(phone_display_name(phone), "ERROR: no stop response")
+        for phone in pending
+    }
+    while pending and time.time() <= deadline:
+        remaining = []
+        with ThreadPoolExecutor(max_workers=max(1, len(pending))) as executor:
+            futures = {executor.submit(find_saved_video_on_phone, phone, task, video_timeout): phone for phone in pending}
+            for future in as_completed(futures):
+                phone = futures[future]
+                name = phone_display_name(phone)
+                try:
+                    payload = future.result()
+                except Exception as error:
+                    last_error_by_name[name] = f"ERROR: save not confirmed yet: {error}"
+                    remaining.append(phone)
+                    continue
+                if payload:
+                    confirmed[name] = json.dumps(payload, ensure_ascii=False)
+                else:
+                    last_error_by_name[name] = "ERROR: saved file not found by post-stop polling"
+                    remaining.append(phone)
+        pending = remaining
+        if pending and time.time() < deadline:
+            time.sleep(interval)
+
+    results = []
+    for phone in phones:
+        name = phone_display_name(phone)
+        results.append((name, confirmed.get(name) or last_error_by_name.get(name) or result_by_name.get(name, "ERROR: no result")))
+    return results
 
 
 def mark_video_error(config: dict, video: dict, *, superseded: bool = False) -> tuple[str, str]:
@@ -2675,6 +2808,7 @@ class ControllerApp:
                     time.sleep(max(0.0, float(self.config.get("post_stop_video_refresh_delay_seconds", 1.5))))
                     videos = list_videos_all(self.config)
                 saved_log = self.save_recording_log_file()
+                results = confirm_stop_saves(self.config, results, task)
                 failures = self.stop_save_failures(results, task)
 
                 def apply_stop() -> None:

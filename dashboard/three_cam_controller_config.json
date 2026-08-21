@@ -9,9 +9,11 @@
   "stop_grace_seconds": 0.75,
   "stop_retry_count": 2,
   "stop_retry_delay_seconds": 0.15,
+  "post_stop_confirm_timeout_seconds": 12.0,
+  "post_stop_confirm_interval_seconds": 0.75,
   "post_stop_video_refresh_delay_seconds": 1.5,
   "auto_refresh_videos_after_stop": false,
-  "next_index": 1058,
+  "next_index": 1067,
   "next_device_slot": 1,
   "required_phone_count": 3,
   "block_recording_if_missing_phones": true,
@@ -28,7 +30,7 @@
   "phones": [
     {
       "name": "device_1",
-      "url": "http://192.168.0.101:8088",
+      "url": "http://172.16.6.56:8088",
       "device_id": "409159a310027ac1",
       "device_name": "24117RN76G",
       "device_slot": 1,
@@ -37,7 +39,7 @@
     },
     {
       "name": "device_2",
-      "url": "http://192.168.0.102:8088",
+      "url": "http://172.16.6.61:8088",
       "device_id": "da3e512f0d49efb4",
       "device_name": "24117RN76G",
       "device_slot": 2,
@@ -46,7 +48,7 @@
     },
     {
       "name": "device_3",
-      "url": "http://192.168.0.103:8088",
+      "url": "http://172.16.6.179:8088",
       "device_id": "6a4b5e45cac6598c",
       "device_name": "24117RN76G",
       "device_slot": 3,

@@ -13,7 +13,7 @@
   "post_stop_confirm_interval_seconds": 0.75,
   "post_stop_video_refresh_delay_seconds": 1.5,
   "auto_refresh_videos_after_stop": false,
-  "next_index": 1118,
+  "next_index": 0,
   "next_device_slot": 1,
   "required_phone_count": 3,
   "block_recording_if_missing_phones": true,

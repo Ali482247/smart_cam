@@ -1,833 +1,811 @@
 {
-  "selected_signer_id": "signer_15",
+  "selected_signer_id": "signer_1",
   "words": [
     {
-      "word_id": 1,
-      "page": 12,
+      "word_id": 101,
+      "page": 48,
+      "count": 1,
+      "uzbek": "Qiz",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 102,
+      "page": 48,
+      "count": 1,
+      "uzbek": "Amaki, tog'a",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 103,
+      "page": 49,
+      "count": 1,
+      "uzbek": "Xotin, raﬁqa",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 104,
+      "page": 49,
+      "count": 1,
+      "uzbek": "Ayol",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 105,
+      "page": 49,
+      "count": 1,
+      "uzbek": "Hayot (yashamoq)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 106,
+      "page": 50,
+      "count": 1,
+      "uzbek": "Tanishmoq (tanishish)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 107,
+      "page": 50,
+      "count": 1,
+      "uzbek": "O'ynamoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 108,
+      "page": 50,
       "count": 2,
-      "uzbek": "Tashakkur, minnatdorchilik",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Bormoq (yurmoq, ketmoq)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 2,
-      "page": 12,
+      "word_id": 109,
+      "page": 51,
+      "count": 1,
+      "uzbek": "Tug'ilgan kun",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 110,
+      "page": 51,
+      "count": 1,
+      "uzbek": "Ism, ot, nom",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 111,
+      "page": 51,
       "count": 2,
-      "uzbek": "Sizning (sening, uning, ularning)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Baqirmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 3,
-      "page": 12,
+      "word_id": 112,
+      "page": 51,
       "count": 1,
-      "uzbek": "Birdan, to'satdan (vo-qea, tasodif)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Yotmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 4,
-      "page": 13,
+      "word_id": 113,
+      "page": 52,
       "count": 1,
-      "uzbek": "To'g'ri (haq, rost)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Sevmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 5,
-      "page": 13,
-      "count": 1,
-      "uzbek": "Birgalikda (birga)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 6,
-      "page": 14,
-      "count": 1,
-      "uzbek": "Bexosdan (kutilma-ganda)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 7,
-      "page": 14,
-      "count": 1,
-      "uzbek": "Hamma",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 8,
-      "page": 14,
-      "count": 1,
-      "uzbek": "Atigi, faqat (hammasi)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 9,
-      "page": 15,
-      "count": 1,
-      "uzbek": "Siz (sizlar)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 10,
-      "page": 15,
-      "count": 1,
-      "uzbek": "Qayerda",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 11,
-      "page": 16,
-      "count": 1,
-      "uzbek": "-gacha, -guncha",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 12,
-      "page": 16,
+      "word_id": 114,
+      "page": 52,
       "count": 2,
-      "uzbek": "Xayr",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Kichkina (kichik)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 13,
-      "page": 16,
+      "word_id": 115,
+      "page": 53,
       "count": 1,
-      "uzbek": "Agar (ehtimol, bo'lsa ham, garchi)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "O'g'ilbola",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 14,
-      "page": 16,
+      "word_id": 116,
+      "page": 53,
       "count": 1,
-      "uzbek": "Yana",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Oyi (ona)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 15,
-      "page": 17,
+      "word_id": 117,
+      "page": 53,
       "count": 1,
-      "uzbek": "Nimaga (nima uchun)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Chaqaloq (bola)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 16,
-      "page": 17,
+      "word_id": 118,
+      "page": 53,
+      "count": 1,
+      "uzbek": "Yoshlik (yosh, yashil)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 119,
+      "page": 54,
+      "count": 1,
+      "uzbek": "Er(turmush o'rtog'i)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 120,
+      "page": 54,
+      "count": 1,
+      "uzbek": "Erkak",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 121,
+      "page": 54,
+      "count": 1,
+      "uzbek": "Baxtsizlik (fojia, musibat)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 122,
+      "page": 55,
+      "count": 1,
+      "uzbek": "Munosabatlar (muloqot)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 123,
+      "page": 55,
       "count": 2,
-      "uzbek": "Assalomu alaykum",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Sho'x (bezori, sho'xbola)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 17,
-      "page": 17,
+      "word_id": 124,
+      "page": 55,
       "count": 1,
-      "uzbek": "Bor (ega bo'lmoq)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Dam olish",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 18,
-      "page": 18,
+      "word_id": 125,
+      "page": 56,
       "count": 1,
-      "uzbek": "Yoki (ikki holdan birini tanlab olish zaruriyati)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Ota",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 19,
-      "page": 18,
+      "word_id": 126,
+      "page": 56,
       "count": 1,
-      "uzbek": "Har (har bir)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Otaning ismi",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 20,
-      "page": 19,
+      "word_id": 127,
+      "page": 56,
       "count": 1,
-      "uzbek": "Qanday, qanaqa",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Nafaqa",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 21,
-      "page": 19,
+      "word_id": 128,
+      "page": 57,
+      "count": 1,
+      "uzbek": "Jiyan",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 129,
+      "page": 57,
       "count": 2,
-      "uzbek": "Tamom (oxir, nihoya)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Yomon",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 22,
-      "page": 19,
+      "word_id": 130,
+      "page": 57,
       "count": 1,
-      "uzbek": "Qaysi (bu, chunki)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Ruxsat etmoq (ruxsat ber-moq, ozodlik, ozod)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 23,
-      "page": 20,
+      "word_id": 131,
+      "page": 58,
       "count": 1,
-      "uzbek": "Kim",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Tabriklamoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 24,
-      "page": 20,
+      "word_id": 132,
+      "page": 58,
       "count": 1,
-      "uzbek": "Qayerga",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Yordam bermoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 25,
-      "page": 20,
+      "word_id": 133,
+      "page": 58,
       "count": 1,
-      "uzbek": "Ortiqcha",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Tartib (xulq, tartib bilan)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 26,
-      "page": 21,
+      "word_id": 134,
+      "page": 59,
       "count": 1,
-      "uzbek": "O'rtasida, oraliqda",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "So'zgakiradigan, itoatgo'y, bo'ysunadigan",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 27,
-      "page": 21,
-      "count": 1,
-      "uzbek": "Ko'p",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 28,
-      "page": 21,
-      "count": 1,
-      "uzbek": "Biz",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 29,
-      "page": 22,
-      "count": 1,
-      "uzbek": "Mening",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 30,
-      "page": 22,
-      "count": 1,
-      "uzbek": "Mumkin (ehtimol)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 31,
-      "page": 22,
-      "count": 1,
-      "uzbek": "Uchrashmoq",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 32,
-      "page": 23,
-      "count": 1,
-      "uzbek": "Kerak (zarur, kerakli)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 33,
-      "page": 23,
-      "count": 1,
-      "uzbek": "Kerak emas",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 34,
-      "page": 23,
-      "count": 1,
-      "uzbek": "Teskari",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 35,
-      "page": 24,
-      "count": 1,
-      "uzbek": "Behuda, foydasiz",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 36,
-      "page": 24,
-      "count": 1,
-      "uzbek": "Masalan",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 37,
-      "page": 24,
-      "count": 1,
-      "uzbek": "Haqiqiy (asl nusxa)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 38,
-      "page": 25,
-      "count": 1,
-      "uzbek": "Boshlamoq",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 39,
-      "page": 25,
-      "count": 5,
-      "uzbek": "Imkon yo'q",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 40,
-      "page": 26,
-      "count": 1,
-      "uzbek": "Bir nechta",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 41,
-      "page": 26,
-      "count": 1,
-      "uzbek": "Yaramaydi, mumkin emas",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 42,
-      "page": 26,
+      "word_id": 135,
+      "page": 59,
       "count": 2,
-      "uzbek": "Yo'q",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Bayram",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 43,
-      "page": 27,
+      "word_id": 136,
+      "page": 59,
       "count": 1,
-      "uzbek": "Hech vaqt, aslo",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Ajralish, qo'ydi-chiqdi",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 44,
-      "page": 27,
+      "word_id": 137,
+      "page": 60,
       "count": 1,
-      "uzbek": "Hech kim",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "O'z, tug'ishgan (qarindoshlar, qarindosh, urug')",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 45,
-      "page": 27,
-      "count": 1,
-      "uzbek": "Hech narsa",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 46,
-      "page": 28,
-      "count": 1,
-      "uzbek": "Odatdagi (oddiy)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 47,
-      "page": 28,
-      "count": 1,
-      "uzbek": "Vazifa, majburiyat",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 48,
-      "page": 28,
-      "count": 1,
-      "uzbek": "U (ular)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 49,
-      "page": 29,
-      "count": 1,
-      "uzbek": "Yana",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 50,
-      "page": 29,
-      "count": 1,
-      "uzbek": "Qayerdan (ko’rinib qolmoq, paydo bo’lmoq)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 51,
-      "page": 29,
-      "count": 1,
-      "uzbek": "Juda (haddan tashqari)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 52,
-      "page": 30,
+      "word_id": 138,
+      "page": 60,
       "count": 2,
-      "uzbek": "Marhamat (iltimos, iltimos qilmoq)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Tug'ilmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 53,
-      "page": 30,
+      "word_id": 139,
+      "page": 60,
       "count": 1,
-      "uzbek": "Nima uchun, nimaga",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Koyimoq (tanbeh bermoq)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 54,
-      "page": 30,
+      "word_id": 140,
+      "page": 61,
       "count": 1,
-      "uzbek": "Sabab",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Oila",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 55,
-      "page": 31,
-      "count": 1,
-      "uzbek": "Ayrim-ayrim, dona-dona, alohida",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 56,
-      "page": 31,
+      "word_id": 141,
+      "page": 61,
       "count": 2,
-      "uzbek": "Har xil (turli-tuman)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "To'y",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 57,
-      "page": 32,
-      "count": 1,
-      "uzbek": "Yonma-yon (yonida, qo'shni)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 58,
-      "page": 32,
-      "count": 1,
-      "uzbek": "Eng (birinchi)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 59,
-      "page": 32,
-      "count": 1,
-      "uzbek": "O'ziniki (xususiy)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 60,
-      "page": 33,
-      "count": 1,
-      "uzbek": "O'zini (o'ziga, olijanob, ziyoli)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 61,
-      "page": 33,
-      "count": 1,
-      "uzbek": "O'rtasi(o'rta)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 62,
-      "page": 34,
-      "count": 1,
-      "uzbek": "Yangilik (yangi)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 63,
-      "page": 34,
-      "count": 1,
-      "uzbek": "Maxsus (ixtisos, hunar)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 64,
-      "page": 34,
-      "count": 1,
-      "uzbek": "Ham (bir xil, teng)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 65,
-      "page": 35,
-      "count": 1,
-      "uzbek": "Faqat, nuqul",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 66,
-      "page": 35,
-      "count": 1,
-      "uzbek": "Sen",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 67,
-      "page": 35,
-      "count": 1,
-      "uzbek": "Yetar",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 68,
-      "page": 36,
-      "count": 1,
-      "uzbek": "Yetarli emas (yetishmaslik, kam chiqish) He",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 69,
-      "page": 36,
-      "count": 1,
-      "uzbek": "Xohlamoq (istamoq, istak)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 70,
-      "page": 36,
-      "count": 1,
-      "uzbek": "Xohlamaslik (istamaslik)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 71,
-      "page": 37,
-      "count": 1,
-      "uzbek": "Kimning",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 72,
-      "page": 37,
-      "count": 1,
-      "uzbek": "Nima",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 73,
-      "page": 37,
-      "count": 1,
-      "uzbek": "Rioya qilmoq (bajarmoq)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 74,
-      "page": 38,
-      "count": 1,
-      "uzbek": "Qachon",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 75,
-      "page": 38,
-      "count": 1,
-      "uzbek": "Boshqa (boshqacha)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 76,
-      "page": 38,
-      "count": 1,
-      "uzbek": "Natija, jami, yakun",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 77,
-      "page": 39,
-      "count": 1,
-      "uzbek": "Farq, tafovut",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 78,
-      "page": 39,
-      "count": 1,
-      "uzbek": "O'zi",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 79,
-      "page": 40,
-      "count": 1,
-      "uzbek": "Siz",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 80,
-      "page": 40,
-      "count": 1,
-      "uzbek": "Xursandlik (shodlik, sevinch, quvonch)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 81,
-      "page": 40,
-      "count": 3,
-      "uzbek": "O'lim (vafot etish, o'lik)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 82,
-      "page": 41,
-      "count": 1,
-      "uzbek": "Kulgi (kulish)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 83,
-      "page": 41,
-      "count": 1,
-      "uzbek": "Shoshmoq (shoshilmoq)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 84,
-      "page": 41,
-      "count": 1,
-      "uzbek": "Osoyishtalik, jimjitlik",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 85,
-      "page": 42,
-      "count": 1,
-      "uzbek": "Avlod",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 86,
-      "page": 44,
-      "count": 1,
-      "uzbek": "Buvi",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 87,
-      "page": 44,
-      "count": 3,
-      "uzbek": "Egizaklar",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 88,
-      "page": 44,
-      "count": 1,
-      "uzbek": "Nikon (uylanish, erga tegish, er-xot-inlik.)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 89,
-      "page": 45,
+      "word_id": 142,
+      "page": 62,
       "count": 2,
-      "uzbek": "Aka",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Opa, singil",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 90,
-      "page": 45,
+      "word_id": 143,
+      "page": 62,
+      "count": 1,
+      "uzbek": "O'tirmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 144,
+      "page": 62,
+      "count": 1,
+      "uzbek": "Rozilik, rozi",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 145,
+      "page": 63,
+      "count": 1,
+      "uzbek": "Uxlamoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 146,
+      "page": 63,
+      "count": 1,
+      "uzbek": "Urushmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 147,
+      "page": 63,
       "count": 1,
       "uzbek": "Katta",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 91,
-      "page": 45,
+      "word_id": 148,
+      "page": 63,
       "count": 1,
-      "uzbek": "Tarbiyalamoq",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Qari, eski",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 92,
-      "page": 46,
+      "word_id": 149,
+      "page": 64,
       "count": 1,
-      "uzbek": "Mehmon (tashrif)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Turish",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 93,
-      "page": 46,
+      "word_id": 150,
+      "page": 64,
       "count": 1,
-      "uzbek": "Sayr qilmoq",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Baxt",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 94,
-      "page": 46,
+      "word_id": 151,
+      "page": 64,
       "count": 1,
-      "uzbek": "Sovg'a qilmoq",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "O'g'il (o'g'lim)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 95,
-      "page": 46,
+      "word_id": 152,
+      "page": 65,
       "count": 1,
-      "uzbek": "Nasihat qilmoq (ta'sir etish)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Hurmatlamoq (uchun)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 96,
-      "page": 47,
+      "word_id": 153,
+      "page": 65,
       "count": 1,
-      "uzbek": "Yosh",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Qaysar, o'jar",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 97,
-      "page": 47,
+      "word_id": 154,
+      "page": 65,
       "count": 1,
-      "uzbek": "Qizbola",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Boqmoq, qaramoq, parvarish qilmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 98,
-      "page": 47,
+      "word_id": 155,
+      "page": 66,
+      "count": 1,
+      "uzbek": "Familiya",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 156,
+      "page": 66,
       "count": 2,
-      "uzbek": "Buva, bobo",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Yaxshi (ma'qul)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     },
     {
-      "word_id": 99,
-      "page": 48,
-      "count": 2,
-      "uzbek": "Bolalar",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
-    },
-    {
-      "word_id": 100,
-      "page": 48,
+      "word_id": 157,
+      "page": 67,
       "count": 1,
-      "uzbek": "Aziz (qimmatli, qimmat)",
-      "source_pdf": "set_01_words_0001_0100_count.pdf",
-      "source_set": "set_01"
+      "uzbek": "Odam, kishi, inson",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 158,
+      "page": 67,
+      "count": 1,
+      "uzbek": "Birovniki, begona",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 159,
+      "page": 67,
+      "count": 1,
+      "uzbek": "Xola, am ma",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 160,
+      "page": 67,
+      "count": 1,
+      "uzbek": "Beva, bo'ydoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 161,
+      "page": 68,
+      "count": 1,
+      "uzbek": "Rahm qilmoq, achinmoq",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 162,
+      "page": 68,
+      "count": 1,
+      "uzbek": "Ko'ngilsiz voqea (ko'ngilsizlik, beboshlik)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 163,
+      "page": 68,
+      "count": 1,
+      "uzbek": "Yo'qotish",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 164,
+      "page": 69,
+      "count": 1,
+      "uzbek": "Yoqimli (xushbo'y, dilkash)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 165,
+      "page": 69,
+      "count": 1,
+      "uzbek": "Xursandlik (shodlik, sevinch, quvonch)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 166,
+      "page": 69,
+      "count": 1,
+      "uzbek": "O'lim (vafot etish, o'lik)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 167,
+      "page": 70,
+      "count": 1,
+      "uzbek": "Kulgi (kulish)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 168,
+      "page": 70,
+      "count": 1,
+      "uzbek": "Shoshmoq (shoshilmoq)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 169,
+      "page": 70,
+      "count": 1,
+      "uzbek": "Osoyishtalik, jimjitlik",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 170,
+      "page": 71,
+      "count": 1,
+      "uzbek": "Avlod",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 171,
+      "page": 73,
+      "count": 1,
+      "uzbek": "Balkon",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 172,
+      "page": 73,
+      "count": 1,
+      "uzbek": "Vannaxona",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 173,
+      "page": 73,
+      "count": 1,
+      "uzbek": "Vaza (ko'za)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 174,
+      "page": 74,
+      "count": 1,
+      "uzbek": "Supurgi",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 175,
+      "page": 74,
+      "count": 1,
+      "uzbek": "Videomagnitofon",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 176,
+      "page": 74,
+      "count": 1,
+      "uzbek": "Vodoprovod",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 177,
+      "page": 75,
+      "count": 1,
+      "uzbek": "Darvoza",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 178,
+      "page": 75,
+      "count": 1,
+      "uzbek": "Gaz",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 179,
+      "page": 75,
+      "count": 1,
+      "uzbek": "Eshik",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 180,
+      "page": 76,
+      "count": 1,
+      "uzbek": "Hovli (maydon)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 181,
+      "page": 76,
+      "count": 1,
+      "uzbek": "Divan",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 182,
+      "page": 76,
+      "count": 2,
+      "uzbek": "Uy",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 183,
+      "page": 77,
+      "count": 1,
+      "uzbek": "Dush",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 184,
+      "page": 77,
+      "count": 1,
+      "uzbek": "Devor (to'siq, panjara)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 185,
+      "page": 77,
+      "count": 2,
+      "uzbek": "Qulf",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 186,
+      "page": 78,
+      "count": 1,
+      "uzbek": "Pardalar",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 187,
+      "page": 78,
+      "count": 1,
+      "uzbek": "Ko'zgu",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 188,
+      "page": 78,
+      "count": 1,
+      "uzbek": "Rasm",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 189,
+      "page": 79,
+      "count": 1,
+      "uzbek": "Glam",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 190,
+      "page": 79,
+      "count": 1,
+      "uzbek": "Xona (imorat, kvartira, sinf, auditoriya)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 191,
+      "page": 80,
+      "count": 1,
+      "uzbek": "Koridor",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 192,
+      "page": 80,
+      "count": 1,
+      "uzbek": "Kreslo",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 193,
+      "page": 80,
+      "count": 1,
+      "uzbek": "Krovat",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 194,
+      "page": 81,
+      "count": 1,
+      "uzbek": "Oshxona (tayyorlash, qaynatish)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 195,
+      "page": 81,
+      "count": 2,
+      "uzbek": "Lampa (chiroq)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 196,
+      "page": 82,
+      "count": 2,
+      "uzbek": "Zina (narvon)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 197,
+      "page": 82,
+      "count": 1,
+      "uzbek": "Lift",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 198,
+      "page": 82,
+      "count": 1,
+      "uzbek": "Qandil (lyustra)",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 199,
+      "page": 82,
+      "count": 1,
+      "uzbek": "Magnitofon",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
+    },
+    {
+      "word_id": 200,
+      "page": 83,
+      "count": 1,
+      "uzbek": "Mebel",
+      "source_pdf": "set_02_words_0101_0200_count.pdf",
+      "source_set": "set_02"
     }
   ],
-  "main_word_index": 20,
-  "view_word_index": 20,
-  "gesture_count": 2,
-  "takes_done_by_word": {
-    "1": 2,
-    "2": 2,
-    "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 1,
-    "7": 1,
-    "8": 1,
-    "9": 1,
-    "10": 1,
-    "11": 1,
-    "12": 2,
-    "13": 1,
-    "14": 1,
-    "15": 1,
-    "16": 2,
-    "17": 1,
-    "18": 1,
-    "19": 1,
-    "20": 1,
-    "21": 1
-  },
+  "main_word_index": 0,
+  "view_word_index": 0,
+  "gesture_count": 1,
+  "takes_done_by_word": {},
   "custom_signers": [
     [
       "signer_15",
@@ -837,27 +815,5 @@
   "background_mode": false,
   "manual_back_mode": false,
   "retake_mode": false,
-  "recording_status_by_word": {
-    "1": "ok",
-    "2": "ok",
-    "3": "ok",
-    "4": "ok",
-    "5": "ok",
-    "6": "ok",
-    "7": "ok",
-    "8": "ok",
-    "9": "ok",
-    "10": "ok",
-    "11": "ok",
-    "12": "ok",
-    "13": "ok",
-    "14": "ok",
-    "15": "ok",
-    "16": "ok",
-    "17": "ok",
-    "18": "ok",
-    "19": "ok",
-    "20": "ok",
-    "21": "ok"
-  }
+  "recording_status_by_word": {}
 }

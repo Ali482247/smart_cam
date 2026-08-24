@@ -10,6 +10,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -1524,6 +1525,9 @@ class ControllerApp:
         self._timer_job = None
         self._auto_stop_job = None
         self._poll_job = None
+        self._live_recording_log_job = None
+        self._live_recording_log_path: Path | None = None
+        self._live_recording_log_offset = 0
         self.device_status_cache: dict[str, dict] = {}
         self.session_history = load_session_history()
         self._session_started_at: dict[str, float] = {}
@@ -1680,33 +1684,60 @@ class ControllerApp:
         self.history_button = ttk.Button(buttons, text="История", command=self.history_clicked)
         self.history_button.pack(side="left")
 
-        timer_frame = ttk.Frame(frame)
-        timer_frame.pack(fill="x", pady=(0, 12))
-        ttk.Label(timer_frame, text="Auto stop minutes:").pack(side="left")
-        ttk.Entry(timer_frame, textvariable=self.auto_stop_var, width=6).pack(side="left", padx=(6, 0))
+        mid_frame = ttk.Frame(frame)
+        mid_frame.pack(fill="x", pady=(0, 12))
+        mid_frame.columnconfigure(0, weight=0)
+        mid_frame.columnconfigure(1, weight=1)
 
-        ws_frame = ttk.LabelFrame(frame, text="New networking (WS + Scheduler, synchronized)", padding=8)
-        ws_frame.pack(fill="x", pady=(0, 12))
+        ws_frame = ttk.Frame(frame)
 
         ws_row = ttk.Frame(ws_frame)
-        ws_row.pack(fill="x")
 
         self.ws_record_button = ttk.Button(ws_row, text="SYNC START", command=self.ws_toggle_clicked)
-        self.ws_record_button.pack(side="left", padx=(0, 8))
 
         self.ws_status_button = ttk.Button(ws_row, text="WS статус", command=self.ws_status_clicked)
-        self.ws_status_button.pack(side="left", padx=(0, 8))
 
-        ttk.Label(ws_row, textvariable=self.ws_status).pack(side="left")
+
+        live_logs = ttk.LabelFrame(mid_frame, text="Live recording logs", padding=6)
+        live_logs.grid(row=0, column=0, sticky="nw")
+        live_logs.columnconfigure(0, weight=1)
+
+        self.live_recording_log_tree = ttk.Treeview(
+            live_logs,
+            columns=("time", "event", "details"),
+            show="headings",
+            height=4,
+            selectmode="browse",
+        )
+        for col, title, width, stretch in (
+            ("time", "Time", 82, False),
+            ("event", "Event", 110, False),
+            ("details", "Latest recording log", 430, False),
+        ):
+            self.live_recording_log_tree.heading(col, text=title)
+            self.live_recording_log_tree.column(col, width=width, stretch=stretch)
+        self.live_recording_log_tree.tag_configure("error", foreground="#c0392b")
+        self.live_recording_log_tree.tag_configure("ok", foreground="#1e8449")
+        self.live_recording_log_tree.tag_configure("recording", foreground="#b9770e")
+        self.live_recording_log_tree.grid(row=0, column=0, sticky="ew")
+
+        live_log_scroll = ttk.Scrollbar(live_logs, orient="vertical", command=self.live_recording_log_tree.yview)
+        live_log_scroll.grid(row=0, column=1, sticky="ns")
+        self.live_recording_log_tree.configure(yscrollcommand=live_log_scroll.set)
 
         devices = ttk.LabelFrame(frame, text="Devices", padding=8)
         devices.pack(fill="x", pady=(0, 12))
+        devices.columnconfigure(0, weight=1)
+
+        devices_table = ttk.Frame(devices)
+        devices_table.grid(row=0, column=0, sticky="ew")
+        devices_table.columnconfigure(0, weight=1)
 
         self.devices_tree = ttk.Treeview(
-            devices,
+            devices_table,
             columns=("slot", "camera", "state", "device_id", "device", "url", "free", "battery"),
             show="headings",
-            height=4,
+            height=3,
             selectmode="browse",
         )
         self.devices_tree.heading("slot", text="Slot")
@@ -1721,30 +1752,24 @@ class ControllerApp:
         self.devices_tree.column("camera", width=110, stretch=False)
         self.devices_tree.column("state", width=90, stretch=False)
         self.devices_tree.column("device_id", width=120, stretch=False)
-        self.devices_tree.column("device", width=135, stretch=True)
-        self.devices_tree.column("url", width=175, stretch=True)
+        self.devices_tree.column("device", width=135, stretch=False)
+        self.devices_tree.column("url", width=250, stretch=True)
         self.devices_tree.column("free", width=90, stretch=False)
         self.devices_tree.column("battery", width=90, stretch=False)
         self.devices_tree.tag_configure("offline", foreground="#c0392b")
         self.devices_tree.tag_configure("saved", foreground="#1e8449")
         self.devices_tree.tag_configure("recording", foreground="#b9770e")
-        self.devices_tree.pack(fill="x")
+        self.devices_tree.grid(row=0, column=0, sticky="ew")
+        devices_scroll = ttk.Scrollbar(devices_table, orient="vertical", command=self.devices_tree.yview)
+        devices_scroll.grid(row=0, column=1, sticky="ns")
+        self.devices_tree.configure(yscrollcommand=devices_scroll.set)
         self.devices_tree.bind("<<TreeviewSelect>>", self.device_selected)
 
-        device_editor = ttk.Frame(devices)
-        device_editor.pack(fill="x", pady=(8, 0))
-        ttk.Label(device_editor, text="Slot").pack(side="left")
         self.device_slot_var = StringVar()
-        ttk.Entry(device_editor, textvariable=self.device_slot_var, width=6).pack(side="left", padx=(4, 10))
-        ttk.Label(device_editor, text="Camera name").pack(side="left")
         self.camera_name_var = StringVar()
-        ttk.Entry(device_editor, textvariable=self.camera_name_var, width=18).pack(side="left", padx=(4, 10))
-        ttk.Button(device_editor, text="Save device", command=self.save_selected_device).pack(side="left")
 
-        videos = ttk.LabelFrame(frame, text="Saved videos", padding=8)
-        videos.pack(fill="x", pady=(0, 12))
+        videos = ttk.Frame(frame)
         video_top_actions = ttk.Frame(videos)
-        video_top_actions.pack(fill="x", pady=(0, 8))
         ttk.Label(video_top_actions, text="Select a video row, then choose:").pack(side="left", padx=(0, 10))
         ttk.Button(video_top_actions, text="BAD VIDEO", command=self.mark_selected_video_error_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(video_top_actions, text="BAD + RETAKE", command=self.mark_error_and_retake_selected_video_clicked).pack(side="left", padx=(0, 8))
@@ -1770,7 +1795,6 @@ class ControllerApp:
         self.videos_tree.tag_configure("error", foreground="#c0392b")
         self.videos_tree.tag_configure("superseded", foreground="#7f8c8d")
         self.videos_tree.tag_configure("warning", foreground="#b9770e")
-        self.videos_tree.pack(fill="x")
         self.videos_tree.bind("<Double-1>", self.video_double_clicked)
         logs_frame = ttk.Frame(frame)
         logs_frame.pack(fill="x", expand=False)
@@ -1795,6 +1819,7 @@ class ControllerApp:
         self.refresh_dataset_labels()
         self.refresh_device_table()
         self.start_status_polling()
+        self.start_live_recording_log_polling()
 
     def write(self, message: str) -> None:
         self.log.insert("end", message + "\n")
@@ -1825,10 +1850,130 @@ class ControllerApp:
         if hasattr(self, "recording_log"):
             self.recording_log.insert("end", line + "\n")
             self.recording_log.see("end")
+        self.insert_live_recording_log_line(line)
+        try:
+            current_path = self.recording_log_path(now)
+            if current_path == self._live_recording_log_path:
+                self._live_recording_log_offset = current_path.stat().st_size
+        except OSError:
+            pass
         return payload
 
     def recording_log_write(self, message: str) -> None:
         self.recording_event_write("LOG", message=message)
+
+    def latest_recording_log_path(self) -> Path:
+        today = self.recording_log_path()
+        if today.exists():
+            return today
+        logs = sorted(
+            recording_log_dir().glob("recording_log_*.ndjson"),
+            key=lambda path: path.stat().st_mtime if path.exists() else 0,
+        )
+        return logs[-1] if logs else today
+
+    def start_live_recording_log_polling(self) -> None:
+        self.refresh_live_recording_log(initial=True)
+
+    def refresh_live_recording_log(self, initial: bool = False) -> None:
+        path = self.latest_recording_log_path()
+        try:
+            size = path.stat().st_size if path.exists() else 0
+        except OSError:
+            size = 0
+
+        path_changed = path != self._live_recording_log_path
+        if initial or path_changed or size < self._live_recording_log_offset:
+            self._live_recording_log_path = path
+            self._live_recording_log_offset = 0
+            if hasattr(self, "live_recording_log_tree"):
+                self.live_recording_log_tree.delete(*self.live_recording_log_tree.get_children())
+            if path.exists():
+                for line in self.tail_recording_log_lines(path, limit=60):
+                    self.insert_live_recording_log_line(line)
+                self._live_recording_log_offset = size
+        elif path.exists() and size > self._live_recording_log_offset:
+            try:
+                with path.open("r", encoding="utf-8", errors="replace") as f:
+                    f.seek(self._live_recording_log_offset)
+                    lines = f.readlines()
+                    self._live_recording_log_offset = f.tell()
+            except OSError:
+                lines = []
+            for line in lines:
+                self.insert_live_recording_log_line(line)
+
+        self._live_recording_log_job = self.root.after(1000, self.refresh_live_recording_log)
+
+    def tail_recording_log_lines(self, path: Path, limit: int = 60) -> list[str]:
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as f:
+                return [line.rstrip("\n") for line in deque(f, maxlen=limit) if line.strip()]
+        except OSError:
+            return []
+
+    def insert_live_recording_log_line(self, line: str) -> None:
+        if not line.strip() or not hasattr(self, "live_recording_log_tree"):
+            return
+        row = self.live_recording_log_row(line)
+        tag = self.live_recording_log_tag(row)
+        tree = self.live_recording_log_tree
+        tree.insert(
+            "",
+            "end",
+            values=(row["time"], row["event"], row["details"]),
+            tags=(tag,) if tag else (),
+        )
+        children = tree.get_children()
+        if len(children) > 120:
+            tree.delete(*children[: len(children) - 120])
+        tree.see(tree.get_children()[-1])
+
+    def live_recording_log_row(self, line: str) -> dict[str, str]:
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            return {"time": "", "event": "RAW", "status": "", "details": line[:160]}
+
+        ts = str(payload.get("ts") or "")
+        time_text = ts[11:23] if len(ts) >= 23 else ts
+        word = str(payload.get("word") or payload.get("message") or "")
+        word_id = payload.get("word_id")
+        if word_id not in (None, "") and word:
+            word = f"{word_id} {word}"
+        status = str(payload.get("status") or "")
+        failures = payload.get("failures")
+        if not status and isinstance(failures, list):
+            status = "ok" if not failures else f"{len(failures)} failed"
+        file_name = str(payload.get("file") or payload.get("path") or "")
+        if "\\" in file_name or "/" in file_name:
+            file_name = Path(file_name).name
+        device = str(payload.get("device") or payload.get("device_label") or "")
+        take = str(payload.get("take") or "")
+        event = str(payload.get("event") or "")
+        parts = []
+        if device:
+            parts.append(device)
+        if word:
+            parts.append(f"{word} / take {take}" if take else word)
+        elif take:
+            parts.append(f"take {take}")
+        if status:
+            parts.append(status)
+        if file_name:
+            parts.append(file_name)
+        return {"time": time_text, "event": event, "status": status, "details": " | ".join(parts)}
+
+    def live_recording_log_tag(self, row: dict[str, str]) -> str:
+        status = row.get("status", "").lower()
+        event = row.get("event", "").lower()
+        if "error" in status or "failed" in status or "failed" in event:
+            return "error"
+        if status == "ok" or "save" in event or "check" in event:
+            return "ok"
+        if "start" in event or "record" in event:
+            return "recording"
+        return ""
 
     def save_recording_log_file(self, path: Path | None = None) -> Path:
         if path is None:
@@ -2926,6 +3071,8 @@ class ControllerApp:
             self.root.after_cancel(self._auto_stop_job)
         if self._poll_job is not None:
             self.root.after_cancel(self._poll_job)
+        if self._live_recording_log_job is not None:
+            self.root.after_cancel(self._live_recording_log_job)
         try:
             if self.gateway is not None:
                 self.gateway.stop()

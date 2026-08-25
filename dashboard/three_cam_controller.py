@@ -142,6 +142,8 @@ def default_dataset_state() -> dict:
         "gesture_count": 1,
         "takes_done_by_word": {},
         "custom_signers": [],
+        "deleted_signers": [],
+        "last_deleted_signer": None,
         "background_mode": False,
         "manual_back_mode": False,
     }
@@ -168,6 +170,13 @@ def load_dataset_state() -> dict:
     if not isinstance(state.get("takes_done_by_word"), dict):
         state["takes_done_by_word"] = {}
     state["custom_signers"] = normalize_custom_signers(state.get("custom_signers", []))
+    state["deleted_signers"] = normalize_deleted_signers(state.get("deleted_signers", []))
+    if not isinstance(state.get("last_deleted_signer"), dict):
+        state["last_deleted_signer"] = None
+    available_items = signer_items(state)
+    available_ids = {signer_id for signer_id, _name in available_items}
+    if state["selected_signer_id"] not in available_ids:
+        state["selected_signer_id"] = available_items[0][0] if available_items else "signer_1"
     return state
 
 
@@ -221,9 +230,10 @@ def signer_label(signer_id: str) -> str:
 
 
 def signer_items(state: dict | None = None) -> list[tuple[str, str]]:
-    items = list(SIGNERS)
+    deleted = set(normalize_deleted_signers(state.get("deleted_signers", []))) if state is not None else set()
+    items = [item for item in SIGNERS if item[0] not in deleted]
     if state is not None:
-        items.extend(normalize_custom_signers(state.get("custom_signers", [])))
+        items.extend(item for item in normalize_custom_signers(state.get("custom_signers", [])) if item[0] not in deleted)
     return items
 
 
@@ -254,6 +264,18 @@ def normalize_custom_signers(value) -> list[tuple[str, str]]:
             continue
         normalized[f"signer_{int(match.group(1))}"] = name
     return sorted(normalized.items(), key=lambda item: safe_int(item[0].split("_", 1)[1], 0) or 0)
+
+
+def normalize_deleted_signers(value) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    normalized: set[str] = set()
+    for item in value:
+        signer_id = str(item).strip()
+        match = re.fullmatch(r"(?:signer_)?(\d{1,4})", signer_id)
+        if match:
+            normalized.add(f"signer_{int(match.group(1))}")
+    return sorted(normalized, key=lambda item: safe_int(item.split("_", 1)[1], 0) or 0)
 
 
 def parse_signer_entry(value: str) -> tuple[str, str]:
@@ -1594,7 +1616,9 @@ class ControllerApp:
         self.new_signer_entry.bind("<Return>", lambda _event: self.add_signer_clicked())
         ttk.Button(dataset_top, text="ADD", command=self.add_signer_clicked).pack(side="left", padx=(0, 4))
         ttk.Button(dataset_top, text="UPDATE", command=self.update_signer_clicked).pack(side="left", padx=(0, 4))
-        ttk.Button(dataset_top, text="DELETE", command=self.delete_signer_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(dataset_top, text="DELETE", command=self.delete_signer_clicked).pack(side="left", padx=(0, 4))
+        self.undo_delete_signer_button = ttk.Button(dataset_top, text="UNDO", command=self.undo_delete_signer_clicked)
+        self.undo_delete_signer_button.pack(side="left", padx=(0, 8))
         ttk.Button(dataset_top, text="IMPORT PDF", command=self.import_pdf_clicked).pack(side="left", padx=(0, 8))
         ttk.Label(dataset_top, text="Gestures per word").pack(side="left")
         self.gesture_spin = ttk.Entry(dataset_top, textvariable=self.gesture_count_var, width=5)
@@ -1817,6 +1841,7 @@ class ControllerApp:
         self.write("Пробел тоже нажимает START/STOP.")
         self.root.bind("<space>", lambda _event: self.toggle_clicked())
         self.refresh_dataset_labels()
+        self.refresh_undo_delete_signer_button()
         self.refresh_device_table()
         self.start_status_polling()
         self.start_live_recording_log_polling()
@@ -2122,6 +2147,7 @@ class ControllerApp:
         self.dataset_state["gesture_count"] = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
         self.dataset_state["background_mode"] = bool(self.background_var.get())
         self.dataset_state["custom_signers"] = normalize_custom_signers(self.dataset_state.get("custom_signers", []))
+        self.dataset_state["deleted_signers"] = normalize_deleted_signers(self.dataset_state.get("deleted_signers", []))
         self.dataset_state["recording_status_by_word"] = self.recording_status_by_word
         save_dataset_state(self.dataset_state)
 
@@ -2146,6 +2172,24 @@ class ControllerApp:
         self.dataset_state["custom_signers"] = sorted(
             custom.items(), key=lambda item: safe_int(item[0].split("_", 1)[1], 0) or 0
         )
+
+    def deleted_signer_set(self) -> set[str]:
+        return set(normalize_deleted_signers(self.dataset_state.get("deleted_signers", [])))
+
+    def set_deleted_signers(self, deleted: set[str]) -> None:
+        self.dataset_state["deleted_signers"] = normalize_deleted_signers(list(deleted))
+
+    def select_first_available_signer(self) -> None:
+        items = signer_items(self.dataset_state)
+        signer_id = items[0][0] if items else "signer_1"
+        self.dataset_state["selected_signer_id"] = signer_id
+        self.signer_var.set(signer_label_for(signer_id, self.dataset_state))
+
+    def refresh_undo_delete_signer_button(self) -> None:
+        if not hasattr(self, "undo_delete_signer_button"):
+            return
+        state = NORMAL if isinstance(self.dataset_state.get("last_deleted_signer"), dict) else DISABLED
+        self.undo_delete_signer_button.configure(state=state)
 
     def fill_signer_entry_from_selection(self) -> None:
         signer_id = self.selected_signer_id()
@@ -2177,6 +2221,7 @@ class ControllerApp:
         self.save_dataset()
         self.refresh_signer_combo()
         self.refresh_dataset_labels()
+        self.refresh_undo_delete_signer_button()
         self.write(f"Signer added: {signer_label_for(signer_id, self.dataset_state)}")
 
     def update_signer_clicked(self) -> None:
@@ -2205,25 +2250,76 @@ class ControllerApp:
         self.save_dataset()
         self.refresh_signer_combo()
         self.refresh_dataset_labels()
+        self.refresh_undo_delete_signer_button()
         self.write(f"Signer updated: {old_id} -> {signer_label_for(new_id, self.dataset_state)}")
 
     def delete_signer_clicked(self) -> None:
         signer_id = self.selected_signer_id()
+        available = signer_items(self.dataset_state)
+        if len(available) <= 1:
+            messagebox.showerror("Delete signer", "At least one signer must remain")
+            return
         custom = self.custom_signer_map()
-        if signer_id not in custom:
-            messagebox.showerror("Delete signer", "Only added signers can be deleted")
+        names = signer_names(self.dataset_state)
+        name = names.get(signer_id, signer_id)
+        if signer_id not in names:
+            messagebox.showerror("Delete signer", "Select a signer to delete")
             return
         if not messagebox.askyesno("Delete signer", f"Delete {signer_label_for(signer_id, self.dataset_state)}?"):
             return
-        custom.pop(signer_id)
-        self.set_custom_signers(custom)
-        self.dataset_state["selected_signer_id"] = "signer_1"
-        self.signer_var.set(signer_label_for("signer_1", self.dataset_state))
+        was_custom = signer_id in custom
+        if was_custom:
+            custom.pop(signer_id)
+            self.set_custom_signers(custom)
+        else:
+            deleted = self.deleted_signer_set()
+            deleted.add(signer_id)
+            self.set_deleted_signers(deleted)
+        self.dataset_state["last_deleted_signer"] = {
+            "id": signer_id,
+            "name": name,
+            "was_custom": was_custom,
+        }
+        self.select_first_available_signer()
         self.new_signer_var.set("")
         self.save_dataset()
         self.refresh_signer_combo()
         self.refresh_dataset_labels()
+        self.refresh_undo_delete_signer_button()
         self.write(f"Signer deleted: {signer_id}")
+
+    def undo_delete_signer_clicked(self) -> None:
+        deleted_signer = self.dataset_state.get("last_deleted_signer")
+        if not isinstance(deleted_signer, dict):
+            messagebox.showinfo("Undo delete signer", "No deleted signer to restore")
+            return
+        signer_id = str(deleted_signer.get("id") or "").strip()
+        name = str(deleted_signer.get("name") or signer_id).strip()
+        match = re.fullmatch(r"(?:signer_)?(\d{1,4})", signer_id)
+        if not match or not name:
+            self.dataset_state["last_deleted_signer"] = None
+            self.save_dataset()
+            self.refresh_undo_delete_signer_button()
+            messagebox.showerror("Undo delete signer", "Deleted signer data is invalid")
+            return
+        signer_id = f"signer_{int(match.group(1))}"
+        custom = self.custom_signer_map()
+        if bool(deleted_signer.get("was_custom")):
+            custom[signer_id] = name
+            self.set_custom_signers(custom)
+        else:
+            deleted = self.deleted_signer_set()
+            deleted.discard(signer_id)
+            self.set_deleted_signers(deleted)
+        self.dataset_state["selected_signer_id"] = signer_id
+        self.signer_var.set(signer_label_for(signer_id, self.dataset_state))
+        self.dataset_state["last_deleted_signer"] = None
+        self.new_signer_var.set("")
+        self.save_dataset()
+        self.refresh_signer_combo()
+        self.refresh_dataset_labels()
+        self.refresh_undo_delete_signer_button()
+        self.write(f"Signer restored: {signer_label_for(signer_id, self.dataset_state)}")
 
     def current_word(self) -> dict | None:
         words = self.dataset_state.get("words", [])

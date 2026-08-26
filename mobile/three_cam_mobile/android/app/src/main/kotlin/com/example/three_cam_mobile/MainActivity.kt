@@ -1,12 +1,17 @@
 package com.example.three_cam_mobile
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.WindowManager
@@ -69,6 +74,20 @@ class MainActivity : FlutterActivity() {
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     setKeepScreenOn(enabled)
                     result.success(true)
+                }
+                "startKeepAliveService" -> {
+                    val enableAudio = call.argument<Boolean>("enableAudio") ?: true
+                    startKeepAliveService(enableAudio)
+                    result.success(true)
+                }
+                "stopKeepAliveService" -> {
+                    stopKeepAliveService()
+                    result.success(true)
+                }
+                "requestNotificationPermission" -> result.success(requestNotificationPermission())
+                "isIgnoringBatteryOptimizations" -> result.success(isIgnoringBatteryOptimizations())
+                "requestIgnoreBatteryOptimizations" -> {
+                    result.success(requestIgnoreBatteryOptimizations())
                 }
                 else -> result.notImplemented()
             }
@@ -189,6 +208,62 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun startKeepAliveService(enableAudio: Boolean) {
+        requestNotificationPermission()
+        val intent = Intent(this, ConnectionKeepAliveService::class.java).apply {
+            putExtra(ConnectionKeepAliveService.EXTRA_ENABLE_AUDIO, enableAudio)
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun stopKeepAliveService() {
+        stopService(Intent(this, ConnectionKeepAliveService::class.java))
+    }
+
+    private fun requestNotificationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true
+        }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            return true
+        }
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST)
+        return false
+    }
+
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true
+        }
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun requestIgnoreBatteryOptimizations(): Boolean {
+        if (isIgnoringBatteryOptimizations()) {
+            return true
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true
+        }
+        try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            startActivity(intent)
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        }
+        return false
+    }
+
     private fun markDcimVideoError(relativePath: String, newDisplayName: String): Boolean {
         val normalized = relativePath.trim('/').replace("\\", "/")
         val oldDisplayName = normalized.substringAfterLast('/')
@@ -248,5 +323,9 @@ class MainActivity : FlutterActivity() {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
     } else {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    }
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_REQUEST = 4309
     }
 }

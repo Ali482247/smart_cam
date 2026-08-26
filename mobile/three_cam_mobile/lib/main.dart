@@ -104,7 +104,7 @@ class AppSettings {
       keepScreenOn: true,
       saveToGallery: true,
       filePrefix: '',
-      autoExposure: true,
+      autoExposure: false,
       autoFocus: true,
       smartZoom: true,
       zoomLevel: 1,
@@ -130,7 +130,7 @@ class AppSettings {
       keepScreenOn: prefs.getBool('keepScreenOn') ?? defaults.keepScreenOn,
       saveToGallery: prefs.getBool('saveToGallery') ?? defaults.saveToGallery,
       filePrefix: prefs.getString('filePrefix') ?? defaults.filePrefix,
-      autoExposure: prefs.getBool('autoExposure') ?? defaults.autoExposure,
+      autoExposure: false,
       autoFocus: prefs.getBool('autoFocus') ?? defaults.autoFocus,
       smartZoom: prefs.getBool('smartZoom') ?? defaults.smartZoom,
       zoomLevel: prefs.getDouble('zoomLevel') ?? defaults.zoomLevel,
@@ -150,7 +150,7 @@ class AppSettings {
     await prefs.setBool('keepScreenOn', keepScreenOn);
     await prefs.setBool('saveToGallery', saveToGallery);
     await prefs.setString('filePrefix', filePrefix);
-    await prefs.setBool('autoExposure', autoExposure);
+    await prefs.setBool('autoExposure', false);
     await prefs.setBool('autoFocus', autoFocus);
     await prefs.setBool('smartZoom', smartZoom);
     await prefs.setDouble('zoomLevel', zoomLevel);
@@ -186,7 +186,7 @@ class AppSettings {
       keepScreenOn: keepScreenOn ?? this.keepScreenOn,
       saveToGallery: saveToGallery ?? this.saveToGallery,
       filePrefix: filePrefix ?? this.filePrefix,
-      autoExposure: autoExposure ?? this.autoExposure,
+      autoExposure: false,
       autoFocus: autoFocus ?? this.autoFocus,
       smartZoom: smartZoom ?? this.smartZoom,
       zoomLevel: zoomLevel ?? this.zoomLevel,
@@ -203,6 +203,7 @@ class AppSettings {
       deviceLabel: safeLabel,
       filePrefix: _cleanLabel(filePrefix),
       reticleMode: reticleModes.contains(reticleMode) ? reticleMode : 'cross',
+      autoExposure: false,
       recordingOrientation: recordingOrientation == 'landscape'
           ? 'landscape'
           : 'portrait',
@@ -407,6 +408,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _applyPreferredOrientations();
     await _applyKeepScreenOn();
     await _initCamera();
+    await _startKeepAliveService();
+    unawaited(_requestBatteryOptimizationExemption());
     await _startServer();
     await _loadIpAddress();
     await _refreshNativeStatus();
@@ -440,6 +443,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_applyKeepScreenOn());
+      unawaited(_startKeepAliveService());
       unawaited(_loadIpAddress());
       unawaited(_refreshNativeStatus());
       unawaited(_applyAutoExposureAndFocus());
@@ -518,9 +522,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     if (camera == null || !camera.value.isInitialized) return;
 
     try {
-      await camera.setExposureMode(
-        _settings.autoExposure ? ExposureMode.auto : ExposureMode.locked,
-      );
+      await camera.setExposureMode(ExposureMode.locked);
     } catch (_) {}
 
     try {
@@ -529,11 +531,6 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       );
     } catch (_) {}
 
-    if (_settings.autoExposure) {
-      try {
-        await camera.setExposurePoint(null);
-      } catch (_) {}
-    }
     if (_settings.autoFocus) {
       try {
         await camera.setFocusPoint(null);
@@ -838,6 +835,35 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       // Older builds without the native method still run; Android will just use
       // the system's normal screen timeout.
     }
+  }
+
+  Future<void> _startKeepAliveService() async {
+    try {
+      await mediaChannel.invokeMethod<bool>('startKeepAliveService', {
+        'enableAudio': _settings.enableAudio,
+      });
+    } catch (_) {
+      // This method exists only on native Android builds; tests and older APKs still run.
+    }
+  }
+
+  Future<void> _stopKeepAliveService() async {
+    try {
+      await mediaChannel.invokeMethod<bool>('stopKeepAliveService');
+    } catch (_) {}
+  }
+
+  Future<void> _requestBatteryOptimizationExemption() async {
+    try {
+      final ignoring = await mediaChannel.invokeMethod<bool>(
+        'isIgnoringBatteryOptimizations',
+      );
+      if (ignoring != true) {
+        await mediaChannel.invokeMethod<bool>(
+          'requestIgnoreBatteryOptimizations',
+        );
+      }
+    } catch (_) {}
   }
 
   Future<void> _applyPreferredOrientations() {
@@ -1566,6 +1592,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     await _settings.save();
     await _applyPreferredOrientations();
     await _applyKeepScreenOn();
+    await _startKeepAliveService();
     if (shouldRestart) {
       await _initCamera();
     } else {
@@ -1642,15 +1669,11 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     );
 
     try {
-      if (_settings.autoExposure) {
-        await camera.setExposureMode(ExposureMode.auto);
-        await camera.setExposurePoint(point);
-      }
       if (_settings.autoFocus) {
         await camera.setFocusMode(FocusMode.auto);
         await camera.setFocusPoint(point);
       }
-      _showSnack('Focus and brightness adjusted');
+      _showSnack('Focus adjusted');
     } catch (_) {
       _showSnack('Focus point is not supported on this camera');
     }
@@ -1674,6 +1697,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     unawaited(_server?.close(force: true));
     _discoverySocket?.close();
     unawaited(_wsClient?.stop());
+    unawaited(_stopKeepAliveService());
     unawaited(_stopFpsStream());
     unawaited(_camera?.dispose());
     unawaited(
@@ -2023,7 +2047,7 @@ class _TopStatus extends StatelessWidget {
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             Text(
-              'grid ${settings.gridMode} / zoom ${zoom.toStringAsFixed(1)}x / AE ${settings.autoExposure ? 'auto' : 'lock'} / AF ${settings.autoFocus ? 'auto' : 'lock'}',
+              'grid ${settings.gridMode} / zoom ${zoom.toStringAsFixed(1)}x / AE lock / AF ${settings.autoFocus ? 'auto' : 'lock'}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white70, fontSize: 12),
@@ -2245,7 +2269,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _enableAudio;
   late bool _keepScreenOn;
   late bool _saveToGallery;
-  late bool _autoExposure;
   late bool _autoFocus;
   late bool _smartZoom;
   late double _zoomLevel;
@@ -2265,7 +2288,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _enableAudio = settings.enableAudio;
     _keepScreenOn = settings.keepScreenOn;
     _saveToGallery = settings.saveToGallery;
-    _autoExposure = settings.autoExposure;
     _autoFocus = settings.autoFocus;
     _smartZoom = settings.smartZoom;
     _zoomLevel = settings.zoomLevel;
@@ -2294,7 +2316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         keepScreenOn: _keepScreenOn,
         saveToGallery: _saveToGallery,
         filePrefix: _prefixController.text,
-        autoExposure: _autoExposure,
+        autoExposure: false,
         autoFocus: _autoFocus,
         smartZoom: _smartZoom,
         zoomLevel: _zoomLevel,
@@ -2447,13 +2469,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Auto brightness'),
-            subtitle: const Text('Camera auto exposure'),
-            value: _autoExposure,
-            onChanged: (value) => setState(() => _autoExposure = value),
-          ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Auto focus'),

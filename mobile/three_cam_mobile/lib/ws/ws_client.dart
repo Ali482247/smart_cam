@@ -85,12 +85,13 @@ class WsClient {
       final uri = Uri.parse('ws://$host:$protocolPort');
       final channel = WebSocketChannel.connect(uri);
       await channel.ready;
+      await _subscription?.cancel();
       _channel = channel;
       _reconnectAttempt = 0;
       _subscription = channel.stream.listen(
         _onMessage,
-        onDone: _onDisconnected,
-        onError: (Object _) => _onDisconnected(),
+        onDone: () => _onDisconnected(),
+        onError: (Object error) => _onDisconnected(detail: '$error'),
         cancelOnError: true,
       );
       await _sendHello();
@@ -119,10 +120,17 @@ class WsClient {
     _setStatus('stopped');
   }
 
-  void _onDisconnected() {
+  void _onDisconnected({String detail = ''}) {
     _heartbeatTimer?.cancel();
     _clockResampleTimer?.cancel();
     _channel = null;
+    _subscription = null;
+    for (final completer in _pendingClockSync.values) {
+      if (!completer.isCompleted) {
+        completer.completeError(StateError('connection closed'));
+      }
+    }
+    _pendingClockSync.clear();
     if (!recordingController.isRecording) {
       _sessionId = null;
       for (final timer in _pendingCommandTimers.values) {
@@ -130,7 +138,7 @@ class WsClient {
       }
       _pendingCommandTimers.clear();
     }
-    _setStatus('disconnected');
+    _setStatus(detail.isEmpty ? 'disconnected' : 'disconnected: $detail');
     if (!_stopped) {
       _scheduleReconnect();
     }
@@ -174,7 +182,11 @@ class WsClient {
   }
 
   void _send(Envelope envelope) {
-    _channel?.sink.add(envelope.writeToBuffer());
+    try {
+      _channel?.sink.add(envelope.writeToBuffer());
+    } catch (error) {
+      _onDisconnected(detail: '$error');
+    }
   }
 
   Future<void> _sendHello() async {
@@ -264,27 +276,36 @@ class WsClient {
   }
 
   Future<void> _sendHeartbeat() async {
-    final status = await deviceStatusProvider();
-    final estimate = _clockSync?.latest ?? ClockSyncEstimate.unknown;
-    final envelope = _newEnvelope();
-    envelope.heartbeat = Heartbeat(
-      batteryPct: 0,
-      freeStorageBytes: Int64(_asInt(status['freeStorageBytes'])),
-      totalStorageBytes: Int64(_asInt(status['totalStorageBytes'])),
-      temperatureC: 0,
-      recording: recordingController.isRecording,
-      clockOffsetMs: Int64(estimate.offsetMs.round()),
-      clockUncertaintyMs: estimate.uncertaintyMs.isFinite
-          ? estimate.uncertaintyMs.round()
-          : 0,
-      lastRttMs: (_clockSync?.lastRttMs ?? 0).toDouble(),
-    );
-    _send(envelope);
+    try {
+      final status = await deviceStatusProvider();
+      final estimate = _clockSync?.latest ?? ClockSyncEstimate.unknown;
+      final envelope = _newEnvelope();
+      envelope.heartbeat = Heartbeat(
+        batteryPct: _asDouble(status['batteryPercent']),
+        freeStorageBytes: Int64(_asInt(status['freeStorageBytes'])),
+        totalStorageBytes: Int64(_asInt(status['totalStorageBytes'])),
+        temperatureC: 0,
+        recording: recordingController.isRecording,
+        clockOffsetMs: Int64(estimate.offsetMs.round()),
+        clockUncertaintyMs: estimate.uncertaintyMs.isFinite
+            ? estimate.uncertaintyMs.round()
+            : 0,
+        lastRttMs: (_clockSync?.lastRttMs ?? 0).toDouble(),
+      );
+      _send(envelope);
+    } catch (error) {
+      _setStatus('heartbeat error: $error');
+    }
   }
 
   int _asInt(Object? value) {
     if (value is int) return value;
     if (value is num) return value.round();
+    return 0;
+  }
+
+  double _asDouble(Object? value) {
+    if (value is num) return value.toDouble();
     return 0;
   }
 

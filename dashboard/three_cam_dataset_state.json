@@ -1,911 +1,595 @@
 {
-  "selected_signer_id": "signer_15",
+  "selected_signer_id": "signer_6",
   "words": [
     {
-      "word_id": 1101,
-      "page": 467,
+      "word_id": 1,
+      "page": 6,
       "count": 1,
-      "uzbek": "G'arb",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Aharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1102,
-      "page": 468,
-      "count": 2,
-      "uzbek": "Isroil",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1103,
-      "page": 468,
-      "count": 1,
-      "uzbek": "Hindiston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1104,
-      "page": 469,
-      "count": 1,
-      "uzbek": "Italiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1105,
-      "page": 469,
-      "count": 1,
-      "uzbek": "Ispaniya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1106,
-      "page": 469,
-      "count": 1,
-      "uzbek": "Qozog'iston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1107,
-      "page": 470,
-      "count": 1,
-      "uzbek": "Kanada",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1108,
-      "page": 470,
-      "count": 1,
-      "uzbek": "Xitoy",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1109,
-      "page": 471,
-      "count": 1,
-      "uzbek": "Koreya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1110,
-      "page": 471,
-      "count": 1,
-      "uzbek": "Qirg'iziston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1111,
-      "page": 471,
-      "count": 1,
-      "uzbek": "Latviya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1112,
-      "page": 472,
-      "count": 1,
-      "uzbek": "Iitva",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1113,
-      "page": 472,
-      "count": 1,
-      "uzbek": "Meksika",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1114,
-      "page": 473,
-      "count": 1,
-      "uzbek": "Moldova",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1115,
-      "page": 473,
-      "count": 1,
-      "uzbek": "Norvegiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1116,
-      "page": 473,
+      "word_id": 2,
+      "page": 6,
       "count": 1,
-      "uzbek": "Polsha",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Bharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1117,
-      "page": 474,
+      "word_id": 3,
+      "page": 6,
       "count": 1,
-      "uzbek": "Rossiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Dharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1118,
-      "page": 474,
+      "word_id": 4,
+      "page": 6,
       "count": 1,
-      "uzbek": "Ruminiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Eharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1119,
-      "page": 476,
+      "word_id": 5,
+      "page": 6,
       "count": 1,
-      "uzbek": "Shimol",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Fharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1120,
-      "page": 476,
+      "word_id": 6,
+      "page": 6,
       "count": 1,
-      "uzbek": "Sibir",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Gharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1121,
-      "page": 476,
+      "word_id": 7,
+      "page": 6,
       "count": 1,
-      "uzbek": "Tojikiston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Hharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1122,
-      "page": 477,
+      "word_id": 8,
+      "page": 6,
       "count": 1,
-      "uzbek": "Tatariston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Iharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1123,
-      "page": 477,
+      "word_id": 9,
+      "page": 6,
       "count": 1,
-      "uzbek": "Turkmaniston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Jharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1124,
-      "page": 479,
+      "word_id": 10,
+      "page": 6,
       "count": 1,
-      "uzbek": "Turkiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Kharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1125,
-      "page": 479,
+      "word_id": 11,
+      "page": 6,
       "count": 1,
-      "uzbek": "O'zbekiston",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Lharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1126,
-      "page": 479,
+      "word_id": 12,
+      "page": 6,
       "count": 1,
-      "uzbek": "Ukraina",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Mharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1127,
-      "page": 480,
+      "word_id": 13,
+      "page": 6,
       "count": 1,
-      "uzbek": "Finlyandiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Nharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1128,
-      "page": 480,
+      "word_id": 14,
+      "page": 6,
       "count": 1,
-      "uzbek": "Fransiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Oharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1129,
-      "page": 481,
+      "word_id": 15,
+      "page": 6,
       "count": 1,
-      "uzbek": "Chexiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Pharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1130,
-      "page": 481,
+      "word_id": 16,
+      "page": 6,
       "count": 1,
-      "uzbek": "Shveytsariya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Qharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1131,
-      "page": 481,
+      "word_id": 17,
+      "page": 6,
       "count": 1,
-      "uzbek": "Shvetsiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Rharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1132,
-      "page": 482,
+      "word_id": 18,
+      "page": 6,
       "count": 1,
-      "uzbek": "Estoniya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Sharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1133,
-      "page": 482,
+      "word_id": 19,
+      "page": 6,
       "count": 1,
-      "uzbek": "Janub",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Tharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1134,
-      "page": 484,
+      "word_id": 20,
+      "page": 6,
       "count": 1,
-      "uzbek": "Yaponiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Uharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1135,
-      "page": 484,
+      "word_id": 21,
+      "page": 6,
       "count": 1,
-      "uzbek": "Andijon",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Vharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1136,
-      "page": 484,
+      "word_id": 22,
+      "page": 6,
       "count": 1,
-      "uzbek": "Buxoro",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Xharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1137,
-      "page": 485,
+      "word_id": 23,
+      "page": 6,
       "count": 1,
-      "uzbek": "Qarshi",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Yharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1138,
-      "page": 485,
+      "word_id": 24,
+      "page": 6,
       "count": 1,
-      "uzbek": "Qo'qon",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Zharﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1139,
-      "page": 486,
+      "word_id": 25,
+      "page": 6,
       "count": 1,
-      "uzbek": "Samarqand",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "O' harﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1140,
-      "page": 486,
+      "word_id": 26,
+      "page": 6,
       "count": 1,
-      "uzbek": "Toshkent",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "G' harﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1141,
-      "page": 486,
+      "word_id": 27,
+      "page": 6,
       "count": 1,
-      "uzbek": "Termiz",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Sh harﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1142,
-      "page": 487,
+      "word_id": 28,
+      "page": 6,
       "count": 1,
-      "uzbek": "Farg’ona",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Ch harﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1143,
-      "page": 487,
+      "word_id": 29,
+      "page": 6,
       "count": 1,
-      "uzbek": "Baku",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Ng harﬁ",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1144,
-      "page": 488,
+      "word_id": 30,
+      "page": 7,
       "count": 1,
-      "uzbek": "Vilnus",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Katta barmoq",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1145,
-      "page": 488,
+      "word_id": 31,
+      "page": 7,
       "count": 1,
-      "uzbek": "Qozon",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Ko'rsatkich barmoq",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1146,
-      "page": 488,
+      "word_id": 32,
+      "page": 7,
       "count": 1,
-      "uzbek": "Kiyev",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "O'rta barmoq",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1147,
-      "page": 489,
+      "word_id": 33,
+      "page": 7,
       "count": 1,
-      "uzbek": "Kishinev",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Tomchi",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1148,
-      "page": 489,
+      "word_id": 34,
+      "page": 7,
       "count": 1,
-      "uzbek": "Minsk",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "Ilgak",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1149,
-      "page": 490,
+      "word_id": 35,
+      "page": 7,
       "count": 1,
-      "uzbek": "Moskva",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "G'uncha",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1150,
-      "page": 490,
+      "word_id": 36,
+      "page": 8,
       "count": 1,
-      "uzbek": "Riga",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "1",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1151,
-      "page": 490,
+      "word_id": 37,
+      "page": 8,
       "count": 1,
-      "uzbek": "Tallin",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "2",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1152,
-      "page": 491,
+      "word_id": 38,
+      "page": 8,
       "count": 1,
-      "uzbek": "Dushanbe",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "3",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1153,
-      "page": 493,
+      "word_id": 39,
+      "page": 8,
       "count": 1,
-      "uzbek": "Hokimiyat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "4",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1154,
-      "page": 493,
+      "word_id": 40,
+      "page": 8,
       "count": 1,
-      "uzbek": "Saylov",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "5",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1155,
-      "page": 493,
+      "word_id": 41,
+      "page": 8,
       "count": 1,
-      "uzbek": "Boshliq",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "6",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1156,
-      "page": 494,
+      "word_id": 42,
+      "page": 8,
       "count": 1,
-      "uzbek": "Davlat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "7",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1157,
-      "page": 494,
+      "word_id": 43,
+      "page": 8,
       "count": 1,
-      "uzbek": "Chegara",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "8",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1158,
-      "page": 495,
+      "word_id": 44,
+      "page": 8,
       "count": 1,
-      "uzbek": "Demokratiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "9",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1159,
-      "page": 495,
+      "word_id": 45,
+      "page": 8,
       "count": 1,
-      "uzbek": "Chet el",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "10",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1160,
-      "page": 495,
+      "word_id": 46,
+      "page": 8,
       "count": 1,
-      "uzbek": "Vazir",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "11",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1161,
-      "page": 496,
+      "word_id": 47,
+      "page": 8,
       "count": 1,
-      "uzbek": "Milliy",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "12",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1162,
-      "page": 496,
+      "word_id": 48,
+      "page": 8,
       "count": 1,
-      "uzbek": "Parlament",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "13",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1163,
-      "page": 497,
+      "word_id": 49,
+      "page": 8,
       "count": 1,
-      "uzbek": "Qaror",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "14",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1164,
-      "page": 497,
+      "word_id": 50,
+      "page": 8,
       "count": 1,
-      "uzbek": "Hukumat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "15",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1165,
-      "page": 497,
+      "word_id": 51,
+      "page": 8,
       "count": 1,
-      "uzbek": "Rais",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "16",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1166,
-      "page": 498,
+      "word_id": 52,
+      "page": 8,
       "count": 1,
-      "uzbek": "Prezident",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "17",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1167,
-      "page": 498,
+      "word_id": 53,
+      "page": 8,
       "count": 1,
-      "uzbek": "Bosh vazir",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "18",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1168,
-      "page": 498,
+      "word_id": 54,
+      "page": 8,
       "count": 1,
-      "uzbek": "Rahbar (boshqarmoq, idora qilmoq)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "19",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1169,
-      "page": 500,
+      "word_id": 55,
+      "page": 9,
       "count": 1,
-      "uzbek": "Mamlakat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "20",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1170,
-      "page": 500,
+      "word_id": 56,
+      "page": 9,
       "count": 1,
-      "uzbek": "Farm on",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "30",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1171,
-      "page": 500,
+      "word_id": 57,
+      "page": 9,
       "count": 1,
-      "uzbek": "Muovin (o'rinni bosmoq)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "40",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1172,
-      "page": 501,
+      "word_id": 58,
+      "page": 9,
       "count": 1,
-      "uzbek": "Siyosat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "50",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1173,
-      "page": 501,
+      "word_id": 59,
+      "page": 9,
       "count": 1,
-      "uzbek": "Xalq",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "60",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1174,
-      "page": 502,
+      "word_id": 60,
+      "page": 9,
       "count": 1,
-      "uzbek": "Respublika",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "70",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1175,
-      "page": 502,
+      "word_id": 61,
+      "page": 9,
       "count": 1,
-      "uzbek": "Prezidium",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "80",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1176,
-      "page": 502,
+      "word_id": 62,
+      "page": 9,
       "count": 1,
-      "uzbek": "Uyushma",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "90",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1177,
-      "page": 503,
+      "word_id": 63,
+      "page": 9,
       "count": 1,
-      "uzbek": "Kurash",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "100",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1178,
-      "page": 503,
+      "word_id": 64,
+      "page": 9,
       "count": 1,
-      "uzbek": "Majlis, kengash",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "200",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1179,
-      "page": 504,
+      "word_id": 65,
+      "page": 9,
       "count": 1,
-      "uzbek": "Qo'mita (byuro, partiya)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "300",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1180,
-      "page": 504,
+      "word_id": 66,
+      "page": 9,
       "count": 1,
-      "uzbek": "Xalqaro",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "400",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1181,
-      "page": 504,
+      "word_id": 67,
+      "page": 9,
       "count": 1,
-      "uzbek": "Tinchlik",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "500",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1182,
-      "page": 505,
+      "word_id": 68,
+      "page": 9,
       "count": 1,
-      "uzbek": "Ahvol (vaziyat, holat, sharoit)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "600",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1183,
-      "page": 505,
+      "word_id": 69,
+      "page": 9,
       "count": 1,
-      "uzbek": "Jamiyat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1184,
-      "page": 505,
-      "count": 1,
-      "uzbek": "Simpozium",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1185,
-      "page": 506,
-      "count": 1,
-      "uzbek": "Syezd, qurultoy",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1186,
-      "page": 506,
-      "count": 1,
-      "uzbek": "Munozaralar (bahslar)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1187,
-      "page": 506,
-      "count": 1,
-      "uzbek": "Ta’minlamoq (ta’minot)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1188,
-      "page": 507,
-      "count": 1,
-      "uzbek": "Vatan",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1189,
-      "page": 507,
-      "count": 1,
-      "uzbek": "Deputat",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1190,
-      "page": 509,
-      "count": 1,
-      "uzbek": "Aviatsiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1191,
-      "page": 509,
-      "count": 1,
-      "uzbek": "Armiya",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1192,
-      "page": 509,
-      "count": 1,
-      "uzbek": "Jangchi (harbiy, askar)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1193,
-      "page": 510,
-      "count": 1,
-      "uzbek": "Bomba (aviatsiya bombasi)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1194,
-      "page": 510,
-      "count": 1,
-      "uzbek": "Vertolyot",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1195,
-      "page": 511,
-      "count": 1,
-      "uzbek": "Portlash (bomba)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1196,
-      "page": 511,
-      "count": 1,
-      "uzbek": "Qurollantirish, qurol-yaroq",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
-    },
-    {
-      "word_id": 1197,
-      "page": 511,
-      "count": 2,
-      "uzbek": "General",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "700",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1198,
-      "page": 512,
+      "word_id": 70,
+      "page": 9,
       "count": 1,
-      "uzbek": "Dushman (yov)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "800",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1199,
-      "page": 512,
+      "word_id": 71,
+      "page": 9,
       "count": 1,
-      "uzbek": "Qahramonlik (jasurlik, mardlik)",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "900",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     },
     {
-      "word_id": 1200,
-      "page": 513,
+      "word_id": 72,
+      "page": 10,
       "count": 1,
-      "uzbek": "Mudofaa",
-      "source_pdf": "set_12_words_1101_1200_count.pdf",
-      "source_set": "set_12"
+      "uzbek": "1000",
+      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Sheets.pdf",
+      "source_set": "set_14"
     }
   ],
-  "main_word_index": 99,
-  "view_word_index": 99,
+  "main_word_index": 8,
+  "view_word_index": 8,
   "gesture_count": 1,
   "takes_done_by_word": {
-    "1101": 1,
-    "1102": 2,
-    "1103": 1,
-    "1104": 1,
-    "1105": 1,
-    "1106": 1,
-    "1107": 1,
-    "1108": 1,
-    "1109": 1,
-    "1110": 1,
-    "1111": 1,
-    "1112": 1,
-    "1113": 1,
-    "1114": 1,
-    "1115": 1,
-    "1116": 1,
-    "1117": 1,
-    "1118": 1,
-    "1119": 1,
-    "1120": 1,
-    "1121": 1,
-    "1122": 1,
-    "1123": 1,
-    "1124": 1,
-    "1125": 1,
-    "1126": 1,
-    "1127": 1,
-    "1128": 1,
-    "1129": 1,
-    "1130": 1,
-    "1131": 1,
-    "1132": 1,
-    "1133": 1,
-    "1134": 1,
-    "1135": 1,
-    "1136": 1,
-    "1137": 1,
-    "1138": 1,
-    "1139": 1,
-    "1140": 1,
-    "1141": 1,
-    "1142": 1,
-    "1143": 1,
-    "1144": 1,
-    "1145": 2,
-    "1146": 1,
-    "1147": 2,
-    "1148": 1,
-    "1149": 1,
-    "1150": 1,
-    "1151": 1,
-    "1152": 1,
-    "1153": 1,
-    "1154": 1,
-    "1155": 1,
-    "1156": 1,
-    "1157": 1,
-    "1158": 1,
-    "1159": 1,
-    "1160": 1,
-    "1161": 1,
-    "1162": 1,
-    "1163": 1,
-    "1164": 1,
-    "1165": 1,
-    "1166": 1,
-    "1167": 1,
-    "1168": 1,
-    "1169": 1,
-    "1170": 1,
-    "1171": 1,
-    "1172": 2,
-    "1173": 1,
-    "1174": 1,
-    "1175": 1,
-    "1176": 1,
-    "1177": 1,
-    "1178": 1,
-    "1179": 1,
-    "1180": 1,
-    "1181": 1,
-    "1182": 1,
-    "1183": 1,
-    "1184": 1,
-    "1185": 1,
-    "1186": 1,
-    "1187": 1,
-    "1188": 1,
-    "1189": 1,
-    "1190": 1,
-    "1191": 2,
-    "1192": 1,
-    "1193": 2,
-    "1194": 1,
-    "1195": 1,
-    "1196": 1,
-    "1197": 2,
-    "1198": 1,
-    "1199": 1,
-    "1200": 1
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
   },
   "custom_signers": [
     [
@@ -919,105 +603,13 @@
   "manual_back_mode": false,
   "retake_mode": false,
   "recording_status_by_word": {
-    "1101": "ok",
-    "1102": "ok",
-    "1103": "ok",
-    "1104": "ok",
-    "1105": "ok",
-    "1106": "ok",
-    "1107": "ok",
-    "1108": "ok",
-    "1109": "ok",
-    "1110": "ok",
-    "1111": "ok",
-    "1112": "ok",
-    "1113": "ok",
-    "1114": "ok",
-    "1115": "ok",
-    "1116": "ok",
-    "1117": "ok",
-    "1118": "ok",
-    "1119": "ok",
-    "1120": "ok",
-    "1121": "ok",
-    "1122": "ok",
-    "1123": "ok",
-    "1124": "ok",
-    "1125": "ok",
-    "1126": "ok",
-    "1127": "ok",
-    "1128": "ok",
-    "1129": "ok",
-    "1130": "ok",
-    "1131": "ok",
-    "1132": "ok",
-    "1133": "ok",
-    "1134": "ok",
-    "1135": "ok",
-    "1136": "ok",
-    "1137": "ok",
-    "1138": "ok",
-    "1139": "ok",
-    "1140": "ok",
-    "1141": "ok",
-    "1142": "ok",
-    "1143": "ok",
-    "1144": "ok",
-    "1145": "ok",
-    "1146": "ok",
-    "1147": "ok",
-    "1148": "ok",
-    "1149": "ok",
-    "1150": "ok",
-    "1151": "ok",
-    "1152": "ok",
-    "1153": "ok",
-    "1154": "ok",
-    "1155": "ok",
-    "1156": "ok",
-    "1157": "ok",
-    "1158": "ok",
-    "1159": "ok",
-    "1160": "ok",
-    "1161": "ok",
-    "1162": "ok",
-    "1163": "ok",
-    "1164": "ok",
-    "1165": "ok",
-    "1166": "ok",
-    "1167": "ok",
-    "1168": "ok",
-    "1169": "ok",
-    "1170": "ok",
-    "1171": "ok",
-    "1172": "ok",
-    "1173": "ok",
-    "1174": "ok",
-    "1175": "ok",
-    "1176": "ok",
-    "1177": "ok",
-    "1178": "ok",
-    "1179": "ok",
-    "1180": "ok",
-    "1181": "ok",
-    "1182": "ok",
-    "1183": "ok",
-    "1184": "ok",
-    "1185": "ok",
-    "1186": "ok",
-    "1187": "ok",
-    "1188": "ok",
-    "1189": "ok",
-    "1190": "ok",
-    "1191": "ok",
-    "1192": "ok",
-    "1193": "ok",
-    "1194": "ok",
-    "1195": "ok",
-    "1196": "ok",
-    "1197": "ok",
-    "1198": "ok",
-    "1199": "ok",
-    "1200": "ok"
+    "1": "ok",
+    "2": "ok",
+    "3": "ok",
+    "4": "ok",
+    "5": "ok",
+    "6": "ok",
+    "7": "error",
+    "8": "error"
   }
 }

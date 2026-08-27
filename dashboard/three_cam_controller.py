@@ -585,7 +585,7 @@ def extract_words_from_pypdf_lines(text: str, path: Path) -> list[dict]:
         ):
             gesture_count = possible_trailing_count
             next_cursor += 1
-        if should_skip_pdf_word(word_text) or re.match(r"^\d+$", word_text):
+        if should_skip_pdf_word(word_text):
             index += 1
             continue
         items.append(
@@ -610,7 +610,7 @@ def should_skip_pdf_word(text: str) -> bool:
         or lowered.startswith("page ")
         or "signer_" in lowered
         or lowered in {"uzbek", "i = №", "ii = №"}
-        or bool(re.match(r"^[0-9./-]{6,}$", text))
+        or bool(re.match(r"^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$", text))
     )
 
 

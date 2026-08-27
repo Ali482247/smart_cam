@@ -103,6 +103,10 @@ def default_config() -> dict:
         "block_recording_if_missing_phones": True,
         "min_free_storage_bytes": 1073741824,
         "min_battery_percent": 15,
+        "abort_recording_on_phone_loss": True,
+        "recording_watchdog_interval_seconds": 0.5,
+        "recording_watchdog_timeout_seconds": 0.8,
+        "recording_watchdog_start_grace_seconds": 2.0,
         "target_video": {
             "width": 1920,
             "height": 1080, 
@@ -1547,6 +1551,9 @@ class ControllerApp:
         self._timer_job = None
         self._auto_stop_job = None
         self._poll_job = None
+        self._recording_watchdog_stop = threading.Event()
+        self._recording_watchdog_thread: threading.Thread | None = None
+        self._emergency_stop_running = False
         self._live_recording_log_job = None
         self._live_recording_log_path: Path | None = None
         self._live_recording_log_offset = 0
@@ -2948,8 +2955,67 @@ class ControllerApp:
         self.record_button.configure(text="STOP REC" if recording else "START REC")
         if recording:
             self.start_timer()
+            self.start_recording_watchdog()
         else:
+            self.stop_recording_watchdog()
             self.stop_timer()
+
+    def start_recording_watchdog(self) -> None:
+        if not self.config.get("abort_recording_on_phone_loss", True):
+            return
+        if self._recording_watchdog_thread is not None and self._recording_watchdog_thread.is_alive():
+            return
+
+        self._recording_watchdog_stop = threading.Event()
+        stop_event = self._recording_watchdog_stop
+        watched_task = self.active_task
+
+        def worker() -> None:
+            interval = max(0.2, float(self.config.get("recording_watchdog_interval_seconds", 0.5)))
+            timeout = max(0.2, float(self.config.get("recording_watchdog_timeout_seconds", 0.8)))
+            grace = max(0.0, float(self.config.get("recording_watchdog_start_grace_seconds", 2.0)))
+            grace_until = time.time() + grace
+
+            while not stop_event.wait(interval):
+                if not self.recording or self._stop_command_running:
+                    return
+                phones = configured_phones(self.config)
+                if not phones:
+                    continue
+
+                failures: list[str] = []
+                with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
+                    futures = {executor.submit(get_json, phone, "/status", timeout): phone for phone in phones}
+                    for future in as_completed(futures):
+                        phone = futures[future]
+                        name = phone_display_name(phone)
+                        try:
+                            status = future.result()
+                        except Exception as error:
+                            failures.append(f"{name}: no status ({error})")
+                            continue
+                        if time.time() >= grace_until and status.get("recording") is False:
+                            failures.append(f"{name}: recording stopped")
+
+                if failures and time.time() >= grace_until:
+                    reason = "; ".join(failures)
+                    self.root.after(0, lambda r=reason, t=watched_task: self.emergency_stop_recording(r, t))
+                    return
+
+        self._recording_watchdog_thread = threading.Thread(target=worker, daemon=True)
+        self._recording_watchdog_thread.start()
+
+    def stop_recording_watchdog(self) -> None:
+        self._recording_watchdog_stop.set()
+
+    def emergency_stop_recording(self, reason: str, task: dict | None) -> None:
+        if not self.recording or self._stop_command_running or self._emergency_stop_running:
+            return
+        self._emergency_stop_running = True
+        self.recording_event_write("EMERGENCY_STOP", reason=reason, **self.task_event_fields(task))
+        self.write(f"EMERGENCY STOP: {reason}")
+        self.status.set(f"Emergency stop: {reason}")
+        self.stop_recording_clicked()
 
     def start_recording_clicked(self) -> None:
         if self.busy:
@@ -3040,7 +3106,7 @@ class ControllerApp:
 
         def worker() -> None:
             try:
-                stop_grace = max(0.0, float(self.config.get("stop_grace_seconds", 0.75)))
+                stop_grace = 0.0 if self._emergency_stop_running else max(0.0, float(self.config.get("stop_grace_seconds", 0.75)))
                 if stop_grace:
                     time.sleep(stop_grace)
                 results = send_all(self.config, "/stop", task=task)
@@ -3092,6 +3158,7 @@ class ControllerApp:
             finally:
                 def finish() -> None:
                     self._stop_command_running = False
+                    self._emergency_stop_running = False
                     self.record_button.configure(state=DISABLED if self.busy else NORMAL)
 
                 self.root.after(0, finish)

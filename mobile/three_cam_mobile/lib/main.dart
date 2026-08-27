@@ -448,6 +448,20 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       unawaited(_refreshNativeStatus());
       unawaited(_applyAutoExposureAndFocus());
       unawaited(_startFpsStream());
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      unawaited(_stopRecordingForLifecycle(state));
+    }
+  }
+
+  Future<void> _stopRecordingForLifecycle(AppLifecycleState state) async {
+    if (!_recording) return;
+    try {
+      await _queue(_stopRecording);
+      _setStatus('Stopped by $state');
+    } catch (error) {
+      _setStatus('Lifecycle stop error: $error');
     }
   }
 

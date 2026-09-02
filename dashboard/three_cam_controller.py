@@ -449,15 +449,34 @@ def extract_words_from_separate_count_column(page_texts: list[str], path: Path) 
         lines = [line for line in lines if line]
         rows: list[dict] = []
         page_seen_ids: set[int] = set()
-        for line in lines:
-            match = re.match(r"^(\d{1,4})\s+(\d{1,4})\s+(.+)$", line)
+        index = 0
+        while index < len(lines):
+            line = lines[index]
+            match = re.match(r"^(\d{1,4})\s+(\d{1,4})(?:\s+(.+))?$", line)
             if not match:
+                index += 1
                 continue
             word_id = int(match.group(1))
             if word_id in page_seen_ids:
+                index += 1
                 continue
-            word_text = normalize_word_text(match.group(3))
+            word_parts = [match.group(3) or ""]
+            cursor = index + 1
+            while cursor < len(lines):
+                continuation = lines[cursor]
+                if re.match(r"^\d{1,4}\s+\d{1,4}(?:\s+.+)?$", continuation):
+                    break
+                if continuation.lower() == "count" or re.match(r"^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$", continuation):
+                    break
+                continuation_number = safe_int(continuation)
+                if continuation_number is not None and 1 <= continuation_number <= 50:
+                    break
+                if not should_skip_pdf_word(continuation):
+                    word_parts.append(continuation)
+                cursor += 1
+            word_text = normalize_word_text(" ".join(part for part in word_parts if part))
             if should_skip_pdf_word(word_text):
+                index += 1
                 continue
             page_seen_ids.add(word_id)
             rows.append(
@@ -470,6 +489,7 @@ def extract_words_from_separate_count_column(page_texts: list[str], path: Path) 
                     "source_set": source_set_from_pdf(path),
                 }
             )
+            index = cursor
         if not rows:
             continue
 

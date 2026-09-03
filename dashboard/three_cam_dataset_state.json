@@ -2,677 +2,810 @@
   "selected_signer_id": "signer_2",
   "words": [
     {
-      "word_id": 1283,
-      "page": 6,
+      "word_id": 301,
+      "page": 120,
       "count": 1,
-      "uzbek": "Aharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Choy",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1284,
-      "page": 6,
+      "word_id": 302,
+      "page": 120,
       "count": 1,
-      "uzbek": "Bharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Choynak",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1285,
-      "page": 6,
+      "word_id": 303,
+      "page": 120,
       "count": 1,
-      "uzbek": "Dharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Chashka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1286,
-      "page": 6,
+      "word_id": 304,
+      "page": 121,
       "count": 1,
-      "uzbek": "Eharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Shampan vinosi",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1287,
-      "page": 6,
+      "word_id": 305,
+      "page": 121,
       "count": 1,
-      "uzbek": "Fharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kabob",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1288,
-      "page": 6,
+      "word_id": 306,
+      "page": 121,
+      "count": 2,
+      "uzbek": "Tuxum",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 307,
+      "page": 122,
+      "count": 1,
+      "uzbek": "Shirinlik (shirin)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 308,
+      "page": 124,
+      "count": 1,
+      "uzbek": "Bant",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 309,
+      "page": 124,
+      "count": 1,
+      "uzbek": "Ichki kiyimlar",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 310,
+      "page": 124,
+      "count": 1,
+      "uzbek": "Bosonojka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 311,
+      "page": 125,
+      "count": 1,
+      "uzbek": "Botinka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 312,
+      "page": 125,
+      "count": 1,
+      "uzbek": "Shim",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 313,
+      "page": 125,
+      "count": 1,
+      "uzbek": "Qo'lqop",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 314,
+      "page": 126,
+      "count": 1,
+      "uzbek": "Osilib turmoq (ilmoq)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 315,
+      "page": 126,
+      "count": 1,
+      "uzbek": "To'qish",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 316,
+      "page": 126,
+      "count": 1,
+      "uzbek": "Kalish",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 317,
+      "page": 127,
+      "count": 1,
+      "uzbek": "Galstuk",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 318,
+      "page": 127,
+      "count": 2,
+      "uzbek": "Tayyor",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 319,
+      "page": 127,
+      "count": 1,
+      "uzbek": "Uzun (uzunlik)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 320,
+      "page": 128,
+      "count": 1,
+      "uzbek": "Atir (odekolon)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 321,
+      "page": 129,
+      "count": 1,
+      "uzbek": "Teshik",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 322,
+      "page": 129,
+      "count": 2,
+      "uzbek": "Poshna",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 323,
+      "page": 129,
+      "count": 2,
+      "uzbek": "Kepka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 324,
+      "page": 130,
+      "count": 2,
+      "uzbek": "Kolgotka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 325,
+      "page": 130,
       "count": 1,
-      "uzbek": "Gharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kofta",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 326,
+      "page": 130,
+      "count": 2,
+      "uzbek": "Kalta, qisqa",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 327,
+      "page": 131,
+      "count": 2,
+      "uzbek": "Kostyum",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1289,
-      "page": 6,
+      "word_id": 328,
+      "page": 131,
       "count": 1,
-      "uzbek": "Hharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Krossovka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1290,
-      "page": 6,
+      "word_id": 329,
+      "page": 132,
       "count": 1,
-      "uzbek": "Iharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kurtka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1291,
-      "page": 6,
+      "word_id": 330,
+      "page": 132,
       "count": 1,
-      "uzbek": "Jharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Mayka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1292,
-      "page": 6,
+      "word_id": 331,
+      "page": 132,
       "count": 1,
-      "uzbek": "Kharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Moda",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1293,
-      "page": 6,
+      "word_id": 332,
+      "page": 133,
       "count": 1,
-      "uzbek": "Lharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Naski (paypoq)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1294,
-      "page": 6,
+      "word_id": 333,
+      "page": 133,
       "count": 1,
-      "uzbek": "Mharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Poyafzal",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1295,
-      "page": 6,
+      "word_id": 334,
+      "page": 133,
       "count": 1,
-      "uzbek": "Nharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kiyinmoq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1296,
-      "page": 6,
+      "word_id": 335,
+      "page": 134,
       "count": 1,
-      "uzbek": "Oharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kiyim-kechak",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1297,
-      "page": 6,
+      "word_id": 336,
+      "page": 134,
       "count": 1,
-      "uzbek": "Pharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Palto",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1298,
-      "page": 6,
+      "word_id": 337,
+      "page": 134,
       "count": 1,
-      "uzbek": "Qharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qo'lqop",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 338,
+      "page": 135,
+      "count": 2,
+      "uzbek": "Ro'mol",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1299,
-      "page": 6,
+      "word_id": 339,
+      "page": 136,
       "count": 1,
-      "uzbek": "Rharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Ko'ylak",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1300,
-      "page": 6,
+      "word_id": 340,
+      "page": 136,
       "count": 1,
-      "uzbek": "Sharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yirtmoq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1301,
-      "page": 6,
+      "word_id": 341,
+      "page": 137,
       "count": 1,
-      "uzbek": "Tharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Ko'ylak (erkaklarniki)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1302,
-      "page": 6,
+      "word_id": 342,
+      "page": 137,
       "count": 1,
-      "uzbek": "Uharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Etiklar",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1303,
-      "page": 6,
+      "word_id": 343,
+      "page": 138,
       "count": 1,
-      "uzbek": "Vharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Sviter",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1304,
-      "page": 6,
+      "word_id": 344,
+      "page": 138,
       "count": 1,
-      "uzbek": "Xharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kir yuvish",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1305,
-      "page": 6,
+      "word_id": 345,
+      "page": 138,
       "count": 1,
-      "uzbek": "Yharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Shippak",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 346,
+      "page": 139,
+      "count": 2,
+      "uzbek": "Trusik",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1306,
-      "page": 6,
+      "word_id": 347,
+      "page": 139,
       "count": 1,
-      "uzbek": "Zharﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Tuﬂi",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1307,
-      "page": 6,
+      "word_id": 348,
+      "page": 139,
       "count": 1,
-      "uzbek": "O' harﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Tor",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1308,
-      "page": 6,
+      "word_id": 349,
+      "page": 140,
       "count": 1,
-      "uzbek": "G' harﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Futbolka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1309,
-      "page": 6,
+      "word_id": 350,
+      "page": 140,
       "count": 1,
-      "uzbek": "Sh harﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Xalat",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1310,
-      "page": 6,
+      "word_id": 351,
+      "page": 140,
       "count": 1,
-      "uzbek": "Ch harﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Shapka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1311,
-      "page": 6,
+      "word_id": 352,
+      "page": 141,
       "count": 1,
-      "uzbek": "Ng harﬁ",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Sharf",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 353,
+      "page": 141,
+      "count": 2,
+      "uzbek": "Tikish",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1312,
-      "page": 7,
+      "word_id": 354,
+      "page": 142,
       "count": 1,
-      "uzbek": "Katta barmoq",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yubka",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 355,
+      "page": 142,
+      "count": 2,
+      "uzbek": "Oq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
+    },
+    {
+      "word_id": 356,
+      "page": 143,
+      "count": 2,
+      "uzbek": "Havorang, zangori",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1313,
-      "page": 7,
+      "word_id": 357,
+      "page": 143,
       "count": 1,
-      "uzbek": "Ko'rsatkich barmoq",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Sariq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1314,
-      "page": 7,
+      "word_id": 358,
+      "page": 143,
       "count": 1,
-      "uzbek": "O'rta barmoq",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yashil",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1315,
-      "page": 7,
+      "word_id": 359,
+      "page": 144,
       "count": 1,
-      "uzbek": "Tomchi",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Tilla, oltin",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1316,
-      "page": 7,
+      "word_id": 360,
+      "page": 144,
       "count": 1,
-      "uzbek": "Ilgak",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Jigarrang",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1317,
-      "page": 7,
+      "word_id": 361,
+      "page": 145,
       "count": 1,
-      "uzbek": "G'uncha",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qizil (qon)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1318,
-      "page": 8,
+      "word_id": 362,
+      "page": 145,
       "count": 1,
-      "uzbek": "1",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "To'qsariq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1319,
-      "page": 8,
+      "word_id": 363,
+      "page": 145,
       "count": 1,
-      "uzbek": "2",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Pushti",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1320,
-      "page": 8,
+      "word_id": 364,
+      "page": 146,
       "count": 1,
-      "uzbek": "3",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kumush rang",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1321,
-      "page": 8,
+      "word_id": 365,
+      "page": 146,
       "count": 1,
-      "uzbek": "4",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kulrang",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1322,
-      "page": 8,
+      "word_id": 366,
+      "page": 146,
       "count": 1,
-      "uzbek": "5",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Ko'k",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1323,
-      "page": 8,
+      "word_id": 367,
+      "page": 147,
       "count": 1,
-      "uzbek": "6",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Binafsharang",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1324,
-      "page": 8,
+      "word_id": 368,
+      "page": 147,
       "count": 1,
-      "uzbek": "7",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Rang",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1325,
-      "page": 8,
+      "word_id": 369,
+      "page": 148,
       "count": 1,
-      "uzbek": "8",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qora",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1326,
-      "page": 8,
+      "word_id": 370,
+      "page": 148,
       "count": 1,
-      "uzbek": "9",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Ip",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1327,
-      "page": 8,
+      "word_id": 371,
+      "page": 148,
       "count": 1,
-      "uzbek": "10",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Igna",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1328,
-      "page": 8,
+      "word_id": 372,
+      "page": 149,
       "count": 1,
-      "uzbek": "11",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yoqmoq",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1329,
-      "page": 8,
+      "word_id": 373,
+      "page": 149,
       "count": 1,
-      "uzbek": "12",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qulay, muvoﬁq, munosib",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1330,
-      "page": 8,
+      "word_id": 374,
+      "page": 149,
       "count": 1,
-      "uzbek": "13",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qulay",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1331,
-      "page": 8,
+      "word_id": 375,
+      "page": 151,
       "count": 1,
-      "uzbek": "14",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Avgust",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1332,
-      "page": 8,
+      "word_id": 376,
+      "page": 151,
       "count": 1,
-      "uzbek": "15",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Aprel",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1333,
-      "page": 8,
+      "word_id": 377,
+      "page": 151,
       "count": 1,
-      "uzbek": "16",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Tez",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1334,
-      "page": 8,
+      "word_id": 378,
+      "page": 152,
       "count": 1,
-      "uzbek": "17",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Bo'ladi",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1335,
-      "page": 8,
+      "word_id": 379,
+      "page": 152,
       "count": 1,
-      "uzbek": "18",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Bo'ldi, bo'lgan",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1336,
-      "page": 8,
+      "word_id": 380,
+      "page": 153,
       "count": 1,
-      "uzbek": "19",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Bahor (erimoq)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1337,
-      "page": 9,
+      "word_id": 381,
+      "page": 153,
       "count": 1,
-      "uzbek": "20",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Oqshom, kecha",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1338,
-      "page": 9,
+      "word_id": 382,
+      "page": 153,
       "count": 1,
-      "uzbek": "30",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yakshanba",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1339,
-      "page": 9,
+      "word_id": 383,
+      "page": 154,
       "count": 1,
-      "uzbek": "40",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Vaqt",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1340,
-      "page": 9,
+      "word_id": 384,
+      "page": 154,
       "count": 1,
-      "uzbek": "50",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Seshanba",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1341,
-      "page": 9,
+      "word_id": 385,
+      "page": 155,
       "count": 1,
-      "uzbek": "60",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kecha",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1342,
-      "page": 9,
+      "word_id": 386,
+      "page": 155,
       "count": 1,
-      "uzbek": "70",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Doim, hamisha",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1343,
-      "page": 9,
+      "word_id": 387,
+      "page": 155,
       "count": 1,
-      "uzbek": "80",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yil",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1344,
-      "page": 9,
+      "word_id": 388,
+      "page": 156,
       "count": 1,
-      "uzbek": "90",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Sana",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1345,
-      "page": 9,
+      "word_id": 389,
+      "page": 156,
       "count": 1,
-      "uzbek": "100",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Dekabr",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1346,
-      "page": 9,
+      "word_id": 390,
+      "page": 157,
       "count": 1,
-      "uzbek": "200",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Kun",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1347,
-      "page": 9,
+      "word_id": 391,
+      "page": 157,
       "count": 1,
-      "uzbek": "300",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Uzoq (sekin, ancha vaqtgacha)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1348,
-      "page": 9,
+      "word_id": 392,
+      "page": 157,
       "count": 1,
-      "uzbek": "400",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Allaqachon, qachonlardir",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1349,
-      "page": 9,
+      "word_id": 393,
+      "page": 158,
       "count": 1,
-      "uzbek": "500",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Ertaga",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1350,
-      "page": 9,
+      "word_id": 394,
+      "page": 158,
       "count": 1,
-      "uzbek": "600",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Qish (sovuq ayoz)",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1351,
-      "page": 9,
+      "word_id": 395,
+      "page": 159,
       "count": 1,
-      "uzbek": "700",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Iyul",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1352,
-      "page": 9,
+      "word_id": 396,
+      "page": 159,
       "count": 1,
-      "uzbek": "800",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Iyun",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1353,
-      "page": 9,
+      "word_id": 397,
+      "page": 159,
       "count": 1,
-      "uzbek": "900",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Yoz",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1354,
-      "page": 10,
+      "word_id": 398,
+      "page": 160,
       "count": 1,
-      "uzbek": "1000",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "May",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1355,
-      "page": 10,
+      "word_id": 399,
+      "page": 160,
       "count": 1,
-      "uzbek": "1000000",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Mart",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     },
     {
-      "word_id": 1356,
-      "page": 10,
+      "word_id": 400,
+      "page": 160,
       "count": 1,
-      "uzbek": "1000000000",
-      "source_pdf": "set_14_alphabet_numbers_shooting_list_3.xlsm - Google Drive.pdf",
-      "source_set": "set_14"
+      "uzbek": "Oy",
+      "source_pdf": "set_04_words_0301_0400_count.pdf",
+      "source_set": "set_04"
     }
   ],
-  "main_word_index": 73,
-  "view_word_index": 73,
+  "main_word_index": 0,
+  "view_word_index": 0,
   "gesture_count": 1,
-  "takes_done_by_word": {
-    "1283": 1,
-    "1284": 1,
-    "1285": 1,
-    "1286": 1,
-    "1287": 1,
-    "1288": 1,
-    "1289": 1,
-    "1290": 1,
-    "1291": 1,
-    "1292": 1,
-    "1293": 1,
-    "1294": 1,
-    "1295": 1,
-    "1296": 1,
-    "1297": 1,
-    "1298": 1,
-    "1299": 1,
-    "1300": 1,
-    "1301": 1,
-    "1302": 1,
-    "1303": 1,
-    "1304": 1,
-    "1305": 1,
-    "1306": 1,
-    "1307": 1,
-    "1308": 1,
-    "1309": 1,
-    "1310": 1,
-    "1311": 1,
-    "1312": 1,
-    "1313": 1,
-    "1314": 1,
-    "1315": 1,
-    "1316": 1,
-    "1317": 1,
-    "1318": 1,
-    "1319": 1,
-    "1320": 1,
-    "1321": 1,
-    "1322": 1,
-    "1323": 1,
-    "1324": 1,
-    "1325": 1,
-    "1326": 1,
-    "1327": 1,
-    "1328": 1,
-    "1329": 1,
-    "1330": 1,
-    "1331": 1,
-    "1332": 1,
-    "1333": 1,
-    "1334": 1,
-    "1335": 1,
-    "1336": 1,
-    "1337": 1,
-    "1338": 1,
-    "1339": 1,
-    "1340": 1,
-    "1341": 1,
-    "1342": 1,
-    "1343": 1,
-    "1344": 1,
-    "1345": 1,
-    "1346": 1,
-    "1347": 1,
-    "1348": 1,
-    "1349": 1,
-    "1350": 1,
-    "1351": 1,
-    "1352": 1,
-    "1353": 1,
-    "1354": 1,
-    "1355": 1,
-    "1356": 1
-  },
+  "takes_done_by_word": {},
   "custom_signers": [
     [
       "signer_15",
@@ -681,83 +814,8 @@
   ],
   "deleted_signers": [],
   "last_deleted_signer": null,
-  "background_mode": true,
+  "background_mode": false,
   "manual_back_mode": false,
   "retake_mode": false,
-  "recording_status_by_word": {
-    "1283": "ok",
-    "1284": "ok",
-    "1285": "ok",
-    "1286": "ok",
-    "1287": "ok",
-    "1288": "ok",
-    "1289": "ok",
-    "1290": "ok",
-    "1291": "ok",
-    "1292": "ok",
-    "1293": "ok",
-    "1294": "ok",
-    "1295": "ok",
-    "1296": "ok",
-    "1297": "ok",
-    "1298": "ok",
-    "1299": "ok",
-    "1300": "ok",
-    "1301": "ok",
-    "1302": "ok",
-    "1303": "ok",
-    "1304": "ok",
-    "1305": "ok",
-    "1306": "ok",
-    "1307": "ok",
-    "1308": "ok",
-    "1309": "ok",
-    "1310": "ok",
-    "1311": "ok",
-    "1312": "ok",
-    "1313": "ok",
-    "1314": "ok",
-    "1315": "ok",
-    "1316": "ok",
-    "1317": "ok",
-    "1318": "ok",
-    "1319": "ok",
-    "1320": "ok",
-    "1321": "ok",
-    "1322": "ok",
-    "1323": "ok",
-    "1324": "ok",
-    "1325": "ok",
-    "1326": "ok",
-    "1327": "ok",
-    "1328": "ok",
-    "1329": "ok",
-    "1330": "ok",
-    "1331": "ok",
-    "1332": "ok",
-    "1333": "ok",
-    "1334": "ok",
-    "1335": "ok",
-    "1336": "ok",
-    "1337": "ok",
-    "1338": "ok",
-    "1339": "ok",
-    "1340": "ok",
-    "1341": "ok",
-    "1342": "ok",
-    "1343": "ok",
-    "1344": "ok",
-    "1345": "ok",
-    "1346": "ok",
-    "1347": "ok",
-    "1348": "ok",
-    "1349": "ok",
-    "1350": "ok",
-    "1351": "ok",
-    "1352": "ok",
-    "1353": "ok",
-    "1354": "ok",
-    "1355": "ok",
-    "1356": "ok"
-  }
+  "recording_status_by_word": {}
 }

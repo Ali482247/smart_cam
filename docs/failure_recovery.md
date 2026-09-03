@@ -111,6 +111,11 @@ local recording. Every failure-recovery decision above is designed around this: 
 network layer degrades gracefully around a local recording process that keeps running
 regardless.
 
+Legacy HTTP controller watchdogs follow the same rule: a status timeout during a take is
+reported as a warning, not converted into an automatic `/stop`. Only an explicit
+operator Stop, configured auto-stop timer, or an intentionally enabled emergency-stop
+mode may stop an active recording.
+
 ## Chaos scenarios to eventually script (not run yet, this pass is docs-only)
 
 - Wi-Fi AP drop mid-recording (simulates scenario 4 in `sequence_diagrams.md`).

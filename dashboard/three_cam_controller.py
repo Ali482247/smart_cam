@@ -103,10 +103,14 @@ def default_config() -> dict:
         "block_recording_if_missing_phones": True,
         "min_free_storage_bytes": 1073741824,
         "min_battery_percent": 15,
-        "abort_recording_on_phone_loss": True,
+        "recording_watchdog_enabled": True,
+        "abort_recording_on_phone_loss": False,
         "recording_watchdog_interval_seconds": 0.5,
-        "recording_watchdog_timeout_seconds": 0.8,
-        "recording_watchdog_start_grace_seconds": 2.0,
+        "recording_watchdog_timeout_seconds": 1.5,
+        "recording_watchdog_start_grace_seconds": 5.0,
+        "recording_watchdog_consecutive_failures": 3,
+        "recording_watchdog_warning_cooldown_seconds": 10.0,
+        "recording_watchdog_can_stop_recording": False,
         "target_video": {
             "width": 1920,
             "height": 1080, 
@@ -1810,6 +1814,7 @@ class ControllerApp:
         self.devices_tree.tag_configure("offline", foreground="#c0392b")
         self.devices_tree.tag_configure("saved", foreground="#1e8449")
         self.devices_tree.tag_configure("recording", foreground="#b9770e")
+        self.devices_tree.tag_configure("warning", foreground="#b9770e")
         self.devices_tree.grid(row=0, column=0, sticky="ew")
         devices_scroll = ttk.Scrollbar(devices_table, orient="vertical", command=self.devices_tree.yview)
         devices_scroll.grid(row=0, column=1, sticky="ns")
@@ -2021,6 +2026,8 @@ class ControllerApp:
         event = row.get("event", "").lower()
         if "error" in status or "failed" in status or "failed" in event:
             return "error"
+        if "warning" in status or "warning" in event:
+            return "recording"
         if status == "ok" or "save" in event or "check" in event:
             return "ok"
         if "start" in event or "record" in event:
@@ -2776,7 +2783,11 @@ class ControllerApp:
             tags = (
                 ("offline",)
                 if state in {"offline", "error"} or (known_status and not device_status.get("ok", False))
-                else (("saved",) if state == "saved" else (("recording",) if state == "recording" else ()))
+                else (
+                    ("saved",)
+                    if state == "saved"
+                    else (("recording",) if state == "recording" else (("warning",) if state == "warning" else ()))
+                )
             )
             self.devices_tree.insert("", "end", iid=iid, values=values, tags=tags)
         if selected_id and self.devices_tree.exists(selected_id):
@@ -2981,7 +2992,7 @@ class ControllerApp:
             self.stop_timer()
 
     def start_recording_watchdog(self) -> None:
-        if not self.config.get("abort_recording_on_phone_loss", True):
+        if not self.config.get("recording_watchdog_enabled", True):
             return
         if self._recording_watchdog_thread is not None and self._recording_watchdog_thread.is_alive():
             return
@@ -2992,9 +3003,19 @@ class ControllerApp:
 
         def worker() -> None:
             interval = max(0.2, float(self.config.get("recording_watchdog_interval_seconds", 0.5)))
-            timeout = max(0.2, float(self.config.get("recording_watchdog_timeout_seconds", 0.8)))
-            grace = max(0.0, float(self.config.get("recording_watchdog_start_grace_seconds", 2.0)))
+            timeout = max(0.5, float(self.config.get("recording_watchdog_timeout_seconds", 1.5)))
+            grace = max(0.0, float(self.config.get("recording_watchdog_start_grace_seconds", 5.0)))
+            failure_limit = max(1, int(self.config.get("recording_watchdog_consecutive_failures", 3)))
+            warning_cooldown = max(
+                1.0,
+                float(self.config.get("recording_watchdog_warning_cooldown_seconds", 10.0)),
+            )
+            can_stop_recording = bool(self.config.get("recording_watchdog_can_stop_recording", False)) and bool(
+                self.config.get("abort_recording_on_phone_loss", False)
+            )
             grace_until = time.time() + grace
+            consecutive_failures: dict[str, int] = {}
+            last_warning_at: dict[str, float] = {}
 
             while not stop_event.wait(interval):
                 if not self.recording or self._stop_command_running:
@@ -3004,6 +3025,7 @@ class ControllerApp:
                     continue
 
                 failures: list[str] = []
+                failed_names: set[str] = set()
                 with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
                     futures = {executor.submit(get_json, phone, "/status", timeout): phone for phone in phones}
                     for future in as_completed(futures):
@@ -3012,15 +3034,62 @@ class ControllerApp:
                         try:
                             status = future.result()
                         except Exception as error:
+                            failed_names.add(name)
                             failures.append(f"{name}: no status ({error})")
                             continue
                         if time.time() >= grace_until and status.get("recording") is False:
+                            failed_names.add(name)
                             failures.append(f"{name}: recording stopped")
+                        elif status.get("recording") is True:
+                            consecutive_failures.pop(name, None)
 
-                if failures and time.time() >= grace_until:
-                    reason = "; ".join(failures)
+                now = time.time()
+                if not failures or now < grace_until:
+                    continue
+
+                persistent_failures = []
+                for failure in failures:
+                    name = failure.split(":", 1)[0]
+                    consecutive_failures[name] = consecutive_failures.get(name, 0) + 1
+                    if consecutive_failures[name] >= failure_limit:
+                        persistent_failures.append(failure)
+
+                for name in list(consecutive_failures):
+                    if name not in failed_names:
+                        consecutive_failures.pop(name, None)
+
+                if not persistent_failures:
+                    continue
+
+                reason = "; ".join(persistent_failures)
+                if can_stop_recording:
                     self.root.after(0, lambda r=reason, t=watched_task: self.emergency_stop_recording(r, t))
                     return
+
+                should_warn = any(
+                    now - last_warning_at.get(failure.split(":", 1)[0], 0.0) >= warning_cooldown
+                    for failure in persistent_failures
+                )
+                if not should_warn:
+                    continue
+                for failure in persistent_failures:
+                    last_warning_at[failure.split(":", 1)[0]] = now
+
+                def report_watchdog_warning(
+                    r=reason,
+                    t=watched_task,
+                    items=tuple(persistent_failures),
+                ) -> None:
+                    if not self.recording or self._stop_command_running:
+                        return
+                    self.recording_event_write("WATCHDOG_WARNING", reason=r, **self.task_event_fields(t))
+                    self.write(f"WATCHDOG WARNING: {r}")
+                    self.status.set(f"Recording continues; watchdog warning: {r}")
+                    for item in items:
+                        self.camera_state_by_name[item.split(":", 1)[0]] = "warning"
+                    self.refresh_device_table()
+
+                self.root.after(0, report_watchdog_warning)
 
         self._recording_watchdog_thread = threading.Thread(target=worker, daemon=True)
         self._recording_watchdog_thread.start()

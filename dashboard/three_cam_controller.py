@@ -61,6 +61,10 @@ SIGNERS = [
     ("signer_14", "XS"),
 ]
 SIGNER_NAMES = dict(SIGNERS)
+PDF_SIGNER_ALIASES = {
+    "парагат": "signer_6",
+    "шахзода": "signer_5",
+}
 DEFAULT_CAMERA_NAMES = [
     "one",
     "two",
@@ -254,6 +258,31 @@ def signer_label_for(signer_id: str, state: dict | None = None) -> str:
     return f"{signer_id} - {name}"
 
 
+def signer_lookup_key(value: str) -> str:
+    text = value.casefold().replace("ё", "е")
+    return re.sub(r"[^0-9a-zа-я]+", "", text)
+
+
+def resolve_signer_id_by_name(name: str, state: dict | None = None) -> str | None:
+    key = signer_lookup_key(name)
+    alias = PDF_SIGNER_ALIASES.get(key)
+    if alias:
+        return alias
+    for signer_id, signer_name in signer_names(state).items():
+        if signer_lookup_key(signer_name) == key:
+            return signer_id
+    return None
+
+
+def next_custom_signer_id(state: dict) -> str:
+    numbers = []
+    for signer_id, _name in signer_items(state):
+        value = safe_int(str(signer_id).split("_", 1)[1] if "_" in str(signer_id) else None)
+        if value is not None:
+            numbers.append(value)
+    return f"signer_{max(numbers, default=0) + 1}"
+
+
 def normalize_custom_signers(value) -> list[tuple[str, str]]:
     if not isinstance(value, list):
         return []
@@ -311,7 +340,14 @@ def signer_dir_name_for(signer_id: str, state: dict | None = None) -> str:
 
 
 def word_key(word: dict) -> str:
+    if word.get("queue_key"):
+        return str(word.get("queue_key"))
     word_id = word.get("word_id")
+    if word.get("signer_id"):
+        prefix = str(word.get("signer_id"))
+        if word_id not in (None, ""):
+            return f"{prefix}:{word_id}"
+        return f"{prefix}:{safe_name(str(word.get('uzbek') or 'word'))}"
     return str(word_id) if word_id not in (None, "") else safe_name(str(word.get("uzbek") or "word"))
 
 
@@ -380,16 +416,18 @@ def normalize_word_items(items: list) -> list[dict]:
         if not text:
             continue
         gesture_count = safe_int(item.get("gesture_count") or item.get("counts") or item.get("count"), 1) or 1
-        normalized.append(
-            {
-                "word_id": safe_int(item.get("word_id"), index + 1),
-                "page": safe_int(item.get("page")),
-                "count": max(1, gesture_count),
-                "uzbek": text,
-                "source_pdf": str(item.get("source_pdf") or ""),
-                "source_set": str(item.get("source_set") or ""),
-            }
-        )
+        normalized_item = {
+            "word_id": safe_int(item.get("word_id"), index + 1),
+            "page": safe_int(item.get("page")),
+            "count": max(1, gesture_count),
+            "uzbek": text,
+            "source_pdf": str(item.get("source_pdf") or ""),
+            "source_set": str(item.get("source_set") or ""),
+        }
+        for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant"):
+            if item.get(key) not in (None, ""):
+                normalized_item[key] = str(item.get(key))
+        normalized.append(normalized_item)
     return normalized
 
 
@@ -415,6 +453,9 @@ def extract_words_with_pypdf(path: Path) -> list[dict]:
     from pypdf import PdfReader  # type: ignore
 
     page_texts = [page.extract_text() or "" for page in PdfReader(str(path)).pages]
+    retake_items = extract_per_signer_retake_pdf(page_texts, path)
+    if retake_items:
+        return retake_items
     text = "\n".join(page_texts)
     separate_count_items = extract_words_from_separate_count_column(page_texts, path)
     if separate_count_items:
@@ -443,6 +484,93 @@ def extract_words_with_pypdf(path: Path) -> list[dict]:
     if not items:
         raise RuntimeError("pypdf did not extract table rows")
     return items
+
+
+def extract_per_signer_retake_pdf(page_texts: list[str], path: Path) -> list[dict]:
+    if not page_texts or not any("Что переснять" in text for text in page_texts):
+        return []
+
+    common_rows: list[dict] = []
+    sections: list[tuple[str, list[dict]]] = []
+    for page_number, text in enumerate(page_texts, start=1):
+        if "СНИМАЮТ ВСЕ" in text:
+            common_rows = parse_retake_word_rows(text, path, page_number)
+            continue
+        match = re.search(r"Слова\s+(.+?)\s+—\s+(\d+)\s+штук", text)
+        if not match:
+            continue
+        signer_name = normalize_word_text(match.group(1))
+        rows = parse_retake_word_rows(text, path, page_number)
+        if rows:
+            sections.append((signer_name, rows))
+
+    if not sections:
+        return []
+
+    items: list[dict] = []
+    for signer_name, signer_rows in sections:
+        for row in common_rows:
+            item = dict(row)
+            item["signer_name"] = signer_name
+            item["source_section"] = "common"
+            item["source_set"] = f"{source_set_from_pdf(path)}_{safe_name(signer_name)}_common"
+            items.append(item)
+        for row in signer_rows:
+            item = dict(row)
+            item["signer_name"] = signer_name
+            item["source_section"] = "personal"
+            item["source_set"] = f"{source_set_from_pdf(path)}_{safe_name(signer_name)}"
+            items.append(item)
+    return items
+
+
+def parse_retake_word_rows(text: str, path: Path, page_number: int) -> list[dict]:
+    lines = [normalize_word_text(line) for line in text.splitlines()]
+    lines = [line for line in lines if line]
+    try:
+        start = next(index for index, line in enumerate(lines) if line.casefold() == "перевод") + 1
+    except StopIteration:
+        return []
+
+    rows: list[dict] = []
+    index = start
+    while index < len(lines):
+        word_id = safe_int(lines[index])
+        if word_id is None:
+            index += 1
+            continue
+
+        cursor = index + 1
+        word_parts: list[str] = []
+        while cursor < len(lines):
+            line = lines[cursor]
+            if word_parts and safe_int(line) is not None:
+                break
+            if word_parts and is_retake_translation_line(line):
+                cursor += 1
+                break
+            word_parts.append(line)
+            cursor += 1
+
+        word_text = normalize_word_text(" ".join(word_parts))
+        if not should_skip_pdf_word(word_text):
+            rows.append(
+                {
+                    "word_id": word_id,
+                    "page": page_number,
+                    "count": 1,
+                    "uzbek": word_text,
+                    "source_pdf": path.name,
+                    "source_set": source_set_from_pdf(path),
+                    "pdf_variant": "per_signer_retake",
+                }
+            )
+        index = max(cursor, index + 1)
+    return rows
+
+
+def is_retake_translation_line(line: str) -> bool:
+    return line == "—" or bool(re.search(r"[А-Яа-яЁё]", line))
 
 
 def extract_words_from_separate_count_column(page_texts: list[str], path: Path) -> list[dict]:
@@ -2356,14 +2484,40 @@ class ControllerApp:
         self.write(f"Signer restored: {signer_label_for(signer_id, self.dataset_state)}")
 
     def current_word(self) -> dict | None:
-        words = self.dataset_state.get("words", [])
+        words = self.active_words()
         if not words or self.background_var.get():
             return None
         index = clamp_index(int(self.dataset_state.get("view_word_index", 0)), len(words))
         return words[index]
 
-    def refresh_dataset_labels(self) -> None:
+    def is_per_signer_retake_import(self) -> bool:
+        return any(
+            isinstance(word, dict) and word.get("pdf_variant") == "per_signer_retake"
+            for word in self.dataset_state.get("words", [])
+        )
+
+    def active_words(self) -> list[dict]:
         words = self.dataset_state.get("words", [])
+        if not self.is_per_signer_retake_import():
+            return words
+        signer_id = self.selected_signer_id()
+        return [word for word in words if str(word.get("signer_id") or "") == signer_id]
+
+    def reset_active_word_view(self) -> None:
+        words = self.active_words()
+        takes_done = self.dataset_state.get("takes_done_by_word", {})
+        next_index = 0
+        for index, word in enumerate(words):
+            done = int(takes_done.get(word_key(word), 0))
+            if done < word_gesture_count(word, self.dataset_state.get("gesture_count", 1)):
+                next_index = index
+                break
+        self.dataset_state["main_word_index"] = next_index
+        self.dataset_state["view_word_index"] = next_index
+        self.dataset_state["manual_back_mode"] = False
+
+    def refresh_dataset_labels(self) -> None:
+        words = self.active_words()
         if self.background_var.get():
             self.word_var.set("BACKGROUND")
             self.progress_var.set(f"Signer: {self.signer_var.get()} / background mode")
@@ -2384,14 +2538,14 @@ class ControllerApp:
         mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
         self.word_var.set(word_display(word))
         self.progress_var.set(
-            f"{view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
+            f"Signer: {self.signer_var.get()} / {view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
         )
         self.refresh_word_columns()
 
     def refresh_word_columns(self) -> None:
         if not hasattr(self, "word_trees"):
             return
-        words = self.dataset_state.get("words", [])
+        words = self.active_words()
         view_index = int(self.dataset_state.get("view_word_index", 0))
         midpoint = (len(words) + 1) // 2
         for tree in self.word_trees:
@@ -2413,6 +2567,9 @@ class ControllerApp:
                 done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0))
                 word_id = word_number_prefix(word.get("word_id"))
                 label = f"{word_id} {word.get('uzbek', '')}".strip()
+                if word.get("signer_id") and not self.is_per_signer_retake_import():
+                    signer_name = signer_names(self.dataset_state).get(str(word.get("signer_id")), str(word.get("signer_name") or ""))
+                    label = f"{signer_name}: {label}".strip()
                 tree.insert(
                     "",
                     "end",
@@ -2429,7 +2586,7 @@ class ControllerApp:
         if not selected:
             return
         index = safe_int(selected[0])
-        words = self.dataset_state.get("words", [])
+        words = self.active_words()
         if index is None or index < 0 or index >= len(words):
             return
         self.background_var.set(False)
@@ -2441,10 +2598,35 @@ class ControllerApp:
 
     def signer_changed(self, _event=None) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
+        if self.is_per_signer_retake_import():
+            self.reset_active_word_view()
         self.fill_signer_entry_from_selection()
         self.save_dataset()
         self.refresh_dataset_labels()
         self.write(f"Signer selected: {self.signer_var.get()}")
+
+    def ensure_imported_word_signers(self, words: list[dict]) -> int:
+        added = 0
+        custom = self.custom_signer_map()
+        for word in words:
+            if word.get("pdf_variant") != "per_signer_retake":
+                continue
+            signer_name = str(word.get("signer_name") or "").strip()
+            if not signer_name:
+                continue
+            signer_id = resolve_signer_id_by_name(signer_name, self.dataset_state)
+            if signer_id is None:
+                signer_id = next_custom_signer_id(self.dataset_state)
+                custom[signer_id] = signer_name
+                self.set_custom_signers(custom)
+                added += 1
+            word["signer_id"] = signer_id
+            word["signer_name"] = signer_names(self.dataset_state).get(signer_id, signer_name)
+
+        for index, word in enumerate(words, start=1):
+            if word.get("pdf_variant") == "per_signer_retake" and word.get("signer_id"):
+                word["queue_key"] = f"{index}:{word.get('signer_id')}:{word.get('word_id', '')}"
+        return added
 
     def gesture_count_changed(self) -> None:
         gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
@@ -2478,7 +2660,14 @@ class ControllerApp:
                 if any(item.get("uzbek") == "ФОН" for item in extracted):
                     warnings.append(f"{path.name}: contains ФОН")
             words = normalize_word_items(words)
-            words.sort(key=lambda item: (safe_int(item.get("word_id"), 10**9) or 10**9, item.get("source_pdf", "")))
+            added_signers = self.ensure_imported_word_signers(words)
+            per_signer_retake = any(item.get("pdf_variant") == "per_signer_retake" for item in words)
+            if per_signer_retake:
+                for index, word in enumerate(words, start=1):
+                    if word.get("signer_id"):
+                        word["queue_key"] = f"{index}:{word.get('signer_id')}:{word.get('word_id', '')}"
+            else:
+                words.sort(key=lambda item: (safe_int(item.get("word_id"), 10**9) or 10**9, item.get("source_pdf", "")))
             if not words:
                 raise RuntimeError("No words found in selected PDF files")
             self.dataset_state["words"] = words
@@ -2488,8 +2677,12 @@ class ControllerApp:
             self.recording_status_by_word = {}
             self.dataset_state["manual_back_mode"] = False
             self.save_dataset()
+            self.root.after(0, self.refresh_signer_combo)
             self.root.after(0, self.refresh_dataset_labels)
-            return f"Imported {len(words)} words from {len(paths)} PDF(s)." + (
+            return (
+                f"Imported {len(words)} words from {len(paths)} PDF(s)."
+                + (f"\nAdded signers: {added_signers}" if added_signers else "")
+            ) + (
                 "\n" + "\n".join(warnings) if warnings else ""
             )
 
@@ -2551,7 +2744,7 @@ class ControllerApp:
         self.dataset_state.setdefault("takes_done_by_word", {})[key] = done
         self.recording_status_by_word[key] = "ok" if ok else "error"
         if not self.dataset_state.get("manual_back_mode") and done >= gesture_count:
-            words = self.dataset_state.get("words", [])
+            words = self.active_words()
             next_index = min(int(self.dataset_state.get("main_word_index", 0)) + 1, max(0, len(words) - 1))
             self.dataset_state["main_word_index"] = next_index
             self.dataset_state["view_word_index"] = next_index
@@ -2560,7 +2753,7 @@ class ControllerApp:
         self.refresh_dataset_labels()
 
     def back_word_clicked(self) -> None:
-        words = self.dataset_state.get("words", [])
+        words = self.active_words()
         if not words:
             return
         self.dataset_state["view_word_index"] = max(0, int(self.dataset_state.get("view_word_index", 0)) - 1)
@@ -2712,9 +2905,27 @@ class ControllerApp:
             if write_message:
                 self.write("Retake selected: background")
             return True
-        words = self.dataset_state.get("words", [])
+        words = self.active_words()
+        video_word_id = str(video.get("wordId") or video.get("word_id") or "")
+        video_signer_id = str(video.get("signer") or video.get("signerId") or "")
+
+        def matches_video(word: dict) -> bool:
+            return str(word.get("uzbek")) == word_value or str(word.get("word_id")) == video_word_id
+
         for index, word in enumerate(words):
-            if str(word.get("uzbek")) == word_value or str(word.get("word_id")) == str(video.get("wordId") or video.get("word_id")):
+            if word.get("signer_id") and video_signer_id and str(word.get("signer_id")) != video_signer_id:
+                continue
+            if matches_video(word):
+                self.dataset_state["view_word_index"] = index
+                self.dataset_state["manual_back_mode"] = True
+                self.dataset_state["retake_mode"] = True
+                self.save_dataset()
+                self.refresh_dataset_labels()
+                if write_message:
+                    self.write(f"Retake selected: {word_value}")
+                return True
+        for index, word in enumerate(words):
+            if matches_video(word):
                 self.dataset_state["view_word_index"] = index
                 self.dataset_state["manual_back_mode"] = True
                 self.dataset_state["retake_mode"] = True

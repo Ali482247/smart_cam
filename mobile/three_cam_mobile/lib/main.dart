@@ -382,6 +382,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String _sessionMode = 'word';
   String _sessionWord = '';
   String _sessionWordId = '';
+  String _sessionPhraseId = '';
+  String _sessionPhraseText = '';
+  String _sessionFileSlug = '';
+  int? _sessionExpectedDurationSec;
+  int _sessionSegmentIndex = 1;
+  int _sessionSegmentCount = 1;
   String _sessionList = '';
   String _sessionWordDir = '';
   String _sessionTakeLabel = 'a';
@@ -676,6 +682,14 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               mode: params['mode'],
               word: params['word'],
               wordId: params['word_id'],
+              phraseId: params['phrase_id'],
+              phraseText: params['phrase_text'],
+              fileSlug: params['file_slug'],
+              expectedDurationSec: int.tryParse(
+                params['expected_duration_sec'] ?? '',
+              ),
+              segmentIndex: int.tryParse(params['segment_index'] ?? ''),
+              segmentCount: int.tryParse(params['segment_count'] ?? ''),
               listName: params['list'],
               wordDir: params['word_dir'],
               takeLabel: params['take_label'],
@@ -926,6 +940,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     String? mode,
     String? word,
     String? wordId,
+    String? phraseId,
+    String? phraseText,
+    String? fileSlug,
+    int? expectedDurationSec,
+    int? segmentIndex,
+    int? segmentCount,
     String? listName,
     String? wordDir,
     String? takeLabel,
@@ -959,8 +979,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _sessionWord =
         (word ?? (_sessionMode == 'background' ? 'background' : 'word')).trim();
     _sessionWordId = (wordId ?? '').trim();
+    _sessionPhraseId = (phraseId ?? '').trim();
+    _sessionPhraseText = (phraseText ?? '').trim();
+    _sessionFileSlug = _cleanName(fileSlug ?? '');
+    _sessionExpectedDurationSec = expectedDurationSec;
+    _sessionSegmentIndex = (segmentIndex ?? 1).clamp(1, 9999);
+    _sessionSegmentCount = (segmentCount ?? 1).clamp(1, 9999);
     _sessionList = (listName ?? '').trim();
-    _sessionWordDir = _cleanName(wordDir ?? _sessionWord);
+    _sessionWordDir = _cleanName(
+      _sessionMode == 'phrase' && _sessionFileSlug.isNotEmpty
+          ? _sessionFileSlug
+          : (wordDir ?? _sessionWord),
+    );
     _sessionTakeNumber = (takeNumber ?? 1).clamp(1, 9999);
     _sessionTakeLabel = _cleanName(takeLabel ?? _takeLabel(_sessionTakeNumber));
     _sessionGestureCount = (gestureCount ?? 1).clamp(1, 9999);
@@ -1157,6 +1187,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'signer': _sessionSignerId,
       'word_id': globalIndex,
       'word': _sessionWord,
+      'phrase_id': int.tryParse(_sessionPhraseId),
+      'phrase_text': _sessionPhraseText,
+      'file_slug': _sessionFileSlug,
+      'expected_duration_sec': _sessionExpectedDurationSec,
+      'segment_index': _sessionSegmentIndex,
+      'segment_count': _sessionSegmentCount,
       'take': _sessionTakeLabel,
       'device': _settings.deviceSlot,
       'started_at': startedAt?.toIso8601String(),
@@ -1184,6 +1220,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'signerDir': _sessionSignerDir,
       'mode': _sessionMode,
       'wordId': _sessionWordId,
+      'phraseId': _sessionPhraseId,
+      'phraseText': _sessionPhraseText,
+      'fileSlug': _sessionFileSlug,
+      'expectedDurationSec': _sessionExpectedDurationSec,
+      'segmentIndex': _sessionSegmentIndex,
+      'segmentCount': _sessionSegmentCount,
       'wordDir': _sessionWordDir,
       'takeLabel': _sessionTakeLabel,
       'takeNumber': _sessionTakeNumber,
@@ -1946,6 +1988,12 @@ class _ScreenRecordingController implements RecordingController {
     String? mode,
     String? word,
     String? wordId,
+    String? phraseId,
+    String? phraseText,
+    String? fileSlug,
+    int? expectedDurationSec,
+    int? segmentIndex,
+    int? segmentCount,
     String? wordDir,
     String? takeLabel,
     int? takeNumber,
@@ -1965,6 +2013,12 @@ class _ScreenRecordingController implements RecordingController {
         mode: mode,
         word: word,
         wordId: wordId,
+        phraseId: phraseId,
+        phraseText: phraseText,
+        fileSlug: fileSlug,
+        expectedDurationSec: expectedDurationSec,
+        segmentIndex: segmentIndex,
+        segmentCount: segmentCount,
         wordDir: wordDir,
         takeLabel: takeLabel,
         takeNumber: takeNumber,

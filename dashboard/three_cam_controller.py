@@ -1,4 +1,6 @@
 import argparse
+import csv
+import hashlib
 import io
 import zlib
 import json
@@ -43,6 +45,8 @@ RECORDING_LOG_DIR_NAME = "recording_logs"
 SESSION_HISTORY_LIMIT = 200
 DISCOVERY_MESSAGE = "THREE_CAM_DISCOVER"
 BACKGROUND_WORD = "background"
+ITEM_TYPE_WORD = "word"
+ITEM_TYPE_PHRASE = "phrase"
 APP_VERSION = "1.1.0"
 SIGNERS = [
     ("signer_1", "Шоира"),
@@ -340,6 +344,20 @@ def signer_dir_name_for(signer_id: str, state: dict | None = None) -> str:
 
 
 def word_key(word: dict) -> str:
+    item_type = str(word.get("type") or ITEM_TYPE_WORD)
+    if item_type == ITEM_TYPE_PHRASE:
+        if word.get("queue_key"):
+            return str(word.get("queue_key"))
+        phrase_id = word.get("phrase_id") or word.get("item_id")
+        if word.get("signer_id"):
+            prefix = str(word.get("signer_id"))
+            if phrase_id not in (None, ""):
+                return f"{prefix}:phrase:{phrase_id}"
+            text = str(word.get("phrase_text") or word.get("uzbek") or "phrase")
+            return f"{prefix}:phrase:{safe_name(text)}"
+        if phrase_id not in (None, ""):
+            return f"phrase:{phrase_id}"
+        return f"phrase:{safe_name(str(word.get('phrase_text') or word.get('uzbek') or 'phrase'))}"
     if word.get("queue_key"):
         return str(word.get("queue_key"))
     word_id = word.get("word_id")
@@ -354,20 +372,23 @@ def word_key(word: dict) -> str:
 def word_display(word: dict | None) -> str:
     if not word:
         return "No words imported"
-    word_id = word.get("word_id")
+    item_type = str(word.get("type") or ITEM_TYPE_WORD)
+    word_id = word.get("phrase_id") if item_type == ITEM_TYPE_PHRASE else word.get("word_id")
     page = word.get("page")
     prefix = []
     if word_id not in (None, ""):
-        prefix.append(f"№ {word_id}")
+        prefix.append(f"phrase {word_id}" if item_type == ITEM_TYPE_PHRASE else f"№ {word_id}")
     if page not in (None, ""):
         prefix.append(f"page {page}")
-    text = str(word.get("uzbek") or "").strip()
+    text = str(word.get("phrase_text") or word.get("uzbek") or "").strip()
     return f"{' / '.join(prefix)}\n{text}" if prefix else text
 
 
 def word_dir_name(word: dict | None) -> str:
     if not word:
         return "word"
+    if str(word.get("type") or ITEM_TYPE_WORD) == ITEM_TYPE_PHRASE:
+        return phrase_slug(word)
     text = safe_name(str(word.get("uzbek") or "word"))
     word_id = safe_int(word.get("word_id"))
     if word_id is not None:
@@ -402,6 +423,49 @@ def normalize_word_text(value: str) -> str:
     return text
 
 
+def phrase_slug(item: dict) -> str:
+    explicit = safe_name(str(item.get("file_slug") or ""))
+    if explicit:
+        return explicit[:80]
+    phrase_id = safe_int(item.get("phrase_id") or item.get("item_id"))
+    if phrase_id is not None:
+        return f"phrase_{phrase_id:04d}"
+    text = str(item.get("phrase_text") or item.get("uzbek") or "phrase")
+    digest = hashlib.sha1(text.encode("utf-8", errors="ignore")).hexdigest()[:8]
+    return f"phrase_{digest}"
+
+
+def normalize_phrase_item(item: dict, index: int) -> dict | None:
+    text = normalize_word_text(
+        str(item.get("phrase_text") or item.get("text") or item.get("phrase") or item.get("uzbek") or item.get("word") or "")
+    )
+    if not text:
+        return None
+    phrase_id = safe_int(item.get("phrase_id") or item.get("item_id") or item.get("id"), index + 1)
+    count = safe_int(item.get("gesture_count") or item.get("takes") or item.get("counts") or item.get("count"), 1) or 1
+    segment_index = safe_int(item.get("segment_index") or item.get("segment"), 1) or 1
+    segment_count = safe_int(item.get("segment_count") or item.get("segments"), 1) or 1
+    normalized_item = {
+        "type": ITEM_TYPE_PHRASE,
+        "phrase_id": phrase_id,
+        "word_id": phrase_id,
+        "page": safe_int(item.get("page")),
+        "count": max(1, count),
+        "phrase_text": text,
+        "uzbek": text,
+        "file_slug": phrase_slug({"phrase_id": phrase_id, "phrase_text": text, "file_slug": item.get("file_slug")}),
+        "expected_duration_sec": safe_int(item.get("expected_duration_sec") or item.get("duration_sec") or item.get("expected_duration")),
+        "segment_index": max(1, segment_index),
+        "segment_count": max(1, segment_count),
+        "source_pdf": str(item.get("source_pdf") or item.get("source_file") or ""),
+        "source_set": str(item.get("source_set") or "phrases"),
+    }
+    for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant"):
+        if item.get(key) not in (None, ""):
+            normalized_item[key] = str(item.get(key))
+    return normalized_item
+
+
 def normalize_word_items(items: list) -> list[dict]:
     normalized = []
     for index, item in enumerate(items):
@@ -412,11 +476,18 @@ def normalize_word_items(items: list) -> list[dict]:
             continue
         if not isinstance(item, dict):
             continue
+        item_type = str(item.get("type") or item.get("mode") or "").strip().lower()
+        if item_type == ITEM_TYPE_PHRASE or any(key in item for key in ("phrase_id", "phrase_text", "phrase")):
+            phrase = normalize_phrase_item(item, index)
+            if phrase:
+                normalized.append(phrase)
+            continue
         text = normalize_word_text(str(item.get("uzbek") or item.get("word") or ""))
         if not text:
             continue
         gesture_count = safe_int(item.get("gesture_count") or item.get("counts") or item.get("count"), 1) or 1
         normalized_item = {
+            "type": ITEM_TYPE_WORD,
             "word_id": safe_int(item.get("word_id"), index + 1),
             "page": safe_int(item.get("page")),
             "count": max(1, gesture_count),
@@ -429,6 +500,40 @@ def normalize_word_items(items: list) -> list[dict]:
                 normalized_item[key] = str(item.get(key))
         normalized.append(normalized_item)
     return normalized
+
+
+def import_phrases_from_file(path: Path) -> list[dict]:
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        with path.open("r", encoding="utf-8-sig") as f:
+            payload = json.load(f)
+        if isinstance(payload, dict):
+            payload = payload.get("phrases") or payload.get("items") or []
+        if not isinstance(payload, list):
+            raise RuntimeError("Phrase JSON must be a list or an object with phrases/items")
+        rows = [item if isinstance(item, dict) else {"phrase_text": str(item)} for item in payload]
+    elif suffix == ".csv":
+        with path.open("r", encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.DictReader(f))
+        if not rows:
+            raise RuntimeError("Phrase CSV has no rows")
+    else:
+        rows = []
+        with path.open("r", encoding="utf-8-sig") as f:
+            for index, line in enumerate(f, start=1):
+                text = normalize_word_text(line)
+                if not text or text.startswith("#"):
+                    continue
+                rows.append({"phrase_id": index, "phrase_text": text})
+
+    phrases: list[dict] = []
+    for index, row in enumerate(rows):
+        phrase = normalize_phrase_item({**row, "source_file": path.name, "source_set": path.stem}, index)
+        if phrase:
+            phrases.append(phrase)
+    if not phrases:
+        raise RuntimeError(f"No phrases found in {path.name}")
+    return phrases
 
 
 def word_gesture_count(word: dict | None, default: int = 1) -> int:
@@ -1240,6 +1345,14 @@ def build_endpoint_map(
                     "mode": str(task.get("mode", "word")),
                     "word": str(task.get("word", "")),
                     "word_id": str(task.get("word_id", "")),
+                    "phrase_id": "" if task.get("phrase_id") is None else str(task.get("phrase_id", "")),
+                    "phrase_text": "" if task.get("phrase_text") is None else str(task.get("phrase_text", "")),
+                    "file_slug": "" if task.get("file_slug") is None else str(task.get("file_slug", "")),
+                    "expected_duration_sec": ""
+                    if task.get("expected_duration_sec") is None
+                    else str(task.get("expected_duration_sec", "")),
+                    "segment_index": "" if task.get("segment_index") is None else str(task.get("segment_index", "")),
+                    "segment_count": "" if task.get("segment_count") is None else str(task.get("segment_count", "")),
                     "list": str(task.get("list", "")),
                     "word_dir": str(task.get("word_dir", "")),
                     "take_label": str(task.get("take_label", "")),
@@ -1779,7 +1892,8 @@ class ControllerApp:
         self.undo_delete_signer_button = ttk.Button(dataset_top, text="UNDO", command=self.undo_delete_signer_clicked)
         self.undo_delete_signer_button.pack(side="left", padx=(0, 8))
         ttk.Button(dataset_top, text="IMPORT PDF", command=self.import_pdf_clicked).pack(side="left", padx=(0, 8))
-        ttk.Label(dataset_top, text="Gestures per word").pack(side="left")
+        ttk.Button(dataset_top, text="IMPORT PHRASES", command=self.import_phrases_clicked).pack(side="left", padx=(0, 8))
+        ttk.Label(dataset_top, text="Takes per item").pack(side="left")
         self.gesture_spin = ttk.Entry(dataset_top, textvariable=self.gesture_count_var, width=5)
         self.gesture_spin.pack(side="left", padx=(6, 10))
         self.gesture_spin.bind("<FocusOut>", lambda _event: self.gesture_count_changed())
@@ -1817,9 +1931,9 @@ class ControllerApp:
 
         nav_row = ttk.Frame(dataset_frame)
         nav_row.pack(fill="x", pady=(8, 0))
-        ttk.Button(nav_row, text="BACK WORD", command=self.back_word_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="BACK ITEM", command=self.back_word_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(nav_row, text="RESET VIEW", command=self.reset_view_clicked).pack(side="left", padx=(0, 8))
-        ttk.Button(nav_row, text="RESET WORDS", command=self.reset_words_clicked).pack(side="left", padx=(0, 8))
+        ttk.Button(nav_row, text="RESET ITEMS", command=self.reset_words_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(nav_row, text="RESET INDEX", command=self.reset_index_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(nav_row, text="DELETE VIDEOS", command=self.delete_videos_clicked).pack(side="left", padx=(0, 8))
         ttk.Button(nav_row, text="REFRESH VIDEOS", command=self.refresh_videos_clicked).pack(side="left")
@@ -1837,7 +1951,7 @@ class ControllerApp:
                 height=6,
                 selectmode="browse",
             )
-            tree.heading("word", text="Word")
+            tree.heading("word", text="Item")
             tree.heading("count", text="count")
             tree.heading("take", text="Take")
             tree.column("word", width=390, stretch=True)
@@ -2222,6 +2336,12 @@ class ControllerApp:
             "signer_name": task.get("signer_name"),
             "word_id": safe_int(task.get("word_id")),
             "word": task.get("word"),
+            "phrase_id": safe_int(task.get("phrase_id")),
+            "phrase_text": task.get("phrase_text"),
+            "file_slug": task.get("file_slug"),
+            "expected_duration_sec": safe_int(task.get("expected_duration_sec")),
+            "segment_index": safe_int(task.get("segment_index")),
+            "segment_count": safe_int(task.get("segment_count")),
             "take": task.get("take_label"),
             "mode": task.get("mode"),
             "app_version": task.get("app_version") or APP_VERSION,
@@ -2280,6 +2400,12 @@ class ControllerApp:
         failures = []
         expected_session = str(task.get("session_id")) if task and task.get("session_id") else ""
         expected_record = safe_int(task.get("record_index")) if task else None
+        durations: list[tuple[str, int]] = []
+        expected_duration_ms = None
+        if task and str(task.get("mode") or "") == ITEM_TYPE_PHRASE:
+            expected_duration_sec = safe_int(task.get("expected_duration_sec"))
+            if expected_duration_sec:
+                expected_duration_ms = expected_duration_sec * 1000
         for name, body in results:
             try:
                 payload = json.loads(body)
@@ -2295,6 +2421,9 @@ class ControllerApp:
                 continue
             metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else {}
             actual_record = safe_int(payload.get("recordIndex") or metadata.get("recordIndex") or metadata.get("record"))
+            duration_ms = safe_int(metadata.get("duration_ms") or metadata.get("durationMs"))
+            if duration_ms is not None:
+                durations.append((name, duration_ms))
             if expected_record is not None and actual_record is not None and actual_record != expected_record:
                 failures.append(f"{name}: record mismatch ({actual_record})")
                 continue
@@ -2302,6 +2431,14 @@ class ControllerApp:
                 failures.append(f"{name}: no saved file confirmation")
             elif size_bytes is not None and size_bytes <= 0:
                 failures.append(f"{name}: zero-byte file")
+            elif expected_duration_ms is not None and duration_ms is not None and duration_ms < max(0, expected_duration_ms - 1000):
+                failures.append(f"{name}: duration too short ({duration_ms}ms, expected ~{expected_duration_ms}ms)")
+        if len(durations) >= 2:
+            min_name, min_duration = min(durations, key=lambda item: item[1])
+            max_name, max_duration = max(durations, key=lambda item: item[1])
+            spread = max_duration - min_duration
+            if spread > 1500:
+                failures.append(f"duration spread too high ({spread}ms: {min_name}={min_duration}, {max_name}={max_duration})")
         return failures
 
     def save_dataset(self) -> None:
@@ -2536,9 +2673,10 @@ class ControllerApp:
             self.gesture_count_var.set(gesture_count)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
+        item_label = "phrase" if str(word.get("type") or ITEM_TYPE_WORD) == ITEM_TYPE_PHRASE else "word"
         self.word_var.set(word_display(word))
         self.progress_var.set(
-            f"Signer: {self.signer_var.get()} / {view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
+            f"Signer: {self.signer_var.get()} / {item_label} {view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
         )
         self.refresh_word_columns()
 
@@ -2565,8 +2703,10 @@ class ControllerApp:
                 if index == view_index and not self.background_var.get():
                     tags.append("current")
                 done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0))
-                word_id = word_number_prefix(word.get("word_id"))
-                label = f"{word_id} {word.get('uzbek', '')}".strip()
+                is_phrase = str(word.get("type") or ITEM_TYPE_WORD) == ITEM_TYPE_PHRASE
+                word_id = word_number_prefix(word.get("phrase_id") if is_phrase else word.get("word_id"))
+                label_prefix = f"P{word_id}" if is_phrase and word_id else word_id
+                label = f"{label_prefix} {word.get('phrase_text') or word.get('uzbek', '')}".strip()
                 if word.get("signer_id") and not self.is_per_signer_retake_import():
                     signer_name = signer_names(self.dataset_state).get(str(word.get("signer_id")), str(word.get("signer_name") or ""))
                     label = f"{signer_name}: {label}".strip()
@@ -2688,6 +2828,41 @@ class ControllerApp:
 
         self.run_background("Importing PDF...", action)
 
+    def import_phrases_clicked(self) -> None:
+        paths = filedialog.askopenfilenames(
+            title="Import phrase files",
+            filetypes=(
+                ("Phrase files", "*.txt *.csv *.json"),
+                ("Text files", "*.txt"),
+                ("CSV files", "*.csv"),
+                ("JSON files", "*.json"),
+                ("All files", "*.*"),
+            ),
+        )
+        if not paths:
+            return
+
+        def action() -> str:
+            phrases: list[dict] = []
+            for raw_path in paths:
+                phrases.extend(import_phrases_from_file(Path(raw_path)))
+            phrases = normalize_word_items(phrases)
+            if not phrases:
+                raise RuntimeError("No phrases found in selected files")
+            self.dataset_state["words"] = phrases
+            self.dataset_state["main_word_index"] = 0
+            self.dataset_state["view_word_index"] = 0
+            self.dataset_state["takes_done_by_word"] = {}
+            self.recording_status_by_word = {}
+            self.dataset_state["manual_back_mode"] = False
+            self.dataset_state["background_mode"] = False
+            self.save_dataset()
+            self.root.after(0, lambda: self.background_var.set(False))
+            self.root.after(0, self.refresh_dataset_labels)
+            return f"Imported {len(phrases)} phrases from {len(paths)} file(s)."
+
+        self.run_background("Importing phrases...", action)
+
     def build_current_task(self) -> dict:
         signer_id = self.selected_signer_id()
         signer_name = signer_names(self.dataset_state).get(signer_id, signer_id)
@@ -2716,15 +2891,26 @@ class ControllerApp:
             self.gesture_count_var.set(gesture_count)
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         take_number = done + 1
+        item_type = str(word.get("type") or ITEM_TYPE_WORD)
+        text = str(word.get("phrase_text") or word.get("uzbek") or "")
+        word_id = word.get("word_id", "")
+        phrase_id = word.get("phrase_id", "") if item_type == ITEM_TYPE_PHRASE else ""
+        file_slug = phrase_slug(word) if item_type == ITEM_TYPE_PHRASE else word_dir_name(word)
         return {
             "signer_id": signer_id,
             "signer_name": signer_name,
             "signer_dir": signer_dir_name_for(signer_id, self.dataset_state),
-            "mode": "word",
-            "word": word.get("uzbek", ""),
-            "word_id": word.get("word_id", ""),
+            "mode": item_type,
+            "word": text,
+            "word_id": word_id,
+            "phrase_id": phrase_id,
+            "phrase_text": text if item_type == ITEM_TYPE_PHRASE else "",
+            "file_slug": file_slug,
+            "expected_duration_sec": word.get("expected_duration_sec") if item_type == ITEM_TYPE_PHRASE else None,
+            "segment_index": word.get("segment_index", 1) if item_type == ITEM_TYPE_PHRASE else None,
+            "segment_count": word.get("segment_count", 1) if item_type == ITEM_TYPE_PHRASE else None,
             "list": word.get("source_set", ""),
-            "word_dir": word_dir_name(word),
+            "word_dir": file_slug,
             "take_number": take_number,
             "take_label": take_label(take_number),
             "gesture_count": gesture_count,

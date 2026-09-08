@@ -1,0 +1,13 @@
+Что реализовано:
+- В Dashboard добавлен режим phrase рядом со старым word, без ломания PDF-слов.
+- Добавлена кнопка IMPORT PHRASES в [three_cam_controller.py (line 1895)](/C:/Users/Aliakbar Abdullayev/Desktop/smart_cam/dashboard/three_cam_controller.py:1895).
+- Импорт фраз поддерживает:
+  - .txt: одна фраза на строку, строки с # пропускаются;
+  - .csv: колонки phrase_id, phrase_text, count, expected_duration_sec;
+  - .json: список строк/объектов или объект { "phrases": [...] }.
+- Для фраз добавлены поля: phrase_id, phrase_text, file_slug, expected_duration_sec, segment_index, segment_count.
+- Для длинных фраз имя файла теперь короткое через slug, например phrase_0042_a_device_1_...mp4, а полный текст хранится в metadata.
+- В лог записи добавлены phrase-поля, чтобы START, STOP, SESSION_CHECK содержали контекст фразы.
+- После stop добавлена проверка длительности:
+  - если один телефон записал заметно короче ожидаемого времени;
+  - если разброс длительности между телефонами больше 1500ms.

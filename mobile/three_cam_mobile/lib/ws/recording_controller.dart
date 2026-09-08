@@ -27,6 +27,8 @@ abstract class RecordingController {
     String? wordDir,
     String? takeLabel,
     int? takeNumber,
+    String? signVariant,
+    int? attempt,
     int? gestureCount,
     bool? retake,
   });

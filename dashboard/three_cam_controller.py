@@ -106,6 +106,7 @@ def default_config() -> dict:
         "post_stop_video_refresh_delay_seconds": 1.5,
         "auto_refresh_videos_after_stop": False,
         "next_index": 0,
+        "recording_day": "",
         "next_device_slot": 1,
         "required_phone_count": 3,
         "block_recording_if_missing_phones": True,
@@ -345,28 +346,36 @@ def signer_dir_name_for(signer_id: str, state: dict | None = None) -> str:
 
 def word_key(word: dict) -> str:
     item_type = str(word.get("type") or ITEM_TYPE_WORD)
+    sign_variant = normalize_sign_variant(word.get("sign_variant"), "") if word.get("sign_variant") not in (None, "") else ""
+    segment_index = safe_int(word.get("segment_index"))
     if item_type == ITEM_TYPE_PHRASE:
         if word.get("queue_key"):
             return str(word.get("queue_key"))
         phrase_id = word.get("phrase_id") or word.get("item_id")
+        suffix = ""
+        if sign_variant:
+            suffix += f":{sign_variant}"
+        if segment_index is not None:
+            suffix += f":seg{segment_index}"
         if word.get("signer_id"):
             prefix = str(word.get("signer_id"))
             if phrase_id not in (None, ""):
-                return f"{prefix}:phrase:{phrase_id}"
+                return f"{prefix}:phrase:{phrase_id}{suffix}"
             text = str(word.get("phrase_text") or word.get("uzbek") or "phrase")
-            return f"{prefix}:phrase:{safe_name(text)}"
+            return f"{prefix}:phrase:{safe_name(text)}{suffix}"
         if phrase_id not in (None, ""):
-            return f"phrase:{phrase_id}"
-        return f"phrase:{safe_name(str(word.get('phrase_text') or word.get('uzbek') or 'phrase'))}"
+            return f"phrase:{phrase_id}{suffix}"
+        return f"phrase:{safe_name(str(word.get('phrase_text') or word.get('uzbek') or 'phrase'))}{suffix}"
     if word.get("queue_key"):
         return str(word.get("queue_key"))
     word_id = word.get("word_id")
+    suffix = f":{sign_variant}" if sign_variant else ""
     if word.get("signer_id"):
         prefix = str(word.get("signer_id"))
         if word_id not in (None, ""):
-            return f"{prefix}:{word_id}"
-        return f"{prefix}:{safe_name(str(word.get('uzbek') or 'word'))}"
-    return str(word_id) if word_id not in (None, "") else safe_name(str(word.get("uzbek") or "word"))
+            return f"{prefix}:{word_id}{suffix}"
+        return f"{prefix}:{safe_name(str(word.get('uzbek') or 'word'))}{suffix}"
+    return f"{word_id}{suffix}" if word_id not in (None, "") else f"{safe_name(str(word.get('uzbek') or 'word'))}{suffix}"
 
 
 def word_display(word: dict | None) -> str:
@@ -380,6 +389,10 @@ def word_display(word: dict | None) -> str:
         prefix.append(f"phrase {word_id}" if item_type == ITEM_TYPE_PHRASE else f"№ {word_id}")
     if page not in (None, ""):
         prefix.append(f"page {page}")
+    if word.get("sign_variant"):
+        prefix.append(f"variant {normalize_sign_variant(word.get('sign_variant'))}")
+    if safe_int(word.get("segment_count"), 1) and safe_int(word.get("segment_count"), 1) > 1:
+        prefix.append(f"segment {safe_int(word.get('segment_index'), 1)}/{safe_int(word.get('segment_count'), 1)}")
     text = str(word.get("phrase_text") or word.get("uzbek") or "").strip()
     return f"{' / '.join(prefix)}\n{text}" if prefix else text
 
@@ -412,6 +425,46 @@ def take_label(take_number: int) -> str:
     return label
 
 
+def normalize_sign_variant(value, fallback: str = "a") -> str:
+    variant = safe_name(str(value or "")).lower()
+    return variant or fallback
+
+
+def normalize_attempt(value, fallback: int = 1) -> int:
+    return max(1, safe_int(value, fallback) or fallback)
+
+
+def current_recording_day(now: datetime | None = None) -> str:
+    return (now or datetime.now()).strftime("%Y%m%d")
+
+
+def latest_recording_day_from_logs() -> str:
+    try:
+        logs = sorted(recording_log_dir().glob("recording_log_*.ndjson"))
+    except OSError:
+        return ""
+    for path in reversed(logs):
+        match = re.search(r"recording_log_(\d{8})\.ndjson$", path.name)
+        if match:
+            return match.group(1)
+    return ""
+
+
+def ensure_recording_day(config: dict, now: datetime | None = None) -> str:
+    day = current_recording_day(now)
+    previous_day = str(config.get("recording_day") or "")
+    if not previous_day:
+        previous_day = latest_recording_day_from_logs()
+        config["recording_day"] = day
+        if previous_day and previous_day != day:
+            config["next_index"] = 0
+        return day
+    if previous_day != day:
+        config["recording_day"] = day
+        config["next_index"] = 0
+    return day
+
+
 def normalize_word_text(value: str) -> str:
     text = re.sub(r"\s+", " ", value).strip()
     text = re.sub(r"\s+([,.;:)])", r"\1", text)
@@ -435,16 +488,107 @@ def phrase_slug(item: dict) -> str:
     return f"phrase_{digest}"
 
 
+def phrase_row_id(item: dict) -> int | None:
+    return safe_int(item.get("phrase_id") or item.get("item_id") or item.get("id"))
+
+
+def phrase_import_rows_from_text(path: Path) -> list[dict]:
+    rows = []
+    with path.open("r", encoding="utf-8-sig") as f:
+        for line_number, line in enumerate(f, start=1):
+            raw = line.strip()
+            if not raw or raw.startswith("#"):
+                continue
+            match = re.match(r"^(\d{1,6})[\s,;|\t]+(.+)$", raw)
+            if not match:
+                raise RuntimeError(
+                    f"{path.name}:{line_number}: phrase_id is required at the start of every TXT phrase line"
+                )
+            rows.append(
+                {
+                    "phrase_id": int(match.group(1)),
+                    "phrase_text": match.group(2),
+                    "source_line": line_number,
+                }
+            )
+    return rows
+
+
+def expand_phrase_import_rows(rows: list[dict]) -> list[dict]:
+    expanded = []
+    for row in rows:
+        segments = row.get("segments")
+        if isinstance(segments, list) and segments:
+            segment_count = len(segments)
+            for index, segment in enumerate(segments, start=1):
+                segment_row = dict(row)
+                segment_text = segment.get("text") if isinstance(segment, dict) else segment
+                segment_row["phrase_text"] = segment_text
+                segment_row["segment_index"] = index
+                segment_row["segment_count"] = segment_count
+                segment_row["phrase_full_text"] = (
+                    row.get("phrase_text")
+                    or row.get("text")
+                    or row.get("phrase")
+                    or row.get("uzbek")
+                    or row.get("word")
+                    or ""
+                )
+                expanded.append(segment_row)
+        else:
+            expanded.append(row)
+    return expanded
+
+
+def extract_phrases_from_pdf(path: Path) -> list[dict]:
+    try:
+        from pypdf import PdfReader  # type: ignore
+    except Exception as error:
+        raise RuntimeError("Install pypdf to import phrase PDFs") from error
+
+    rows = []
+    for page_number, page in enumerate(PdfReader(str(path)).pages, start=1):
+        lines = [(line or "").strip() for line in (page.extract_text() or "").splitlines()]
+        for index, line in enumerate(lines):
+            phrase_id = safe_int(line)
+            if phrase_id is None or phrase_id < 1:
+                continue
+            cursor = index + 1
+            while cursor < len(lines) and not lines[cursor]:
+                cursor += 1
+            if cursor >= len(lines):
+                continue
+            text = normalize_word_text(lines[cursor])
+            if not text or text.lower() in {"uzbek", "ru"}:
+                continue
+            rows.append(
+                {
+                    "phrase_id": phrase_id,
+                    "phrase_text": text,
+                    "page": page_number,
+                    "source_file": path.name,
+                    "source_set": path.stem,
+                }
+            )
+    if not rows:
+        raise RuntimeError(f"No phrase rows found in {path.name}")
+    return rows
+
+
 def normalize_phrase_item(item: dict, index: int) -> dict | None:
     text = normalize_word_text(
         str(item.get("phrase_text") or item.get("text") or item.get("phrase") or item.get("uzbek") or item.get("word") or "")
     )
     if not text:
         return None
-    phrase_id = safe_int(item.get("phrase_id") or item.get("item_id") or item.get("id"), index + 1)
+    phrase_id = phrase_row_id(item)
+    if phrase_id is None:
+        raise RuntimeError("phrase_id is required for every phrase; it must come from the source list")
     count = safe_int(item.get("gesture_count") or item.get("takes") or item.get("counts") or item.get("count"), 1) or 1
     segment_index = safe_int(item.get("segment_index") or item.get("segment"), 1) or 1
     segment_count = safe_int(item.get("segment_count") or item.get("segments"), 1) or 1
+    if segment_index > segment_count:
+        raise RuntimeError(f"phrase {phrase_id}: segment_index cannot be greater than segment_count")
     normalized_item = {
         "type": ITEM_TYPE_PHRASE,
         "phrase_id": phrase_id,
@@ -460,7 +604,9 @@ def normalize_phrase_item(item: dict, index: int) -> dict | None:
         "source_pdf": str(item.get("source_pdf") or item.get("source_file") or ""),
         "source_set": str(item.get("source_set") or "phrases"),
     }
-    for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant"):
+    if item.get("phrase_full_text") not in (None, ""):
+        normalized_item["phrase_full_text"] = normalize_word_text(str(item.get("phrase_full_text")))
+    for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant", "sign_variant", "attempt"):
         if item.get(key) not in (None, ""):
             normalized_item[key] = str(item.get(key))
     return normalized_item
@@ -495,10 +641,19 @@ def normalize_word_items(items: list) -> list[dict]:
             "source_pdf": str(item.get("source_pdf") or ""),
             "source_set": str(item.get("source_set") or ""),
         }
-        for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant"):
+        for key in ("queue_key", "signer_id", "signer_name", "source_section", "pdf_variant", "sign_variant", "attempt"):
             if item.get(key) not in (None, ""):
                 normalized_item[key] = str(item.get(key))
-        normalized.append(normalized_item)
+        if gesture_count > 1 and item.get("sign_variant") in (None, ""):
+            for variant_index in range(1, gesture_count + 1):
+                variant_item = dict(normalized_item)
+                variant_item["count"] = 1
+                variant_item["variant_count"] = gesture_count
+                variant_item["variant_index"] = variant_index
+                variant_item["sign_variant"] = take_label(variant_index)
+                normalized.append(variant_item)
+        else:
+            normalized.append(normalized_item)
     return normalized
 
 
@@ -517,18 +672,16 @@ def import_phrases_from_file(path: Path) -> list[dict]:
             rows = list(csv.DictReader(f))
         if not rows:
             raise RuntimeError("Phrase CSV has no rows")
+    elif suffix == ".pdf":
+        rows = extract_phrases_from_pdf(path)
     else:
-        rows = []
-        with path.open("r", encoding="utf-8-sig") as f:
-            for index, line in enumerate(f, start=1):
-                text = normalize_word_text(line)
-                if not text or text.startswith("#"):
-                    continue
-                rows.append({"phrase_id": index, "phrase_text": text})
+        rows = phrase_import_rows_from_text(path)
 
     phrases: list[dict] = []
-    for index, row in enumerate(rows):
-        phrase = normalize_phrase_item({**row, "source_file": path.name, "source_set": path.stem}, index)
+    for index, row in enumerate(expand_phrase_import_rows(rows)):
+        if phrase_row_id(row) is None:
+            raise RuntimeError(f"{path.name}: phrase_id is required for every phrase")
+        phrase = normalize_phrase_item({"source_file": path.name, "source_set": path.stem, **row}, index)
         if phrase:
             phrases.append(phrase)
     if not phrases:
@@ -1157,11 +1310,55 @@ def configured_phones(config: dict) -> list[dict]:
     return assign_camera_names(phones)
 
 
+def merge_reachable_configured_phones(config: dict, discovered: list[dict]) -> list[dict]:
+    merged_by_device_id = {
+        str(phone.get("device_id") or ""): dict(phone)
+        for phone in discovered
+        if phone.get("device_id")
+    }
+    merged_by_url = {
+        str(phone.get("url") or ""): dict(phone)
+        for phone in discovered
+        if phone.get("url")
+    }
+    timeout = float(config.get("timeout_seconds", 1.5))
+    for phone in configured_phones(config):
+        device_id = str(phone.get("device_id") or "")
+        url = str(phone.get("url") or "")
+        if device_id and device_id in merged_by_device_id:
+            continue
+        if url and url in merged_by_url:
+            continue
+        try:
+            payload = get_json(phone, "/status", timeout)
+        except Exception:
+            continue
+        if not payload.get("ok", True):
+            continue
+        item = dict(phone)
+        item["device_id"] = str(payload.get("deviceId") or item.get("device_id") or "")
+        item["device_name"] = str(payload.get("deviceName") or item.get("device_name") or item.get("name") or "")
+        item["device_slot"] = safe_int(payload.get("deviceSlot"), safe_int(item.get("device_slot"), 1) or 1)
+        item["device_label"] = str(payload.get("deviceLabel") or item.get("device_label") or item.get("name") or "")
+        item["camera_name"] = item.get("camera_name") or item["device_label"] or camera_name_from_slot(item["device_slot"])
+        if item["device_id"]:
+            merged_by_device_id[item["device_id"]] = item
+        else:
+            merged_by_url[url] = item
+    phones = list(merged_by_device_id.values()) + [
+        phone for url, phone in merged_by_url.items() if not phone.get("device_id")
+    ]
+    phones = assign_camera_names(phones)
+    phones.sort(key=lambda item: (safe_int(item.get("device_slot"), 9999), item.get("url", "")))
+    return phones
+
+
 def get_phones(config: dict, *, discover: bool = True) -> list[dict]:
     phones = []
     if discover and config.get("auto_discover", True):
         phones = discover_phones(config)
         if phones:
+            phones = merge_reachable_configured_phones(config, phones)
             config["phones"] = phones
             save_config(config)
     if not phones:
@@ -1200,14 +1397,16 @@ def get_json(phone: dict, endpoint: str, timeout: float) -> dict:
         return json.loads(response.read().decode("utf-8", errors="replace"))
 
 
-def video_index_from_name(name: str) -> int | None:
+def video_index_from_name(name: str, day_stamp: str | None = None) -> int | None:
+    if day_stamp and f"_{day_stamp}_" not in name:
+        return None
     match = re.search(r"_(\d+)\.mp4$", name)
     if not match:
         return None
     return safe_int(match.group(1))
 
 
-def next_record_index(config: dict, phones: list[dict], timeout: float) -> int:
+def next_record_index(config: dict, phones: list[dict], timeout: float, day_stamp: str) -> int:
     if not config.get("scan_remote_video_indexes", False):
         return int(config.get("next_index", 0))
 
@@ -1220,7 +1419,7 @@ def next_record_index(config: dict, phones: list[dict], timeout: float) -> int:
             except Exception:
                 continue
             for video in payload.get("videos", []):
-                index = video_index_from_name(str(video.get("name", "")))
+                index = video_index_from_name(str(video.get("name", "")), day_stamp)
                 if index is not None:
                     indexes.append(index)
     if indexes:
@@ -1241,12 +1440,20 @@ def local_sidecar_payload(video: dict, target: Path, phone: dict) -> dict:
     status = str(video.get("status") or ("error" if not size_bytes else "ok"))
     if safe_int(size_bytes, 0) == 0:
         status = "error"
-    return {
+    payload = {
         "record": safe_int(video.get("record") or video.get("recordIndex")),
         "signer": video.get("signer") or video.get("signerId") or video.get("signer_id"),
         "word_id": safe_int(video.get("word_id") or video.get("wordId") or video.get("global_index")),
         "word": video.get("word") or video.get("gloss_uz"),
+        "phrase_id": safe_int(video.get("phrase_id") or video.get("phraseId")),
+        "phrase_text": video.get("phrase_text") or video.get("phraseText"),
+        "file_slug": video.get("file_slug") or video.get("fileSlug"),
+        "expected_duration_sec": safe_int(video.get("expected_duration_sec") or video.get("expectedDurationSec")),
+        "segment_index": safe_int(video.get("segment_index") or video.get("segmentIndex")),
+        "segment_count": safe_int(video.get("segment_count") or video.get("segmentCount")),
         "take": video.get("take") or video.get("takeLabel") or video.get("take_label"),
+        "sign_variant": video.get("sign_variant") or video.get("signVariant"),
+        "attempt": safe_int(video.get("attempt") or video.get("attemptNumber")),
         "device": safe_int(video.get("device") or video.get("deviceSlot") or phone.get("device_slot")),
         "started_at": video.get("started_at") or video.get("recordingStartedAt"),
         "stopped_at": video.get("stopped_at") or video.get("created_at") or video.get("createdAt"),
@@ -1257,6 +1464,9 @@ def local_sidecar_payload(video: dict, target: Path, phone: dict) -> dict:
         "file": target.name,
         "source_device": phone_display_name(phone),
     }
+    if isinstance(video.get("cameraControls"), dict):
+        payload["camera_controls"] = video.get("cameraControls")
+    return payload
 
 
 def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tuple[str, str]]:
@@ -1306,11 +1516,12 @@ def build_endpoint_map(
         return {id(phone): endpoint for phone in phones}
 
     now = datetime.now()
+    recording_day = ensure_recording_day(config, now)
     date_stamp = now.strftime("%Y %m %d")
     time_stamp = now.strftime("%H%M%S")
     timeout = float(config.get("timeout_seconds", 3))
     if scan_remote_indexes:
-        record_index = next_record_index(config, phones, timeout)
+        record_index = next_record_index(config, phones, timeout, recording_day)
     else:
         record_index = int(config.get("next_index", 0))
     session_id = f"{now.strftime('%Y%m%d')}_{time_stamp}_{record_index}"
@@ -1319,6 +1530,7 @@ def build_endpoint_map(
     if task is not None:
         task["session_id"] = session_id
         task["record_index"] = record_index
+        task["recording_day"] = recording_day
         task["date"] = date_stamp
         task["time"] = time_stamp
 
@@ -1357,6 +1569,8 @@ def build_endpoint_map(
                     "word_dir": str(task.get("word_dir", "")),
                     "take_label": str(task.get("take_label", "")),
                     "take_number": str(task.get("take_number", "")),
+                    "sign_variant": str(task.get("sign_variant", "")),
+                    "attempt": str(task.get("attempt", "")),
                     "gesture_count": str(task.get("gesture_count", "")),
                     "retake": "1" if task.get("retake") else "0",
                     "app_version": APP_VERSION,
@@ -1468,6 +1682,31 @@ def check_ready_for_recording(config: dict, phones: list[dict], timeout: float) 
             )
     if warnings:
         raise RuntimeError("Нельзя начать запись:\n" + "\n".join(warnings))
+
+
+def validate_camera_layout(config: dict) -> None:
+    phones = configured_phones(config)
+    problems = []
+    slots: dict[int, str] = {}
+    cameras: dict[str, str] = {}
+    for phone in phones:
+        name = phone_display_name(phone)
+        slot = safe_int(phone.get("device_slot"))
+        camera = safe_name(str(phone.get("camera_name") or ""))
+        if slot is None or slot < 1:
+            problems.append(f"{name}: missing slot")
+        elif slot in slots:
+            problems.append(f"{name}: slot {slot} duplicates {slots[slot]}")
+        else:
+            slots[slot] = name
+        if not camera:
+            problems.append(f"{name}: missing camera name")
+        elif camera in cameras:
+            problems.append(f"{name}: camera {camera} duplicates {cameras[camera]}")
+        else:
+            cameras[camera] = name
+    if problems:
+        raise RuntimeError("Camera layout is not ready:\n" + "\n".join(problems))
 
 
 def format_bytes(value: int | float | None) -> str:
@@ -2066,6 +2305,14 @@ class ControllerApp:
         self.device_slot_var = StringVar()
         self.camera_name_var = StringVar()
 
+        device_edit = ttk.Frame(devices)
+        device_edit.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        ttk.Label(device_edit, text="Slot").pack(side="left")
+        ttk.Entry(device_edit, textvariable=self.device_slot_var, width=6).pack(side="left", padx=(6, 12))
+        ttk.Label(device_edit, text="Camera name").pack(side="left")
+        ttk.Entry(device_edit, textvariable=self.camera_name_var, width=18).pack(side="left", padx=(6, 12))
+        ttk.Button(device_edit, text="SAVE DEVICE MAPPING", command=self.save_selected_device).pack(side="left")
+
         videos = ttk.Frame(frame)
         video_top_actions = ttk.Frame(videos)
         ttk.Label(video_top_actions, text="Select a video row, then choose:").pack(side="left", padx=(0, 10))
@@ -2332,6 +2579,7 @@ class ControllerApp:
         return {
             "session": task.get("session_id"),
             "record": task.get("record_index"),
+            "recording_day": task.get("recording_day"),
             "signer": task.get("signer_id"),
             "signer_name": task.get("signer_name"),
             "word_id": safe_int(task.get("word_id")),
@@ -2343,9 +2591,26 @@ class ControllerApp:
             "segment_index": safe_int(task.get("segment_index")),
             "segment_count": safe_int(task.get("segment_count")),
             "take": task.get("take_label"),
+            "sign_variant": task.get("sign_variant"),
+            "attempt": safe_int(task.get("attempt")),
             "mode": task.get("mode"),
             "app_version": task.get("app_version") or APP_VERSION,
             "devices": devices,
+        }
+
+    def camera_layout_event_fields(self) -> dict:
+        return {
+            "devices": [
+                {
+                    "device": phone_display_name(phone),
+                    "device_id": phone.get("device_id"),
+                    "device_name": phone.get("device_name"),
+                    "slot": safe_int(phone.get("device_slot")),
+                    "camera": phone.get("camera_name"),
+                    "url": phone.get("url"),
+                }
+                for phone in configured_phones(self.config)
+            ],
         }
 
     def log_phone_results(self, event: str, results: list[tuple[str, str]]) -> None:
@@ -2393,6 +2658,21 @@ class ControllerApp:
                     session=p.get("sessionId"),
                     file=p.get("lastVideoName") or p.get("activeVideoName"),
                     size_bytes=z,
+                    duration_ms=safe_int(
+                        (p.get("lastVideoMetadata") if isinstance(p.get("lastVideoMetadata"), dict) else {}).get("duration_ms")
+                        if isinstance(p.get("lastVideoMetadata"), dict)
+                        else None
+                    ),
+                    sign_variant=(
+                        p.get("lastVideoMetadata", {}).get("sign_variant")
+                        if isinstance(p.get("lastVideoMetadata"), dict)
+                        else None
+                    ),
+                    attempt=safe_int(
+                        p.get("lastVideoMetadata", {}).get("attempt")
+                        if isinstance(p.get("lastVideoMetadata"), dict)
+                        else None
+                    ),
                 ),
             )
 
@@ -2400,12 +2680,6 @@ class ControllerApp:
         failures = []
         expected_session = str(task.get("session_id")) if task and task.get("session_id") else ""
         expected_record = safe_int(task.get("record_index")) if task else None
-        durations: list[tuple[str, int]] = []
-        expected_duration_ms = None
-        if task and str(task.get("mode") or "") == ITEM_TYPE_PHRASE:
-            expected_duration_sec = safe_int(task.get("expected_duration_sec"))
-            if expected_duration_sec:
-                expected_duration_ms = expected_duration_sec * 1000
         for name, body in results:
             try:
                 payload = json.loads(body)
@@ -2421,9 +2695,6 @@ class ControllerApp:
                 continue
             metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else {}
             actual_record = safe_int(payload.get("recordIndex") or metadata.get("recordIndex") or metadata.get("record"))
-            duration_ms = safe_int(metadata.get("duration_ms") or metadata.get("durationMs"))
-            if duration_ms is not None:
-                durations.append((name, duration_ms))
             if expected_record is not None and actual_record is not None and actual_record != expected_record:
                 failures.append(f"{name}: record mismatch ({actual_record})")
                 continue
@@ -2431,15 +2702,46 @@ class ControllerApp:
                 failures.append(f"{name}: no saved file confirmation")
             elif size_bytes is not None and size_bytes <= 0:
                 failures.append(f"{name}: zero-byte file")
-            elif expected_duration_ms is not None and duration_ms is not None and duration_ms < max(0, expected_duration_ms - 1000):
-                failures.append(f"{name}: duration too short ({duration_ms}ms, expected ~{expected_duration_ms}ms)")
-        if len(durations) >= 2:
-            min_name, min_duration = min(durations, key=lambda item: item[1])
-            max_name, max_duration = max(durations, key=lambda item: item[1])
-            spread = max_duration - min_duration
-            if spread > 1500:
-                failures.append(f"duration spread too high ({spread}ms: {min_name}={min_duration}, {max_name}={max_duration})")
+        duration_check = self.duration_check(results, task)
+        failures.extend(duration_check.get("failures", []))
         return failures
+
+    def duration_check(self, results: list[tuple[str, str]], task: dict | None = None) -> dict:
+        tolerance_ms = int(self.config.get("duration_check_tolerance_ms", 1500))
+        expected_duration_ms = None
+        if task and str(task.get("mode") or "") == ITEM_TYPE_PHRASE:
+            expected_duration_sec = safe_int(task.get("expected_duration_sec"))
+            if expected_duration_sec:
+                expected_duration_ms = expected_duration_sec * 1000
+
+        durations: dict[str, int] = {}
+        failures: list[str] = []
+        for name, body in results:
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError:
+                continue
+            metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else {}
+            duration_ms = safe_int(metadata.get("duration_ms") or metadata.get("durationMs"))
+            if duration_ms is None:
+                continue
+            durations[name] = duration_ms
+            if expected_duration_ms is not None and abs(duration_ms - expected_duration_ms) > tolerance_ms:
+                failures.append(f"{name}: duration out of range ({duration_ms}ms, expected {expected_duration_ms}ms +/- {tolerance_ms}ms)")
+
+        spread_ms = None
+        if len(durations) >= 2:
+            spread_ms = max(durations.values()) - min(durations.values())
+            if spread_ms > tolerance_ms:
+                failures.append(f"duration spread too high ({spread_ms}ms)")
+        return {
+            "ok": not failures,
+            "expected_duration_ms": expected_duration_ms,
+            "tolerance_ms": tolerance_ms,
+            "camera_duration_ms": durations,
+            "spread_ms": spread_ms,
+            "failures": failures,
+        }
 
     def save_dataset(self) -> None:
         self.dataset_state["selected_signer_id"] = self.selected_signer_id()
@@ -2674,9 +2976,15 @@ class ControllerApp:
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
         item_label = "phrase" if str(word.get("type") or ITEM_TYPE_WORD) == ITEM_TYPE_PHRASE else "word"
+        if self.dataset_state.get("retake_mode") and self.dataset_state.get("retake_sign_variant"):
+            sign_variant = normalize_sign_variant(self.dataset_state.get("retake_sign_variant"))
+            attempt = normalize_attempt(self.dataset_state.get("retake_attempt"), 1) + 1
+        else:
+            sign_variant = normalize_sign_variant(word.get("sign_variant"), take_label(min(done + 1, gesture_count)))
+            attempt = 1
         self.word_var.set(word_display(word))
         self.progress_var.set(
-            f"Signer: {self.signer_var.get()} / {item_label} {view_index + 1}/{len(words)} / take {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
+            f"Signer: {self.signer_var.get()} / {item_label} {view_index + 1}/{len(words)} / variant {sign_variant} attempt {attempt} / item {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
         )
         self.refresh_word_columns()
 
@@ -2707,6 +3015,8 @@ class ControllerApp:
                 word_id = word_number_prefix(word.get("phrase_id") if is_phrase else word.get("word_id"))
                 label_prefix = f"P{word_id}" if is_phrase and word_id else word_id
                 label = f"{label_prefix} {word.get('phrase_text') or word.get('uzbek', '')}".strip()
+                if word.get("sign_variant"):
+                    label = f"{label} [{normalize_sign_variant(word.get('sign_variant'))}]"
                 if word.get("signer_id") and not self.is_per_signer_retake_import():
                     signer_name = signer_names(self.dataset_state).get(str(word.get("signer_id")), str(word.get("signer_name") or ""))
                     label = f"{signer_name}: {label}".strip()
@@ -2714,7 +3024,11 @@ class ControllerApp:
                     "",
                     "end",
                     iid=str(index),
-                    values=(label, word_gesture_count(word, self.dataset_state.get("gesture_count", 1)), take_label(done + 1)),
+                    values=(
+                        label,
+                        word_gesture_count(word, self.dataset_state.get("gesture_count", 1)),
+                        f"{normalize_sign_variant(word.get('sign_variant'), take_label(done + 1))}_1",
+                    ),
                     tags=tuple(tags),
                 )
 
@@ -2831,11 +3145,13 @@ class ControllerApp:
     def import_phrases_clicked(self) -> None:
         paths = filedialog.askopenfilenames(
             title="Import phrase files",
+            initialdir=str(app_dir()),
             filetypes=(
-                ("Phrase files", "*.txt *.csv *.json"),
+                ("Phrase files", "*.txt *.csv *.json *.pdf"),
                 ("Text files", "*.txt"),
                 ("CSV files", "*.csv"),
                 ("JSON files", "*.json"),
+                ("PDF files", "*.pdf"),
                 ("All files", "*.*"),
             ),
         )
@@ -2896,6 +3212,16 @@ class ControllerApp:
         word_id = word.get("word_id", "")
         phrase_id = word.get("phrase_id", "") if item_type == ITEM_TYPE_PHRASE else ""
         file_slug = phrase_slug(word) if item_type == ITEM_TYPE_PHRASE else word_dir_name(word)
+        retake_mode = bool(self.dataset_state.get("retake_mode", False))
+        if retake_mode and self.dataset_state.get("retake_sign_variant"):
+            sign_variant = normalize_sign_variant(self.dataset_state.get("retake_sign_variant"))
+            attempt = normalize_attempt(self.dataset_state.get("retake_attempt"), 1) + 1
+        else:
+            sign_variant = normalize_sign_variant(
+                word.get("sign_variant"),
+                take_label(min(take_number, gesture_count)),
+            )
+            attempt = normalize_attempt(word.get("attempt"), 1)
         return {
             "signer_id": signer_id,
             "signer_name": signer_name,
@@ -2912,9 +3238,11 @@ class ControllerApp:
             "list": word.get("source_set", ""),
             "word_dir": file_slug,
             "take_number": take_number,
-            "take_label": take_label(take_number),
+            "take_label": sign_variant,
+            "sign_variant": sign_variant,
+            "attempt": attempt,
             "gesture_count": gesture_count,
-            "retake": bool(self.dataset_state.get("retake_mode", False)),
+            "retake": retake_mode,
             "app_version": APP_VERSION,
         }
 
@@ -2935,6 +3263,8 @@ class ControllerApp:
             self.dataset_state["main_word_index"] = next_index
             self.dataset_state["view_word_index"] = next_index
         self.dataset_state["retake_mode"] = False
+        self.dataset_state.pop("retake_sign_variant", None)
+        self.dataset_state.pop("retake_attempt", None)
         self.save_dataset()
         self.refresh_dataset_labels()
 
@@ -3094,9 +3424,18 @@ class ControllerApp:
         words = self.active_words()
         video_word_id = str(video.get("wordId") or video.get("word_id") or "")
         video_signer_id = str(video.get("signer") or video.get("signerId") or "")
+        video_sign_variant = str(video.get("sign_variant") or video.get("signVariant") or video.get("takeLabel") or "")
+        video_attempt = safe_int(video.get("attempt") or video.get("attemptNumber"), 1) or 1
 
         def matches_video(word: dict) -> bool:
-            return str(word.get("uzbek")) == word_value or str(word.get("word_id")) == video_word_id
+            word_phrase_id = str(word.get("phrase_id") or "")
+            video_phrase_id = str(video.get("phraseId") or video.get("phrase_id") or "")
+            return (
+                str(word.get("uzbek")) == word_value
+                or str(word.get("phrase_text")) == word_value
+                or (video_word_id and str(word.get("word_id")) == video_word_id)
+                or (video_phrase_id and word_phrase_id == video_phrase_id)
+            )
 
         for index, word in enumerate(words):
             if word.get("signer_id") and video_signer_id and str(word.get("signer_id")) != video_signer_id:
@@ -3105,6 +3444,8 @@ class ControllerApp:
                 self.dataset_state["view_word_index"] = index
                 self.dataset_state["manual_back_mode"] = True
                 self.dataset_state["retake_mode"] = True
+                self.dataset_state["retake_sign_variant"] = normalize_sign_variant(video_sign_variant)
+                self.dataset_state["retake_attempt"] = video_attempt
                 self.save_dataset()
                 self.refresh_dataset_labels()
                 if write_message:
@@ -3115,6 +3456,8 @@ class ControllerApp:
                 self.dataset_state["view_word_index"] = index
                 self.dataset_state["manual_back_mode"] = True
                 self.dataset_state["retake_mode"] = True
+                self.dataset_state["retake_sign_variant"] = normalize_sign_variant(video_sign_variant)
+                self.dataset_state["retake_attempt"] = video_attempt
                 self.save_dataset()
                 self.refresh_dataset_labels()
                 if write_message:
@@ -3524,9 +3867,14 @@ class ControllerApp:
                 timeout = float(self.config.get("timeout_seconds", 3))
                 check_all_configured_phones_online(self.config, timeout)
                 check_ready_for_recording(self.config, phones, timeout)
+                validate_camera_layout(self.config)
                 self.root.after(
                     0,
                     lambda: self.recording_event_write("START_PENDING", **self.task_event_fields(task)),
+                )
+                self.root.after(
+                    0,
+                    lambda: self.recording_event_write("CAMERA_LAYOUT", **self.camera_layout_event_fields()),
                 )
                 results = send_start_fast(self.config, task=task)
                 failures = start_result_failures(results, required)
@@ -3602,6 +3950,7 @@ class ControllerApp:
                     videos = list_videos_all(self.config)
                 saved_log = self.save_recording_log_file()
                 results = confirm_stop_saves(self.config, results, task)
+                duration_check = self.duration_check(results, task)
                 failures = self.stop_save_failures(results, task)
 
                 def apply_stop() -> None:
@@ -3612,7 +3961,12 @@ class ControllerApp:
                     self.record_session_history("http")
                     self.recording_event_write("STOP", **self.task_event_fields(task))
                     self.log_phone_results("STOP_SAVE", results)
-                    failed_names = {item.split(":", 1)[0] for item in failures}
+                    result_names = {name for name, _body in results}
+                    failed_names = {
+                        item.split(":", 1)[0]
+                        for item in failures
+                        if item.split(":", 1)[0] in result_names
+                    }
                     required = int(self.config.get("required_phone_count", self.config.get("min_phones", len(results) or 1)))
                     saved_ok = max(0, len(results) - len(failed_names))
                     self.recording_event_write(
@@ -3621,6 +3975,7 @@ class ControllerApp:
                         saved_ok=saved_ok,
                         failed=len(failed_names),
                         failures=failures,
+                        duration_check=duration_check,
                         **self.task_event_fields(task),
                     )
                     for name, _body in results:

@@ -360,6 +360,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   double _maxZoom = 1;
   double _zoom = 1;
   double _zoomAtScaleStart = 1;
+  double? _lockedExposureOffsetEv;
+  bool _exposureLockReady = false;
+  String _exposureLockError = '';
   int _fpsFrameCount = 0;
   DateTime? _fpsWindowStartedAt;
   Size? _previewReferenceSize;
@@ -392,6 +395,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String _sessionWordDir = '';
   String _sessionTakeLabel = 'a';
   int _sessionTakeNumber = 1;
+  String _sessionSignVariant = 'a';
+  int _sessionAttempt = 1;
   int _sessionGestureCount = 1;
   bool _sessionRetake = false;
   String _sessionAppVersion = appVersion;
@@ -531,10 +536,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   ]) async {
     final camera = controller ?? _camera;
     if (camera == null || !camera.value.isInitialized) return;
+    if (_recording || camera.value.isRecordingVideo) return;
 
-    try {
-      await camera.setExposureMode(ExposureMode.locked);
-    } catch (_) {}
+    await _lockExposure(camera);
 
     try {
       await camera.setFocusMode(
@@ -546,6 +550,32 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       try {
         await camera.setFocusPoint(null);
       } catch (_) {}
+    }
+  }
+
+  Future<void> _lockExposure(CameraController camera) async {
+    _exposureLockReady = false;
+    _exposureLockError = '';
+    try {
+      await camera.setExposureMode(ExposureMode.auto);
+    } catch (_) {}
+    try {
+      await camera.setExposurePoint(const Offset(0.5, 0.5));
+    } catch (_) {}
+    try {
+      final minOffset = await camera.getMinExposureOffset();
+      final maxOffset = await camera.getMaxExposureOffset();
+      final offset = 0.0.clamp(minOffset, maxOffset).toDouble();
+      _lockedExposureOffsetEv = await camera.setExposureOffset(offset);
+    } catch (error) {
+      _lockedExposureOffsetEv = null;
+      _exposureLockError = '$error';
+    }
+    try {
+      await camera.setExposureMode(ExposureMode.locked);
+      _exposureLockReady = true;
+    } catch (error) {
+      _exposureLockError = '$error';
     }
   }
 
@@ -694,6 +724,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               wordDir: params['word_dir'],
               takeLabel: params['take_label'],
               takeNumber: int.tryParse(params['take_number'] ?? ''),
+              signVariant: params['sign_variant'],
+              attempt: int.tryParse(params['attempt'] ?? ''),
               gestureCount: int.tryParse(params['gesture_count'] ?? ''),
               retake: params['retake'] == '1',
               controllerAppVersion: params['app_version'],
@@ -801,6 +833,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'autoExposure': _settings.autoExposure,
       'autoFocus': _settings.autoFocus,
       'cameraAutomationReady': _cameraAutomationReady,
+      'cameraControls': _cameraControlsPayload(),
       'freeStorageBytes': nativeStatus['freeStorageBytes'],
       'totalStorageBytes': nativeStatus['totalStorageBytes'],
       'batteryPercent': nativeStatus['batteryPercent'],
@@ -820,6 +853,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'sessionMode': _sessionMode,
       'sessionWord': _sessionWord,
       'sessionTakeLabel': _sessionTakeLabel,
+      'sessionSignVariant': _sessionSignVariant,
+      'sessionAttempt': _sessionAttempt,
     };
   }
 
@@ -950,6 +985,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     String? wordDir,
     String? takeLabel,
     int? takeNumber,
+    String? signVariant,
+    int? attempt,
     int? gestureCount,
     bool? retake,
     String? controllerAppVersion,
@@ -993,6 +1030,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     );
     _sessionTakeNumber = (takeNumber ?? 1).clamp(1, 9999);
     _sessionTakeLabel = _cleanName(takeLabel ?? _takeLabel(_sessionTakeNumber));
+    _sessionSignVariant = _cleanName(
+      (signVariant ?? _sessionTakeLabel).trim().isEmpty
+          ? _sessionTakeLabel
+          : signVariant!,
+    );
+    _sessionAttempt = (attempt ?? 1).clamp(1, 9999);
     _sessionGestureCount = (gestureCount ?? 1).clamp(1, 9999);
     _sessionRetake = retake ?? false;
     _sessionAppVersion = (controllerAppVersion ?? appVersion).trim().isEmpty
@@ -1010,10 +1053,13 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       word: _sessionWord,
       wordDir: _sessionWordDir,
       takeLabel: _sessionTakeLabel,
+      signVariant: _sessionSignVariant,
+      attempt: _sessionAttempt,
       retake: _sessionRetake,
     );
     _recordingStartedAt = now;
 
+    await _lockExposure(camera);
     await _stopFpsStream(camera);
     _resetFpsCounter();
     debugPrint(
@@ -1117,6 +1163,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       word: _sessionWord,
       wordDir: _sessionWordDir,
       takeLabel: _sessionTakeLabel,
+      signVariant: _sessionSignVariant,
+      attempt: _sessionAttempt,
       retake: _sessionRetake,
     );
     final mirrorDir = await _videoDir(
@@ -1194,6 +1242,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'segment_index': _sessionSegmentIndex,
       'segment_count': _sessionSegmentCount,
       'take': _sessionTakeLabel,
+      'sign_variant': _sessionSignVariant,
+      'attempt': _sessionAttempt,
       'device': _settings.deviceSlot,
       'started_at': startedAt?.toIso8601String(),
       'stopped_at': finishedAt.toIso8601String(),
@@ -1229,14 +1279,36 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'wordDir': _sessionWordDir,
       'takeLabel': _sessionTakeLabel,
       'takeNumber': _sessionTakeNumber,
+      'signVariant': _sessionSignVariant,
+      'attemptNumber': _sessionAttempt,
       'gestureCount': _sessionGestureCount,
       'recordIndex': savedIndex,
       'deviceId': _nativeDeviceId,
       'deviceName': _nativeDeviceName,
       'deviceLabel': _settings.deviceLabel,
       'cameraName': savedCameraName,
+      'cameraControls': _cameraControlsPayload(),
       'sessionId': _sessionId,
       'createdAt': finishedAt.toIso8601String(),
+    };
+  }
+
+  Map<String, Object?> _cameraControlsPayload() {
+    return {
+      'exposure_mode': 'locked',
+      'exposure_lock_ready': _exposureLockReady,
+      'exposure_offset_ev': _lockedExposureOffsetEv,
+      'exposure_point': {'x': 0.5, 'y': 0.5},
+      'exposure_lock_error': _exposureLockError.isEmpty
+          ? null
+          : _exposureLockError,
+      'iso': null,
+      'white_balance': 'not_available_camera_plugin',
+      'focus_mode': _settings.autoFocus ? 'auto' : 'locked',
+      'focus_point': _settings.autoFocus ? 'center_or_metering_default' : null,
+      'automation_ready': _cameraAutomationReady,
+      'zoom': _zoom,
+      'actual_fps': _actualFps,
     };
   }
 
@@ -1304,6 +1376,8 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     String word = 'word',
     String wordDir = 'word',
     String takeLabel = 'a',
+    String? signVariant,
+    int? attempt,
     bool retake = false,
   }) {
     final prefix = _settings.filePrefix.isEmpty
@@ -1313,8 +1387,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     final base = mode == 'background'
         ? 'background'
         : _cleanName(wordDir.isEmpty ? word : wordDir);
+    final variant = _cleanName(signVariant ?? takeLabel);
+    final attemptText = (attempt ?? 1).clamp(1, 9999).toString();
     final retakePart = retake ? '_retake' : '';
-    return '$prefix${base}_${_cleanName(takeLabel)}${retakePart}_${_cleanName(cameraName)}_${compactDate}_${time}_$index.mp4';
+    return [
+      '$prefix$base',
+      variant,
+      '$attemptText$retakePart',
+      _cleanName(cameraName),
+      compactDate,
+      time,
+      '$index.mp4',
+    ].join('_');
   }
 
   String _takeLabel(int takeNumber) {
@@ -1997,6 +2081,8 @@ class _ScreenRecordingController implements RecordingController {
     String? wordDir,
     String? takeLabel,
     int? takeNumber,
+    String? signVariant,
+    int? attempt,
     int? gestureCount,
     bool? retake,
   }) {
@@ -2022,6 +2108,8 @@ class _ScreenRecordingController implements RecordingController {
         wordDir: wordDir,
         takeLabel: takeLabel,
         takeNumber: takeNumber,
+        signVariant: signVariant,
+        attempt: attempt,
         gestureCount: gestureCount,
         retake: retake,
       ),

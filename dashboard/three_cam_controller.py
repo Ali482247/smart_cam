@@ -1199,6 +1199,33 @@ def normalize_url(url: str) -> str:
     return url.rstrip("/")
 
 
+def status_wifi_url(payload: dict, config: dict) -> str | None:
+    ip = str(payload.get("ip") or "").strip()
+    if not ip or ip.startswith("127.") or ip.lower() == "localhost":
+        return None
+    port = safe_int(payload.get("port"), int(config.get("control_port", 8088)))
+    if not port:
+        return None
+    return f"http://{ip}:{port}"
+
+
+def reachable_wifi_url_from_status(payload: dict, config: dict, timeout: float) -> str | None:
+    wifi_url = status_wifi_url(payload, config)
+    if not wifi_url:
+        return None
+    try:
+        wifi_payload = get_json({"url": wifi_url}, "/status", timeout)
+    except Exception:
+        return None
+    if not wifi_payload.get("ok", True):
+        return None
+    expected_device_id = str(payload.get("deviceId") or payload.get("device_id") or "")
+    actual_device_id = str(wifi_payload.get("deviceId") or wifi_payload.get("device_id") or "")
+    if expected_device_id and actual_device_id and expected_device_id != actual_device_id:
+        return None
+    return wifi_url
+
+
 def local_broadcast_addresses() -> list[str]:
     addresses = {"255.255.255.255"}
     hostname = socket.gethostname()
@@ -1354,21 +1381,25 @@ def adb_forwarded_phones(config: dict) -> list[dict]:
             continue
         if not payload.get("ok", True):
             continue
+        adb_url = f"http://127.0.0.1:{local_port}"
+        wifi_url = reachable_wifi_url_from_status(payload, config, timeout)
+        url = wifi_url or adb_url
         slot = safe_int(payload.get("deviceSlot"), index + 1) or (index + 1)
         label = str(payload.get("deviceLabel") or f"device_{slot}")
-        phones.append(
-            {
-                "name": label,
-                "url": f"http://127.0.0.1:{local_port}",
-                "device_id": str(payload.get("deviceId") or serial),
-                "device_name": str(payload.get("deviceName") or serial),
-                "device_slot": slot,
-                "device_label": label,
-                "camera_name": safe_name(label) or camera_name_from_slot(slot),
-                "adb_serial": serial,
-                "transport": "adb_forward",
-            }
-        )
+        phone = {
+            "name": label,
+            "url": url,
+            "device_id": str(payload.get("deviceId") or serial),
+            "device_name": str(payload.get("deviceName") or serial),
+            "device_slot": slot,
+            "device_label": label,
+            "camera_name": safe_name(label) or camera_name_from_slot(slot),
+            "adb_serial": serial,
+            "transport": "wifi" if wifi_url else "adb_forward",
+        }
+        if wifi_url:
+            phone["fallback_url"] = adb_url
+        phones.append(phone)
     phones.sort(key=lambda item: (safe_int(item.get("device_slot"), 9999), item.get("url", "")))
     return assign_camera_names(phones)
 
@@ -1425,6 +1456,14 @@ def merge_reachable_configured_phones(config: dict, discovered: list[dict]) -> l
         item["device_slot"] = safe_int(payload.get("deviceSlot"), safe_int(item.get("device_slot"), 1) or 1)
         item["device_label"] = str(payload.get("deviceLabel") or item.get("device_label") or item.get("name") or "")
         item["camera_name"] = item.get("camera_name") or item["device_label"] or camera_name_from_slot(item["device_slot"])
+        wifi_url = reachable_wifi_url_from_status(payload, config, timeout)
+        if wifi_url and normalize_url(wifi_url) != normalize_url(url):
+            if url:
+                item["fallback_url"] = url
+            item["url"] = wifi_url
+            if item.get("transport") == "adb_forward":
+                item["transport"] = "wifi"
+            url = wifi_url
         if item["device_id"]:
             merged_by_device_id[item["device_id"]] = item
         else:

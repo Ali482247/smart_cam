@@ -6,6 +6,7 @@ import zlib
 import json
 import re
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -108,6 +109,8 @@ def default_config() -> dict:
         "next_index": 0,
         "recording_day": "",
         "next_device_slot": 1,
+        "enable_adb_usb_fallback": True,
+        "adb_forward_base_port": 18088,
         "required_phone_count": 3,
         "block_recording_if_missing_phones": True,
         "min_free_storage_bytes": 1073741824,
@@ -1310,6 +1313,87 @@ def configured_phones(config: dict) -> list[dict]:
     return assign_camera_names(phones)
 
 
+def adb_device_serials() -> list[str]:
+    try:
+        result = subprocess.run(
+            ["adb", "devices"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    serials = []
+    for line in result.stdout.splitlines()[1:]:
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "device":
+            serials.append(parts[0])
+    return serials
+
+
+def adb_forwarded_phones(config: dict) -> list[dict]:
+    if not config.get("enable_adb_usb_fallback", True):
+        return []
+    control_port = int(config.get("control_port", 8088))
+    base_port = int(config.get("adb_forward_base_port", 18088))
+    timeout = float(config.get("timeout_seconds", 1.5))
+    phones = []
+    for index, serial in enumerate(adb_device_serials()):
+        local_port = base_port + index
+        try:
+            subprocess.run(
+                ["adb", "-s", serial, "forward", f"tcp:{local_port}", f"tcp:{control_port}"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            payload = get_json({"url": f"http://127.0.0.1:{local_port}"}, "/status", timeout)
+        except Exception:
+            continue
+        if not payload.get("ok", True):
+            continue
+        slot = safe_int(payload.get("deviceSlot"), index + 1) or (index + 1)
+        label = str(payload.get("deviceLabel") or f"device_{slot}")
+        phones.append(
+            {
+                "name": label,
+                "url": f"http://127.0.0.1:{local_port}",
+                "device_id": str(payload.get("deviceId") or serial),
+                "device_name": str(payload.get("deviceName") or serial),
+                "device_slot": slot,
+                "device_label": label,
+                "camera_name": safe_name(label) or camera_name_from_slot(slot),
+                "adb_serial": serial,
+                "transport": "adb_forward",
+            }
+        )
+    phones.sort(key=lambda item: (safe_int(item.get("device_slot"), 9999), item.get("url", "")))
+    return assign_camera_names(phones)
+
+
+def merge_missing_phones(primary: list[dict], fallback: list[dict]) -> list[dict]:
+    merged = []
+    seen_device_ids = set()
+    seen_urls = set()
+    for phone in primary + fallback:
+        device_id = str(phone.get("device_id") or "")
+        url = str(phone.get("url") or "")
+        if device_id and device_id in seen_device_ids:
+            continue
+        if not device_id and url in seen_urls:
+            continue
+        merged.append(dict(phone))
+        if device_id:
+            seen_device_ids.add(device_id)
+        if url:
+            seen_urls.add(url)
+    merged = assign_camera_names(merged)
+    merged.sort(key=lambda item: (safe_int(item.get("device_slot"), 9999), item.get("url", "")))
+    return merged
+
+
 def merge_reachable_configured_phones(config: dict, discovered: list[dict]) -> list[dict]:
     merged_by_device_id = {
         str(phone.get("device_id") or ""): dict(phone)
@@ -1357,12 +1441,15 @@ def get_phones(config: dict, *, discover: bool = True) -> list[dict]:
     phones = []
     if discover and config.get("auto_discover", True):
         phones = discover_phones(config)
+        phones = merge_missing_phones(merge_reachable_configured_phones(config, phones), adb_forwarded_phones(config))
         if phones:
-            phones = merge_reachable_configured_phones(config, phones)
             config["phones"] = phones
             save_config(config)
     if not phones:
-        phones = configured_phones(config)
+        phones = merge_missing_phones(configured_phones(config), adb_forwarded_phones(config))
+        if phones:
+            config["phones"] = phones
+            save_config(config)
 
     min_phones = int(config.get("min_phones", 1))
     if len(phones) < min_phones:
@@ -3703,7 +3790,11 @@ class ControllerApp:
 
     def discover_clicked(self) -> None:
         def action() -> str:
-            phones = discover_phones(self.config)
+            discovered = discover_phones(self.config)
+            phones = merge_missing_phones(
+                merge_reachable_configured_phones(self.config, discovered),
+                adb_forwarded_phones(self.config),
+            )
             if phones:
                 self.config["phones"] = phones
                 save_config(self.config)

@@ -13,8 +13,8 @@
   "post_stop_confirm_interval_seconds": 0.75,
   "post_stop_video_refresh_delay_seconds": 1.5,
   "auto_refresh_videos_after_stop": false,
-  "next_index": 389,
-  "recording_day": "",
+  "next_index": 398,
+  "recording_day": "20260909",
   "next_device_slot": 1,
   "enable_adb_usb_fallback": true,
   "adb_forward_base_port": 18088,
@@ -59,14 +59,15 @@
     },
     {
       "name": "device_3",
-      "url": "http://127.0.0.1:18088",
+      "url": "http://192.168.1.9:8088",
       "device_id": "6a4b5e45cac6598c",
       "device_name": "24117RN76G",
       "device_slot": 3,
       "device_label": "device_3",
       "camera_name": "device_3",
       "adb_serial": "4hgux8obwks4w46h",
-      "transport": "adb_forward"
+      "transport": "wifi",
+      "fallback_url": "http://127.0.0.1:18088"
     }
   ],
   "start_retry_count": 1

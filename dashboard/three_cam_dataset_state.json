@@ -1607,10 +1607,14 @@
       "source_set": "block01_base_lexicon_cleaned"
     }
   ],
-  "main_word_index": 0,
-  "view_word_index": 0,
+  "main_word_index": 3,
+  "view_word_index": 3,
   "gesture_count": 1,
-  "takes_done_by_word": {},
+  "takes_done_by_word": {
+    "phrase:1357:seg1": 3,
+    "phrase:1358:seg1": 1,
+    "phrase:1359:seg1": 1
+  },
   "custom_signers": [
     [
       "signer_15",
@@ -1622,5 +1626,9 @@
   "background_mode": false,
   "manual_back_mode": false,
   "retake_mode": false,
-  "recording_status_by_word": {}
+  "recording_status_by_word": {
+    "phrase:1357:seg1": "ok",
+    "phrase:1358:seg1": "ok",
+    "phrase:1359:seg1": "ok"
+  }
 }

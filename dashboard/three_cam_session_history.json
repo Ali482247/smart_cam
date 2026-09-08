@@ -1,59 +1,5 @@
 [
   {
-    "started_at": "2026-09-04T13:19:37",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:19:47",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:20:01",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:20:14",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:20:26",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:20:52",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:21:06",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:21:18",
-    "mode": "http",
-    "duration_seconds": 5,
-    "phones": 3
-  },
-  {
-    "started_at": "2026-09-04T13:21:29",
-    "mode": "http",
-    "duration_seconds": 4,
-    "phones": 3
-  },
-  {
     "started_at": "2026-09-04T13:21:48",
     "mode": "http",
     "duration_seconds": 5,
@@ -1197,6 +1143,60 @@
     "started_at": "2026-09-05T15:44:53",
     "mode": "http",
     "duration_seconds": 9,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T02:55:40",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T02:55:54",
+    "mode": "http",
+    "duration_seconds": 7,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:07:25",
+    "mode": "http",
+    "duration_seconds": 6,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:07:52",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:08:24",
+    "mode": "http",
+    "duration_seconds": 7,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:08:36",
+    "mode": "http",
+    "duration_seconds": 5,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:08:48",
+    "mode": "http",
+    "duration_seconds": 6,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:09:00",
+    "mode": "http",
+    "duration_seconds": 7,
+    "phones": 3
+  },
+  {
+    "started_at": "2026-09-09T03:09:13",
+    "mode": "http",
+    "duration_seconds": 5,
     "phones": 3
   }
 ]

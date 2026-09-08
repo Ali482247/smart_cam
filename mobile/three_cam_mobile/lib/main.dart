@@ -1059,7 +1059,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     );
     _recordingStartedAt = now;
 
-    await _lockExposure(camera);
+    if (!_exposureLockReady) {
+      await _lockExposure(camera);
+    }
     await _stopFpsStream(camera);
     _resetFpsCounter();
     debugPrint(

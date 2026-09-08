@@ -1780,7 +1780,54 @@ def check_all_configured_phones_online(config: dict, timeout: float) -> None:
         )
 
 
-def check_ready_for_recording(config: dict, phones: list[dict], timeout: float) -> None:
+def check_ready_for_recording(
+    config: dict,
+    phones: list[dict],
+    timeout: float,
+    required: int | None = None,
+) -> None:
+    if required is not None and len(phones) < required:
+        raise RuntimeError(f"WARNING: configured {len(phones)}/{required} phones. Recording blocked.")
+    min_free = int(config.get("min_free_storage_bytes", 1073741824))
+    min_battery = int(config.get("min_battery_percent", 15))
+    warnings = []
+    online = 0
+    with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
+        futures = {executor.submit(get_json, phone, "/status", timeout): phone for phone in phones}
+        for future in as_completed(futures):
+            phone = futures[future]
+            name = phone_display_name(phone)
+            try:
+                status = future.result()
+            except Exception as error:
+                warnings.append(f"{name}: status error: {error}")
+                continue
+            if not status.get("ok", True):
+                warnings.append(f"{name}: status not ok")
+                continue
+            online += 1
+
+            free_storage = status.get("freeStorageBytes")
+            if isinstance(free_storage, int) and free_storage < min_free:
+                warnings.append(
+                    f"{name}: РјР°Р»Рѕ РїР°РјСЏС‚Рё {format_bytes(free_storage)} "
+                    f"(РЅСѓР¶РЅРѕ РјРёРЅРёРјСѓРј {format_bytes(min_free)})"
+                )
+
+            battery_percent = status.get("batteryPercent")
+            charging = bool(status.get("batteryCharging"))
+            if isinstance(battery_percent, int) and battery_percent < min_battery and not charging:
+                warnings.append(
+                    f"{name}: РЅРёР·РєРёР№ Р·Р°СЂСЏРґ Р±Р°С‚Р°СЂРµРё {battery_percent}% "
+                    f"(РЅСѓР¶РЅРѕ РјРёРЅРёРјСѓРј {min_battery}%, РЅРµ РЅР° Р·Р°СЂСЏРґРєРµ)"
+                )
+    if required is not None and online < required:
+        warnings.append(f"WARNING: connected {online}/{required} phones. Recording blocked.")
+    if warnings:
+        raise RuntimeError("РќРµР»СЊР·СЏ РЅР°С‡Р°С‚СЊ Р·Р°РїРёСЃСЊ:\n" + "\n".join(warnings))
+
+
+def check_ready_for_recording_slow(config: dict, phones: list[dict], timeout: float) -> None:
     min_free = int(config.get("min_free_storage_bytes", 1073741824))
     min_battery = int(config.get("min_battery_percent", 15))
     warnings = []
@@ -3995,8 +4042,7 @@ class ControllerApp:
         def worker() -> None:
             try:
                 timeout = float(self.config.get("timeout_seconds", 3))
-                check_all_configured_phones_online(self.config, timeout)
-                check_ready_for_recording(self.config, phones, timeout)
+                check_ready_for_recording(self.config, phones, timeout, required=required)
                 validate_camera_layout(self.config)
                 self.root.after(
                     0,

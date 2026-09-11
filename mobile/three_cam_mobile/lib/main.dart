@@ -16,7 +16,8 @@ const int discoveryPort = 8089;
 const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
 const int stableRecordingFps = 30;
-const String appVersion = '1.1.2';
+const String stableRecordingResolutionPreset = 'high';
+const String appVersion = '1.1.3';
 const List<String> reticleModes = [
   'off',
   'dot',
@@ -97,7 +98,7 @@ class AppSettings {
       deviceLabel: 'device_1',
       gridMode: 'off',
       reticleMode: 'cross',
-      resolutionPreset: 'veryHigh',
+      resolutionPreset: stableRecordingResolutionPreset,
       fps: stableRecordingFps,
       recordingOrientation: 'portrait',
       enableAudio: true,
@@ -120,8 +121,7 @@ class AppSettings {
       deviceLabel: prefs.getString('deviceLabel') ?? 'device_$slot',
       gridMode: prefs.getString('gridMode') ?? defaults.gridMode,
       reticleMode: prefs.getString('reticleMode') ?? defaults.reticleMode,
-      resolutionPreset:
-          prefs.getString('resolutionPreset') ?? defaults.resolutionPreset,
+      resolutionPreset: stableRecordingResolutionPreset,
       fps: stableRecordingFps,
       recordingOrientation:
           prefs.getString('recordingOrientation') ??
@@ -143,7 +143,7 @@ class AppSettings {
     await prefs.setString('deviceLabel', deviceLabel);
     await prefs.setString('gridMode', gridMode);
     await prefs.setString('reticleMode', reticleMode);
-    await prefs.setString('resolutionPreset', resolutionPreset);
+    await prefs.setString('resolutionPreset', stableRecordingResolutionPreset);
     await prefs.setInt('fps', stableRecordingFps);
     await prefs.setString('recordingOrientation', recordingOrientation);
     await prefs.setBool('enableAudio', enableAudio);
@@ -179,7 +179,7 @@ class AppSettings {
       deviceLabel: deviceLabel ?? this.deviceLabel,
       gridMode: gridMode ?? this.gridMode,
       reticleMode: reticleMode ?? this.reticleMode,
-      resolutionPreset: resolutionPreset ?? this.resolutionPreset,
+      resolutionPreset: stableRecordingResolutionPreset,
       fps: stableRecordingFps,
       recordingOrientation: recordingOrientation ?? this.recordingOrientation,
       enableAudio: enableAudio ?? this.enableAudio,
@@ -203,6 +203,7 @@ class AppSettings {
       deviceLabel: safeLabel,
       filePrefix: _cleanLabel(filePrefix),
       reticleMode: reticleModes.contains(reticleMode) ? reticleMode : 'cross',
+      resolutionPreset: stableRecordingResolutionPreset,
       autoExposure: false,
       recordingOrientation: recordingOrientation == 'landscape'
           ? 'landscape'
@@ -1391,11 +1392,10 @@ class _CameraControlScreenState extends State<CameraControlScreen>
         : _cleanName(wordDir.isEmpty ? word : wordDir);
     final variant = _cleanName(signVariant ?? takeLabel);
     final attemptText = (attempt ?? 1).clamp(1, 9999).toString();
-    final retakePart = retake ? '_retake' : '';
     return [
       '$prefix$base',
       variant,
-      '$attemptText$retakePart',
+      attemptText,
       _cleanName(cameraName),
       compactDate,
       time,
@@ -2551,10 +2551,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               DropdownMenuItem(value: 'ultraHigh', child: Text('Ultra high')),
               DropdownMenuItem(value: 'max', child: Text('Max')),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              setState(() => _resolutionPreset = value);
-            },
+            onChanged: null,
           ),
           const SizedBox(height: 12),
           TextFormField(

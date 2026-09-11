@@ -11,6 +11,11 @@ from three_cam_controller import (
     import_phrases_from_file,
     normalize_word_items,
     phrase_slug,
+    recording_attempt_key,
+    remember_recording_attempt,
+    next_recording_attempt,
+    take_label,
+    take_number_from_label,
 )
 
 
@@ -91,6 +96,10 @@ class PhraseHelperTests(unittest.TestCase):
         self.assertEqual([word["sign_variant"] for word in words], ["a", "b"])
         self.assertEqual([word["count"] for word in words], [1, 1])
 
+    def test_take_label_round_trip(self) -> None:
+        for number in (1, 2, 26, 27, 28):
+            self.assertEqual(take_number_from_label(take_label(number)), number)
+
     def test_daily_counter_resets_once_per_recording_day(self) -> None:
         config = {"recording_day": "20260908", "next_index": 389}
 
@@ -100,6 +109,38 @@ class PhraseHelperTests(unittest.TestCase):
         ensure_recording_day(config, datetime(2026, 9, 9, 10, 0, 0))
         self.assertEqual(config["recording_day"], "20260909")
         self.assertEqual(config["next_index"], 0)
+
+    def test_attempt_history_keeps_variant_and_attempt_separate(self) -> None:
+        attempts: dict[str, int] = {}
+        remember_recording_attempt(
+            attempts,
+            {
+                "event": "START",
+                "signer": "signer_3",
+                "mode": ITEM_TYPE_PHRASE,
+                "word_id": 1380,
+                "phrase_id": 1380,
+                "phrase_text": "Yarim",
+                "sign_variant": "a",
+                "attempt": 1,
+            },
+        )
+
+        a_key = recording_attempt_key(
+            signer_id="signer_3",
+            mode=ITEM_TYPE_PHRASE,
+            phrase_id=1380,
+            sign_variant="a",
+        )
+        b_key = recording_attempt_key(
+            signer_id="signer_3",
+            mode=ITEM_TYPE_PHRASE,
+            phrase_id=1380,
+            sign_variant="b",
+        )
+
+        self.assertEqual(next_recording_attempt(attempts, a_key), 2)
+        self.assertEqual(next_recording_attempt(attempts, b_key), 1)
 
 
 if __name__ == "__main__":

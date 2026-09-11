@@ -124,8 +124,8 @@ def default_config() -> dict:
         "recording_watchdog_warning_cooldown_seconds": 10.0,
         "recording_watchdog_can_stop_recording": False,
         "target_video": {
-            "width": 1920,
-            "height": 1080, 
+            "width": 1280,
+            "height": 720,
             "fps": 30,
             "video_bitrate": 8000000,
             "audio_bitrate": 192000,
@@ -428,6 +428,15 @@ def take_label(take_number: int) -> str:
     return label
 
 
+def take_number_from_label(label: str) -> int:
+    value = 0
+    for char in str(label or "").lower():
+        if char < "a" or char > "z":
+            return 1
+        value = value * 26 + (ord(char) - ord("a") + 1)
+    return max(1, value)
+
+
 def normalize_sign_variant(value, fallback: str = "a") -> str:
     variant = safe_name(str(value or "")).lower()
     return variant or fallback
@@ -435,6 +444,124 @@ def normalize_sign_variant(value, fallback: str = "a") -> str:
 
 def normalize_attempt(value, fallback: int = 1) -> int:
     return max(1, safe_int(value, fallback) or fallback)
+
+
+def recording_attempt_key(
+    *,
+    signer_id: str | None,
+    mode: str | None,
+    word_id=None,
+    phrase_id=None,
+    file_slug: str | None = None,
+    word: str | None = None,
+    phrase_text: str | None = None,
+    segment_index=None,
+    segment_count=None,
+    sign_variant: str | None = None,
+) -> str:
+    signer = safe_name(str(signer_id or "signer")).lower()
+    item_mode = safe_name(str(mode or ITEM_TYPE_WORD)).lower()
+    variant = normalize_sign_variant(sign_variant, "a")
+
+    if item_mode == ITEM_TYPE_PHRASE:
+        phrase_value = safe_int(phrase_id)
+        if phrase_value is not None:
+            item = f"phrase:{phrase_value}"
+        elif file_slug:
+            item = f"phrase_slug:{safe_name(str(file_slug)).lower()}"
+        else:
+            text = str(phrase_text or word or "phrase")
+            item = f"phrase_text:{safe_name(text).lower()}"
+        segment_value = safe_int(segment_index)
+        segment_total = safe_int(segment_count, 1) or 1
+        segment = (
+            f":seg{segment_value}"
+            if segment_value is not None and (segment_total > 1 or segment_value > 1)
+            else ""
+        )
+        return f"{signer}:{item}{segment}:{variant}"
+
+    word_value = safe_int(word_id)
+    if word_value is not None:
+        item = f"word:{word_value}"
+    elif file_slug:
+        item = f"word_slug:{safe_name(str(file_slug)).lower()}"
+    else:
+        item = f"word_text:{safe_name(str(word or 'word')).lower()}"
+    return f"{signer}:{item}:{variant}"
+
+
+def recording_attempt_key_for_word(word: dict, signer_id: str, sign_variant: str) -> str:
+    item_type = str(word.get("type") or ITEM_TYPE_WORD)
+    return recording_attempt_key(
+        signer_id=signer_id,
+        mode=item_type,
+        word_id=word.get("word_id"),
+        phrase_id=word.get("phrase_id") if item_type == ITEM_TYPE_PHRASE else None,
+        file_slug=phrase_slug(word) if item_type == ITEM_TYPE_PHRASE else word_dir_name(word),
+        word=str(word.get("phrase_text") or word.get("uzbek") or ""),
+        phrase_text=str(word.get("phrase_text") or "") if item_type == ITEM_TYPE_PHRASE else "",
+        segment_index=word.get("segment_index") if item_type == ITEM_TYPE_PHRASE else None,
+        segment_count=word.get("segment_count") if item_type == ITEM_TYPE_PHRASE else None,
+        sign_variant=sign_variant,
+    )
+
+
+def recording_attempt_key_from_payload(payload: dict) -> str | None:
+    attempt = safe_int(payload.get("attempt") or payload.get("attemptNumber"))
+    if attempt is None:
+        return None
+    mode = str(payload.get("mode") or ITEM_TYPE_WORD)
+    return recording_attempt_key(
+        signer_id=str(payload.get("signer") or payload.get("signerId") or payload.get("signer_id") or ""),
+        mode=mode,
+        word_id=payload.get("word_id") or payload.get("wordId"),
+        phrase_id=payload.get("phrase_id") or payload.get("phraseId") if mode == ITEM_TYPE_PHRASE else None,
+        file_slug=payload.get("file_slug") or payload.get("fileSlug"),
+        word=str(payload.get("word") or ""),
+        phrase_text=str(payload.get("phrase_text") or payload.get("phraseText") or ""),
+        segment_index=payload.get("segment_index") or payload.get("segmentIndex"),
+        segment_count=payload.get("segment_count") or payload.get("segmentCount"),
+        sign_variant=payload.get("sign_variant") or payload.get("signVariant") or payload.get("take") or payload.get("takeLabel"),
+    )
+
+
+def remember_recording_attempt(attempts: dict[str, int], payload: dict) -> None:
+    if payload.get("event") not in {"START", "STOP", "SESSION_CHECK"}:
+        return
+    attempt = safe_int(payload.get("attempt") or payload.get("attemptNumber"))
+    if attempt is None:
+        return
+    key = recording_attempt_key_from_payload(payload)
+    if key is None:
+        return
+    attempts[key] = max(attempts.get(key, 0), attempt)
+
+
+def next_recording_attempt(attempts: dict[str, int], key: str, previous_attempt: int = 0) -> int:
+    return max(attempts.get(key, 0), previous_attempt) + 1
+
+
+def load_recording_attempts_from_logs() -> dict[str, int]:
+    attempts: dict[str, int] = {}
+    try:
+        logs = sorted(recording_log_dir().glob("recording_log_*.ndjson"))
+    except OSError:
+        return attempts
+    for path in logs:
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    if '"attempt"' not in line and '"attemptNumber"' not in line:
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    remember_recording_attempt(attempts, payload)
+        except OSError:
+            continue
+    return attempts
 
 
 def current_recording_day(now: datetime | None = None) -> str:
@@ -2243,6 +2370,7 @@ class ControllerApp:
             if isinstance(self.dataset_state.get("recording_status_by_word"), dict)
             else {}
         )
+        self.recording_attempts_by_key = load_recording_attempts_from_logs()
         self.camera_state_by_name: dict[str, str] = {}
 
         # New WS+Scheduler networking core (network_architecture.md), run alongside the
@@ -2563,6 +2691,7 @@ class ControllerApp:
             "app_version": APP_VERSION,
         }
         payload.update({key: value for key, value in fields.items() if value is not None})
+        remember_recording_attempt(self.recording_attempts_by_key, payload)
         line = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         self.recording_log_entries.append(line)
         self.append_recording_log_line(line, now)
@@ -3128,6 +3257,35 @@ class ControllerApp:
         self.dataset_state["view_word_index"] = next_index
         self.dataset_state["manual_back_mode"] = False
 
+    def next_attempt_for_word(self, word: dict, signer_id: str, sign_variant: str, previous_attempt: int = 0) -> int:
+        key = recording_attempt_key_for_word(word, signer_id, sign_variant)
+        return next_recording_attempt(self.recording_attempts_by_key, key, previous_attempt)
+
+    def variant_attempt_for_word(
+        self,
+        word: dict,
+        signer_id: str,
+        done: int,
+        gesture_count: int,
+    ) -> tuple[str, int, bool]:
+        retake_mode = bool(self.dataset_state.get("retake_mode", False))
+        manual_retake = bool(self.dataset_state.get("manual_back_mode", False)) and done > 0
+        if retake_mode and self.dataset_state.get("retake_sign_variant"):
+            sign_variant = normalize_sign_variant(self.dataset_state.get("retake_sign_variant"))
+            previous_attempt = normalize_attempt(self.dataset_state.get("retake_attempt"), 1)
+            return sign_variant, self.next_attempt_for_word(word, signer_id, sign_variant, previous_attempt), True
+        if manual_retake:
+            sign_variant = normalize_sign_variant(
+                word.get("sign_variant"),
+                take_label(min(max(done, 1), gesture_count)),
+            )
+            return sign_variant, self.next_attempt_for_word(word, signer_id, sign_variant), True
+        sign_variant = normalize_sign_variant(
+            word.get("sign_variant"),
+            take_label(min(done + 1, gesture_count)),
+        )
+        return sign_variant, normalize_attempt(word.get("attempt"), 1), False
+
     def refresh_dataset_labels(self) -> None:
         words = self.active_words()
         if self.background_var.get():
@@ -3149,15 +3307,11 @@ class ControllerApp:
         done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
         mode = "manual back" if self.dataset_state.get("manual_back_mode") else "main queue"
         item_label = "phrase" if str(word.get("type") or ITEM_TYPE_WORD) == ITEM_TYPE_PHRASE else "word"
-        if self.dataset_state.get("retake_mode") and self.dataset_state.get("retake_sign_variant"):
-            sign_variant = normalize_sign_variant(self.dataset_state.get("retake_sign_variant"))
-            attempt = normalize_attempt(self.dataset_state.get("retake_attempt"), 1) + 1
-        else:
-            sign_variant = normalize_sign_variant(word.get("sign_variant"), take_label(min(done + 1, gesture_count)))
-            attempt = 1
+        sign_variant, attempt, _is_retake = self.variant_attempt_for_word(word, self.selected_signer_id(), done, gesture_count)
+        item_number = take_number_from_label(sign_variant) if _is_retake else min(done + 1, gesture_count)
         self.word_var.set(word_display(word))
         self.progress_var.set(
-            f"Signer: {self.signer_var.get()} / {item_label} {view_index + 1}/{len(words)} / variant {sign_variant} attempt {attempt} / item {min(done + 1, gesture_count)} of {gesture_count} / {mode}"
+            f"Signer: {self.signer_var.get()} / {item_label} {view_index + 1}/{len(words)} / variant {sign_variant} attempt {attempt} / item {item_number} of {gesture_count} / {mode}"
         )
         self.refresh_word_columns()
 
@@ -3193,6 +3347,15 @@ class ControllerApp:
                 if word.get("signer_id") and not self.is_per_signer_retake_import():
                     signer_name = signer_names(self.dataset_state).get(str(word.get("signer_id")), str(word.get("signer_name") or ""))
                     label = f"{signer_name}: {label}".strip()
+                sign_variant, attempt, _is_retake = (
+                    self.variant_attempt_for_word(word, self.selected_signer_id(), done, word_gesture_count(word, self.dataset_state.get("gesture_count", 1)))
+                    if index == view_index and not self.background_var.get()
+                    else (
+                        normalize_sign_variant(word.get("sign_variant"), take_label(min(done + 1, word_gesture_count(word, self.dataset_state.get("gesture_count", 1))))),
+                        normalize_attempt(word.get("attempt"), 1),
+                        False,
+                    )
+                )
                 tree.insert(
                     "",
                     "end",
@@ -3200,7 +3363,7 @@ class ControllerApp:
                     values=(
                         label,
                         word_gesture_count(word, self.dataset_state.get("gesture_count", 1)),
-                        f"{normalize_sign_variant(word.get('sign_variant'), take_label(done + 1))}_1",
+                        f"{sign_variant}_{attempt}",
                     ),
                     tags=tuple(tags),
                 )
@@ -3385,16 +3548,13 @@ class ControllerApp:
         word_id = word.get("word_id", "")
         phrase_id = word.get("phrase_id", "") if item_type == ITEM_TYPE_PHRASE else ""
         file_slug = phrase_slug(word) if item_type == ITEM_TYPE_PHRASE else word_dir_name(word)
-        retake_mode = bool(self.dataset_state.get("retake_mode", False))
-        if retake_mode and self.dataset_state.get("retake_sign_variant"):
-            sign_variant = normalize_sign_variant(self.dataset_state.get("retake_sign_variant"))
-            attempt = normalize_attempt(self.dataset_state.get("retake_attempt"), 1) + 1
-        else:
-            sign_variant = normalize_sign_variant(
-                word.get("sign_variant"),
-                take_label(min(take_number, gesture_count)),
-            )
-            attempt = normalize_attempt(word.get("attempt"), 1)
+        sign_variant, attempt, is_retake = self.variant_attempt_for_word(
+            word,
+            signer_id,
+            done,
+            gesture_count,
+        )
+        take_number = take_number_from_label(sign_variant) if is_retake else take_number
         return {
             "signer_id": signer_id,
             "signer_name": signer_name,
@@ -3415,7 +3575,7 @@ class ControllerApp:
             "sign_variant": sign_variant,
             "attempt": attempt,
             "gesture_count": gesture_count,
-            "retake": retake_mode,
+            "retake": is_retake,
             "app_version": APP_VERSION,
         }
 
@@ -3427,10 +3587,12 @@ class ControllerApp:
             return
         gesture_count = word_gesture_count(word, self.dataset_state.get("gesture_count", 1))
         key = word_key(word)
-        done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0)) + 1
+        previous_done = int(self.dataset_state.get("takes_done_by_word", {}).get(key, 0))
+        is_retake = bool(self.active_task and self.active_task.get("retake"))
+        done = previous_done if is_retake else previous_done + 1
         self.dataset_state.setdefault("takes_done_by_word", {})[key] = done
         self.recording_status_by_word[key] = "ok" if ok else "error"
-        if not self.dataset_state.get("manual_back_mode") and done >= gesture_count:
+        if not is_retake and not self.dataset_state.get("manual_back_mode") and done >= gesture_count:
             words = self.active_words()
             next_index = min(int(self.dataset_state.get("main_word_index", 0)) + 1, max(0, len(words) - 1))
             self.dataset_state["main_word_index"] = next_index

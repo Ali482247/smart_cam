@@ -17,7 +17,7 @@ const String discoveryMessage = 'THREE_CAM_DISCOVER';
 const MethodChannel mediaChannel = MethodChannel('three_cam/media');
 const int stableRecordingFps = 30;
 const String stableRecordingResolutionPreset = 'high';
-const String appVersion = '1.1.3';
+const String appVersion = '1.1.4';
 const List<String> reticleModes = [
   'off',
   'dot',
@@ -390,6 +390,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
   String _sessionPhraseText = '';
   String _sessionFileSlug = '';
   int? _sessionExpectedDurationSec;
+  int? _sessionExpectedDurationMs;
   int _sessionSegmentIndex = 1;
   int _sessionSegmentCount = 1;
   String _sessionList = '';
@@ -719,6 +720,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
               expectedDurationSec: int.tryParse(
                 params['expected_duration_sec'] ?? '',
               ),
+              expectedDurationMs: int.tryParse(
+                params['expected_duration_ms'] ?? '',
+              ),
               segmentIndex: int.tryParse(params['segment_index'] ?? ''),
               segmentCount: int.tryParse(params['segment_count'] ?? ''),
               listName: params['list'],
@@ -980,6 +984,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     String? phraseText,
     String? fileSlug,
     int? expectedDurationSec,
+    int? expectedDurationMs,
     int? segmentIndex,
     int? segmentCount,
     String? listName,
@@ -1021,6 +1026,9 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     _sessionPhraseText = (phraseText ?? '').trim();
     _sessionFileSlug = _cleanName(fileSlug ?? '');
     _sessionExpectedDurationSec = expectedDurationSec;
+    _sessionExpectedDurationMs =
+        expectedDurationMs ??
+        (expectedDurationSec == null ? null : expectedDurationSec * 1000);
     _sessionSegmentIndex = (segmentIndex ?? 1).clamp(1, 9999);
     _sessionSegmentCount = (segmentCount ?? 1).clamp(1, 9999);
     _sessionList = (listName ?? '').trim();
@@ -1185,10 +1193,12 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       }
       throw StateError('Saved video is empty: $fileName');
     }
+    final fileMetadata = await _readNativeVideoMetadata(copiedVideo.path);
     final metadata = _videoMetadataPayload(
       savedCameraName: savedCameraName,
       savedIndex: savedIndex,
       sizeBytes: _lastVideoSizeBytes ?? 0,
+      nativeVideoMetadata: fileMetadata,
     );
     _lastVideoMetadata = metadata;
     try {
@@ -1224,6 +1234,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
     required String savedCameraName,
     required int savedIndex,
     required int sizeBytes,
+    required Map<String, Object?> nativeVideoMetadata,
   }) {
     final startedAt = _recordingStartedAt;
     final finishedAt = DateTime.now();
@@ -1242,6 +1253,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'phrase_text': _sessionPhraseText,
       'file_slug': _sessionFileSlug,
       'expected_duration_sec': _sessionExpectedDurationSec,
+      'expected_duration_ms': _sessionExpectedDurationMs,
       'segment_index': _sessionSegmentIndex,
       'segment_count': _sessionSegmentCount,
       'take': _sessionTakeLabel,
@@ -1264,6 +1276,16 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'camera': savedCameraName,
       'sync_offset_ms': 0,
       'mobile_app_version': appVersion,
+      'target_fps': stableRecordingFps,
+      'target_width': targetSizeForPreset(stableRecordingResolutionPreset).$1,
+      'target_height': targetSizeForPreset(stableRecordingResolutionPreset).$2,
+      'actual_fps': nativeVideoMetadata['actualFps'] ?? _actualFps,
+      'video_width': nativeVideoMetadata['width'],
+      'video_height': nativeVideoMetadata['height'],
+      'video_rotation': nativeVideoMetadata['rotation'],
+      'video_bitrate': nativeVideoMetadata['bitrate'],
+      'video_frame_count': nativeVideoMetadata['frameCount'],
+      'video_metadata_error': nativeVideoMetadata['error'],
       'device_id': _nativeDeviceId ?? _settings.deviceLabel,
       'device_name': _nativeDeviceName,
       'superseded': false,
@@ -1277,6 +1299,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'phraseText': _sessionPhraseText,
       'fileSlug': _sessionFileSlug,
       'expectedDurationSec': _sessionExpectedDurationSec,
+      'expectedDurationMs': _sessionExpectedDurationMs,
       'segmentIndex': _sessionSegmentIndex,
       'segmentCount': _sessionSegmentCount,
       'wordDir': _sessionWordDir,
@@ -1291,6 +1314,7 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'deviceLabel': _settings.deviceLabel,
       'cameraName': savedCameraName,
       'cameraControls': _cameraControlsPayload(),
+      'videoFileMetadata': nativeVideoMetadata,
       'sessionId': _sessionId,
       'createdAt': finishedAt.toIso8601String(),
     };
@@ -1313,6 +1337,18 @@ class _CameraControlScreenState extends State<CameraControlScreen>
       'zoom': _zoom,
       'actual_fps': _actualFps,
     };
+  }
+
+  Future<Map<String, Object?>> _readNativeVideoMetadata(String path) async {
+    try {
+      final result = await mediaChannel.invokeMapMethod<String, Object?>(
+        'readVideoMetadata',
+        {'sourcePath': path},
+      );
+      return result ?? {};
+    } catch (error) {
+      return {'error': '$error'};
+    }
   }
 
   Future<Directory> _videoDir({String? signerDir, String? wordDir}) async {
@@ -2078,6 +2114,7 @@ class _ScreenRecordingController implements RecordingController {
     String? phraseText,
     String? fileSlug,
     int? expectedDurationSec,
+    int? expectedDurationMs,
     int? segmentIndex,
     int? segmentCount,
     String? wordDir,
@@ -2105,6 +2142,7 @@ class _ScreenRecordingController implements RecordingController {
         phraseText: phraseText,
         fileSlug: fileSlug,
         expectedDurationSec: expectedDurationSec,
+        expectedDurationMs: expectedDurationMs,
         segmentIndex: segmentIndex,
         segmentCount: segmentCount,
         wordDir: wordDir,

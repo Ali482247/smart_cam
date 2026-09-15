@@ -17,7 +17,7 @@ from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from tkinter import BOTH, DISABLED, NORMAL, BooleanVar, IntVar, StringVar, Tk, Text, filedialog, messagebox, ttk
+from tkinter import BOTH, DISABLED, NORMAL, BooleanVar, IntVar, StringVar, Tk, Text, Toplevel, filedialog, messagebox, ttk
 from tkinter import font as tkfont
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -166,6 +166,9 @@ def default_dataset_state() -> dict:
         "last_deleted_signer": None,
         "background_mode": False,
         "manual_back_mode": False,
+        "retake_mode": False,
+        "retake_sign_variant": None,
+        "retake_attempt": None,
     }
 
 
@@ -187,6 +190,12 @@ def load_dataset_state() -> dict:
     state["view_word_index"] = clamp_index(safe_int(state.get("view_word_index"), state["main_word_index"]) or 0, len(state["words"]))
     state["background_mode"] = bool(state.get("background_mode", False))
     state["manual_back_mode"] = bool(state.get("manual_back_mode", False))
+    state["retake_mode"] = bool(state.get("retake_mode", False))
+    if state.get("retake_sign_variant"):
+        state["retake_sign_variant"] = normalize_sign_variant(state.get("retake_sign_variant"))
+    else:
+        state["retake_sign_variant"] = None
+    state["retake_attempt"] = safe_int(state.get("retake_attempt"))
     if not isinstance(state.get("takes_done_by_word"), dict):
         state["takes_done_by_word"] = {}
     state["custom_signers"] = normalize_custom_signers(state.get("custom_signers", []))
@@ -446,6 +455,26 @@ def normalize_attempt(value, fallback: int = 1) -> int:
     return max(1, safe_int(value, fallback) or fallback)
 
 
+def expected_duration_ms_from_item(item: dict | None) -> int | None:
+    if not item:
+        return None
+    explicit_ms = safe_int(item.get("expected_duration_ms") or item.get("duration_ms"))
+    if explicit_ms is not None and explicit_ms > 0:
+        return explicit_ms
+    seconds = safe_int(item.get("expected_duration_sec") or item.get("duration_sec") or item.get("expected_duration"))
+    return seconds * 1000 if seconds and seconds > 0 else None
+
+
+def expected_duration_ms_from_task(task: dict | None) -> int | None:
+    if not task:
+        return None
+    explicit_ms = safe_int(task.get("expected_duration_ms") or task.get("duration_ms"))
+    if explicit_ms is not None and explicit_ms > 0:
+        return explicit_ms
+    seconds = safe_int(task.get("expected_duration_sec") or task.get("duration_sec") or task.get("expected_duration"))
+    return seconds * 1000 if seconds and seconds > 0 else None
+
+
 def recording_attempt_key(
     *,
     signer_id: str | None,
@@ -688,7 +717,20 @@ def extract_phrases_from_pdf(path: Path) -> list[dict]:
                 cursor += 1
             if cursor >= len(lines):
                 continue
-            text = normalize_word_text(lines[cursor])
+            text_parts = []
+            while cursor < len(lines):
+                candidate = normalize_word_text(lines[cursor])
+                if not candidate:
+                    cursor += 1
+                    continue
+                if safe_int(candidate) is not None:
+                    break
+                if candidate.lower() in {"uzbek", "ru"}:
+                    cursor += 1
+                    continue
+                text_parts.append(candidate)
+                cursor += 1
+            text = normalize_word_text(" ".join(text_parts))
             if not text or text.lower() in {"uzbek", "ru"}:
                 continue
             rows.append(
@@ -717,6 +759,7 @@ def normalize_phrase_item(item: dict, index: int) -> dict | None:
     count = safe_int(item.get("gesture_count") or item.get("takes") or item.get("counts") or item.get("count"), 1) or 1
     segment_index = safe_int(item.get("segment_index") or item.get("segment"), 1) or 1
     segment_count = safe_int(item.get("segment_count") or item.get("segments"), 1) or 1
+    expected_duration_ms = expected_duration_ms_from_item(item)
     if segment_index > segment_count:
         raise RuntimeError(f"phrase {phrase_id}: segment_index cannot be greater than segment_count")
     normalized_item = {
@@ -728,7 +771,8 @@ def normalize_phrase_item(item: dict, index: int) -> dict | None:
         "phrase_text": text,
         "uzbek": text,
         "file_slug": phrase_slug({"phrase_id": phrase_id, "phrase_text": text, "file_slug": item.get("file_slug")}),
-        "expected_duration_sec": safe_int(item.get("expected_duration_sec") or item.get("duration_sec") or item.get("expected_duration")),
+        "expected_duration_sec": (expected_duration_ms // 1000 if expected_duration_ms is not None else None),
+        "expected_duration_ms": expected_duration_ms,
         "segment_index": max(1, segment_index),
         "segment_count": max(1, segment_count),
         "source_pdf": str(item.get("source_pdf") or item.get("source_file") or ""),
@@ -1659,9 +1703,45 @@ def video_index_from_name(name: str, day_stamp: str | None = None) -> int | None
     return safe_int(match.group(1))
 
 
+def local_record_indexes_from_logs(day_stamp: str) -> list[int]:
+    indexes = []
+    path = recording_log_dir() / f"recording_log_{day_stamp}.ndjson"
+    if not path.exists():
+        return indexes
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                if '"record"' not in line and '"file"' not in line:
+                    continue
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                record = safe_int(payload.get("record"))
+                if record is not None:
+                    indexes.append(record)
+                    continue
+                file_index = video_index_from_name(str(payload.get("file") or ""), day_stamp)
+                if file_index is not None:
+                    indexes.append(file_index)
+    except OSError:
+        return indexes
+    return indexes
+
+
+def next_local_record_index_from_logs(day_stamp: str) -> int | None:
+    indexes = local_record_indexes_from_logs(day_stamp)
+    return max(indexes) + 1 if indexes else None
+
+
 def next_record_index(config: dict, phones: list[dict], timeout: float, day_stamp: str) -> int:
+    candidates = [int(config.get("next_index", 0))]
+    local_next = next_local_record_index_from_logs(day_stamp)
+    if local_next is not None:
+        candidates.append(local_next)
+
     if not config.get("scan_remote_video_indexes", False):
-        return int(config.get("next_index", 0))
+        return max(candidates)
 
     indexes = []
     with ThreadPoolExecutor(max_workers=max(1, len(phones))) as executor:
@@ -1676,8 +1756,8 @@ def next_record_index(config: dict, phones: list[dict], timeout: float, day_stam
                 if index is not None:
                     indexes.append(index)
     if indexes:
-        return max(indexes) + 1
-    return int(config.get("next_index", 0))
+        candidates.append(max(indexes) + 1)
+    return max(candidates)
 
 
 def download_file(phone: dict, relative_path: str, target: Path, timeout: float) -> None:
@@ -1702,6 +1782,7 @@ def local_sidecar_payload(video: dict, target: Path, phone: dict) -> dict:
         "phrase_text": video.get("phrase_text") or video.get("phraseText"),
         "file_slug": video.get("file_slug") or video.get("fileSlug"),
         "expected_duration_sec": safe_int(video.get("expected_duration_sec") or video.get("expectedDurationSec")),
+        "expected_duration_ms": expected_duration_ms_from_item(video),
         "segment_index": safe_int(video.get("segment_index") or video.get("segmentIndex")),
         "segment_count": safe_int(video.get("segment_count") or video.get("segmentCount")),
         "take": video.get("take") or video.get("takeLabel") or video.get("take_label"),
@@ -1720,6 +1801,30 @@ def local_sidecar_payload(video: dict, target: Path, phone: dict) -> dict:
     if isinstance(video.get("cameraControls"), dict):
         payload["camera_controls"] = video.get("cameraControls")
     return payload
+
+
+def actual_fps_from_payload(payload: dict) -> float | None:
+    candidates = [
+        payload.get("actualFps"),
+        payload.get("actual_fps"),
+    ]
+    metadata = payload.get("lastVideoMetadata")
+    if isinstance(metadata, dict):
+        candidates.extend([metadata.get("actualFps"), metadata.get("actual_fps")])
+        controls = metadata.get("cameraControls") or metadata.get("camera_controls")
+        if isinstance(controls, dict):
+            candidates.extend([controls.get("actual_fps"), controls.get("actualFps")])
+    for value in candidates:
+        if isinstance(value, (int, float)) and value > 0:
+            return round(float(value), 3)
+        if isinstance(value, str):
+            try:
+                parsed = float(value)
+            except ValueError:
+                continue
+            if parsed > 0:
+                return round(parsed, 3)
+    return None
 
 
 def send_all(config: dict, endpoint: str, task: dict | None = None) -> list[tuple[str, str]]:
@@ -1816,6 +1921,9 @@ def build_endpoint_map(
                     "expected_duration_sec": ""
                     if task.get("expected_duration_sec") is None
                     else str(task.get("expected_duration_sec", "")),
+                    "expected_duration_ms": ""
+                    if task.get("expected_duration_ms") is None
+                    else str(task.get("expected_duration_ms", "")),
                     "segment_index": "" if task.get("segment_index") is None else str(task.get("segment_index", "")),
                     "segment_count": "" if task.get("segment_count") is None else str(task.get("segment_count", "")),
                     "list": str(task.get("list", "")),
@@ -2890,6 +2998,7 @@ class ControllerApp:
             "phrase_text": task.get("phrase_text"),
             "file_slug": task.get("file_slug"),
             "expected_duration_sec": safe_int(task.get("expected_duration_sec")),
+            "expected_duration_ms": safe_int(task.get("expected_duration_ms")),
             "segment_index": safe_int(task.get("segment_index")),
             "segment_count": safe_int(task.get("segment_count")),
             "take": task.get("take_label"),
@@ -2965,6 +3074,7 @@ class ControllerApp:
                         if isinstance(p.get("lastVideoMetadata"), dict)
                         else None
                     ),
+                    actual_fps=actual_fps_from_payload(p),
                     sign_variant=(
                         p.get("lastVideoMetadata", {}).get("sign_variant")
                         if isinstance(p.get("lastVideoMetadata"), dict)
@@ -3010,13 +3120,14 @@ class ControllerApp:
 
     def duration_check(self, results: list[tuple[str, str]], task: dict | None = None) -> dict:
         tolerance_ms = int(self.config.get("duration_check_tolerance_ms", 1500))
-        expected_duration_ms = None
-        if task and str(task.get("mode") or "") == ITEM_TYPE_PHRASE:
-            expected_duration_sec = safe_int(task.get("expected_duration_sec"))
-            if expected_duration_sec:
-                expected_duration_ms = expected_duration_sec * 1000
+        expected_duration_ms = (
+            expected_duration_ms_from_task(task)
+            if task and str(task.get("mode") or "") == ITEM_TYPE_PHRASE
+            else None
+        )
 
         durations: dict[str, int] = {}
+        actual_fps_by_camera: dict[str, float] = {}
         failures: list[str] = []
         for name, body in results:
             try:
@@ -3024,6 +3135,9 @@ class ControllerApp:
             except json.JSONDecodeError:
                 continue
             metadata = payload.get("lastVideoMetadata") if isinstance(payload.get("lastVideoMetadata"), dict) else {}
+            actual_fps = actual_fps_from_payload(payload)
+            if actual_fps is not None:
+                actual_fps_by_camera[name] = actual_fps
             duration_ms = safe_int(metadata.get("duration_ms") or metadata.get("durationMs"))
             if duration_ms is None:
                 continue
@@ -3041,6 +3155,7 @@ class ControllerApp:
             "expected_duration_ms": expected_duration_ms,
             "tolerance_ms": tolerance_ms,
             "camera_duration_ms": durations,
+            "camera_actual_fps": actual_fps_by_camera,
             "spread_ms": spread_ms,
             "failures": failures,
         }
@@ -3256,6 +3371,9 @@ class ControllerApp:
         self.dataset_state["main_word_index"] = next_index
         self.dataset_state["view_word_index"] = next_index
         self.dataset_state["manual_back_mode"] = False
+        self.dataset_state["retake_mode"] = False
+        self.dataset_state.pop("retake_sign_variant", None)
+        self.dataset_state.pop("retake_attempt", None)
 
     def next_attempt_for_word(self, word: dict, signer_id: str, sign_variant: str, previous_attempt: int = 0) -> int:
         key = recording_attempt_key_for_word(word, signer_id, sign_variant)
@@ -3285,6 +3403,96 @@ class ControllerApp:
             take_label(min(done + 1, gesture_count)),
         )
         return sign_variant, normalize_attempt(word.get("attempt"), 1), False
+
+    def completed_variant_options(self, word: dict, signer_id: str, done: int, gesture_count: int) -> list[dict]:
+        if done <= 0:
+            return []
+        if word.get("sign_variant"):
+            variants = [normalize_sign_variant(word.get("sign_variant"))]
+        else:
+            variants = [
+                take_label(index)
+                for index in range(1, min(done, gesture_count) + 1)
+            ]
+        options = []
+        for variant in variants:
+            key = recording_attempt_key_for_word(word, signer_id, variant)
+            last_attempt = max(1, self.recording_attempts_by_key.get(key, 0))
+            options.append(
+                {
+                    "variant": variant,
+                    "last_attempt": last_attempt,
+                    "next_attempt": last_attempt + 1,
+                    "label": f"{variant}_{last_attempt} -> {variant}_{last_attempt + 1}",
+                }
+            )
+        return options
+
+    def ask_retake_variant(self, word: dict, options: list[dict]) -> str | None:
+        if not options:
+            return None
+        if len(options) == 1:
+            return str(options[0]["variant"])
+
+        dialog = Toplevel(self.root)
+        dialog.title("Retake variant")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        selected = StringVar(value=str(options[0]["variant"]))
+        result = {"variant": None}
+
+        item_text = str(word.get("phrase_text") or word.get("uzbek") or "item")
+        ttk.Label(dialog, text="Choose variant for retake").pack(padx=16, pady=(14, 4), anchor="w")
+        ttk.Label(dialog, text=item_text, wraplength=420).pack(padx=16, pady=(0, 10), anchor="w")
+        for option in options:
+            ttk.Radiobutton(
+                dialog,
+                text=str(option["label"]),
+                value=str(option["variant"]),
+                variable=selected,
+            ).pack(padx=24, pady=3, anchor="w")
+
+        buttons = ttk.Frame(dialog)
+        buttons.pack(fill="x", padx=16, pady=(12, 14))
+
+        def choose() -> None:
+            result["variant"] = selected.get()
+            dialog.destroy()
+
+        def cancel() -> None:
+            dialog.destroy()
+
+        ttk.Button(buttons, text="OK", command=choose).pack(side="right")
+        ttk.Button(buttons, text="Cancel", command=cancel).pack(side="right", padx=(0, 8))
+        dialog.protocol("WM_DELETE_WINDOW", cancel)
+        dialog.bind("<Return>", lambda _event: choose())
+        dialog.bind("<Escape>", lambda _event: cancel())
+        self.root.wait_window(dialog)
+        return result["variant"]
+
+    def prepare_manual_retake_for_word(self, word: dict, *, prompt: bool) -> bool:
+        signer_id = self.selected_signer_id()
+        gesture_count = word_gesture_count(word, self.dataset_state.get("gesture_count", 1))
+        done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(word), 0))
+        if done <= 0:
+            self.dataset_state["retake_mode"] = False
+            self.dataset_state.pop("retake_sign_variant", None)
+            self.dataset_state.pop("retake_attempt", None)
+            return True
+
+        options = self.completed_variant_options(word, signer_id, done, gesture_count)
+        variant = self.ask_retake_variant(word, options) if prompt else (options[0]["variant"] if options else None)
+        if not variant:
+            return False
+
+        variant = normalize_sign_variant(variant)
+        key = recording_attempt_key_for_word(word, signer_id, variant)
+        self.dataset_state["retake_mode"] = True
+        self.dataset_state["retake_sign_variant"] = variant
+        self.dataset_state["retake_attempt"] = max(1, self.recording_attempts_by_key.get(key, 0))
+        return True
 
     def refresh_dataset_labels(self) -> None:
         words = self.active_words()
@@ -3379,10 +3587,37 @@ class ControllerApp:
         words = self.active_words()
         if index is None or index < 0 or index >= len(words):
             return
+        previous_view_index = self.dataset_state.get("view_word_index", 0)
+        previous_manual_back = self.dataset_state.get("manual_back_mode", False)
+        previous_retake_mode = self.dataset_state.get("retake_mode", False)
+        previous_retake_sign_variant = self.dataset_state.get("retake_sign_variant")
+        previous_retake_attempt = self.dataset_state.get("retake_attempt")
         self.background_var.set(False)
         self.dataset_state["background_mode"] = False
         self.dataset_state["view_word_index"] = index
-        self.dataset_state["manual_back_mode"] = index != int(self.dataset_state.get("main_word_index", 0))
+        done = int(self.dataset_state.get("takes_done_by_word", {}).get(word_key(words[index]), 0))
+        self.dataset_state["manual_back_mode"] = (
+            index != int(self.dataset_state.get("main_word_index", 0)) or done > 0
+        )
+        if self.dataset_state["manual_back_mode"]:
+            if not self.prepare_manual_retake_for_word(words[index], prompt=True):
+                self.dataset_state["view_word_index"] = previous_view_index
+                self.dataset_state["manual_back_mode"] = previous_manual_back
+                self.dataset_state["retake_mode"] = previous_retake_mode
+                if previous_retake_sign_variant is None:
+                    self.dataset_state.pop("retake_sign_variant", None)
+                else:
+                    self.dataset_state["retake_sign_variant"] = previous_retake_sign_variant
+                if previous_retake_attempt is None:
+                    self.dataset_state.pop("retake_attempt", None)
+                else:
+                    self.dataset_state["retake_attempt"] = previous_retake_attempt
+                self.refresh_dataset_labels()
+                return
+        else:
+            self.dataset_state["retake_mode"] = False
+            self.dataset_state.pop("retake_sign_variant", None)
+            self.dataset_state.pop("retake_attempt", None)
         self.save_dataset()
         self.refresh_dataset_labels()
 
@@ -3421,14 +3656,18 @@ class ControllerApp:
     def gesture_count_changed(self) -> None:
         gesture_count = max(1, safe_int(self.gesture_count_var.get(), 1) or 1)
         self.dataset_state["gesture_count"] = gesture_count
-        word = self.current_word()
-        if word:
-            word["count"] = gesture_count
+        for word in self.dataset_state.get("words", []):
+            if not word.get("variant_count") and not word.get("sign_variant"):
+                word["count"] = gesture_count
         self.save_dataset()
         self.refresh_dataset_labels()
 
     def background_toggled(self) -> None:
         self.dataset_state["background_mode"] = bool(self.background_var.get())
+        if self.dataset_state["background_mode"]:
+            self.dataset_state["retake_mode"] = False
+            self.dataset_state.pop("retake_sign_variant", None)
+            self.dataset_state.pop("retake_attempt", None)
         self.save_dataset()
         self.refresh_dataset_labels()
 
@@ -3466,6 +3705,9 @@ class ControllerApp:
             self.dataset_state["takes_done_by_word"] = {}
             self.recording_status_by_word = {}
             self.dataset_state["manual_back_mode"] = False
+            self.dataset_state["retake_mode"] = False
+            self.dataset_state.pop("retake_sign_variant", None)
+            self.dataset_state.pop("retake_attempt", None)
             self.save_dataset()
             self.root.after(0, self.refresh_signer_combo)
             self.root.after(0, self.refresh_dataset_labels)
@@ -3508,6 +3750,9 @@ class ControllerApp:
             self.recording_status_by_word = {}
             self.dataset_state["manual_back_mode"] = False
             self.dataset_state["background_mode"] = False
+            self.dataset_state["retake_mode"] = False
+            self.dataset_state.pop("retake_sign_variant", None)
+            self.dataset_state.pop("retake_attempt", None)
             self.save_dataset()
             self.root.after(0, lambda: self.background_var.set(False))
             self.root.after(0, self.refresh_dataset_labels)
@@ -3566,6 +3811,7 @@ class ControllerApp:
             "phrase_text": text if item_type == ITEM_TYPE_PHRASE else "",
             "file_slug": file_slug,
             "expected_duration_sec": word.get("expected_duration_sec") if item_type == ITEM_TYPE_PHRASE else None,
+            "expected_duration_ms": expected_duration_ms_from_item(word) if item_type == ITEM_TYPE_PHRASE else None,
             "segment_index": word.get("segment_index", 1) if item_type == ITEM_TYPE_PHRASE else None,
             "segment_count": word.get("segment_count", 1) if item_type == ITEM_TYPE_PHRASE else None,
             "list": word.get("source_set", ""),
@@ -3607,14 +3853,36 @@ class ControllerApp:
         words = self.active_words()
         if not words:
             return
-        self.dataset_state["view_word_index"] = max(0, int(self.dataset_state.get("view_word_index", 0)) - 1)
+        previous_view_index = int(self.dataset_state.get("view_word_index", 0))
+        previous_manual_back = self.dataset_state.get("manual_back_mode", False)
+        previous_retake_mode = self.dataset_state.get("retake_mode", False)
+        previous_retake_sign_variant = self.dataset_state.get("retake_sign_variant")
+        previous_retake_attempt = self.dataset_state.get("retake_attempt")
+        next_index = max(0, previous_view_index - 1)
+        self.dataset_state["view_word_index"] = next_index
         self.dataset_state["manual_back_mode"] = True
+        if not self.prepare_manual_retake_for_word(words[next_index], prompt=True):
+            self.dataset_state["view_word_index"] = previous_view_index
+            self.dataset_state["manual_back_mode"] = previous_manual_back
+            self.dataset_state["retake_mode"] = previous_retake_mode
+            if previous_retake_sign_variant is None:
+                self.dataset_state.pop("retake_sign_variant", None)
+            else:
+                self.dataset_state["retake_sign_variant"] = previous_retake_sign_variant
+            if previous_retake_attempt is None:
+                self.dataset_state.pop("retake_attempt", None)
+            else:
+                self.dataset_state["retake_attempt"] = previous_retake_attempt
+            self.refresh_dataset_labels()
+            return
         self.save_dataset()
         self.refresh_dataset_labels()
 
     def reset_view_clicked(self) -> None:
         self.dataset_state["manual_back_mode"] = False
         self.dataset_state["retake_mode"] = False
+        self.dataset_state.pop("retake_sign_variant", None)
+        self.dataset_state.pop("retake_attempt", None)
         self.dataset_state["view_word_index"] = int(self.dataset_state.get("main_word_index", 0))
         self.save_dataset()
         self.refresh_dataset_labels()
@@ -3628,6 +3896,8 @@ class ControllerApp:
         self.recording_status_by_word = {}
         self.dataset_state["manual_back_mode"] = False
         self.dataset_state["retake_mode"] = False
+        self.dataset_state.pop("retake_sign_variant", None)
+        self.dataset_state.pop("retake_attempt", None)
         self.save_dataset()
         self.refresh_dataset_labels()
         self.write("Words reset: started again from the first word.")

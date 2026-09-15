@@ -5,10 +5,16 @@ from pathlib import Path
 
 from datetime import datetime
 
+import three_cam_controller as tcc
 from three_cam_controller import (
+    ControllerApp,
     ITEM_TYPE_PHRASE,
+    ITEM_TYPE_WORD,
+    actual_fps_from_payload,
     ensure_recording_day,
+    expected_duration_ms_from_item,
     import_phrases_from_file,
+    next_record_index,
     normalize_word_items,
     phrase_slug,
     recording_attempt_key,
@@ -45,8 +51,8 @@ class PhraseHelperTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "phrases.csv"
             path.write_text(
-                "phrase_id,phrase_text,count,expected_duration_sec\n"
-                "42,hello phrase,2,12\n",
+                "phrase_id,phrase_text,count,expected_duration_ms\n"
+                "42,hello phrase,2,12500\n",
                 encoding="utf-8",
             )
 
@@ -54,6 +60,7 @@ class PhraseHelperTests(unittest.TestCase):
 
         self.assertEqual(phrase["phrase_id"], 42)
         self.assertEqual(phrase["count"], 2)
+        self.assertEqual(phrase["expected_duration_ms"], 12500)
         self.assertEqual(phrase["expected_duration_sec"], 12)
         self.assertEqual(phrase_slug(phrase), "phrase_0042")
 
@@ -141,6 +148,96 @@ class PhraseHelperTests(unittest.TestCase):
 
         self.assertEqual(next_recording_attempt(attempts, a_key), 2)
         self.assertEqual(next_recording_attempt(attempts, b_key), 1)
+
+    def test_expected_duration_ms_accepts_seconds_and_milliseconds(self) -> None:
+        self.assertEqual(expected_duration_ms_from_item({"expected_duration_sec": 7}), 7000)
+        self.assertEqual(expected_duration_ms_from_item({"expected_duration_ms": 7500}), 7500)
+
+    def test_actual_fps_from_existing_phone_payload(self) -> None:
+        self.assertEqual(actual_fps_from_payload({"actualFps": 29.92}), 29.92)
+        self.assertEqual(
+            actual_fps_from_payload(
+                {
+                    "lastVideoMetadata": {
+                        "cameraControls": {"actual_fps": "29.9174"},
+                    },
+                }
+            ),
+            29.917,
+        )
+
+    def test_next_record_index_never_drops_below_local_log(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            log_dir = Path(tmp)
+            (log_dir / "recording_log_20260914.ndjson").write_text(
+                json.dumps({"event": "START", "record": 404}) + "\n"
+                + json.dumps({"event": "START", "record": 12}) + "\n",
+                encoding="utf-8",
+            )
+            original = tcc.recording_log_dir
+            tcc.recording_log_dir = lambda: log_dir
+            try:
+                index = next_record_index(
+                    {"next_index": 0, "scan_remote_video_indexes": False},
+                    phones=[],
+                    timeout=0,
+                    day_stamp="20260914",
+                )
+            finally:
+                tcc.recording_log_dir = original
+
+        self.assertEqual(index, 405)
+
+    def test_two_take_item_records_a_then_b_and_retakes_selected_variant(self) -> None:
+        app = object.__new__(ControllerApp)
+        app.dataset_state = {"manual_back_mode": False, "retake_mode": False}
+        app.recording_attempts_by_key = {}
+        word = {
+            "type": ITEM_TYPE_WORD,
+            "word_id": 578,
+            "uzbek": "Haykal",
+            "count": 2,
+        }
+
+        self.assertEqual(app.variant_attempt_for_word(word, "signer_4", 0, 2), ("a", 1, False))
+        self.assertEqual(app.variant_attempt_for_word(word, "signer_4", 1, 2), ("b", 1, False))
+
+        remember_recording_attempt(
+            app.recording_attempts_by_key,
+            {
+                "event": "START",
+                "signer": "signer_4",
+                "mode": ITEM_TYPE_WORD,
+                "word_id": 578,
+                "word": "Haykal",
+                "sign_variant": "a",
+                "attempt": 1,
+            },
+        )
+        app.dataset_state = {"manual_back_mode": True, "retake_mode": False}
+
+        self.assertEqual(app.variant_attempt_for_word(word, "signer_4", 1, 2), ("a", 2, True))
+
+        remember_recording_attempt(
+            app.recording_attempts_by_key,
+            {
+                "event": "START",
+                "signer": "signer_4",
+                "mode": ITEM_TYPE_WORD,
+                "word_id": 578,
+                "word": "Haykal",
+                "sign_variant": "b",
+                "attempt": 1,
+            },
+        )
+        app.dataset_state = {
+            "manual_back_mode": True,
+            "retake_mode": True,
+            "retake_sign_variant": "b",
+            "retake_attempt": 1,
+        }
+
+        self.assertEqual(app.variant_attempt_for_word(word, "signer_4", 2, 2), ("b", 2, True))
 
 
 if __name__ == "__main__":

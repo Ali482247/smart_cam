@@ -22,6 +22,7 @@ abstract class RecordingController {
     String? phraseText,
     String? fileSlug,
     int? expectedDurationSec,
+    int? expectedDurationMs,
     int? segmentIndex,
     int? segmentCount,
     String? wordDir,

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
@@ -70,6 +71,19 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 "getDeviceStatus" -> result.success(deviceStatus())
+                "readVideoMetadata" -> {
+                    val sourcePath = call.argument<String>("sourcePath")
+                    if (sourcePath.isNullOrBlank()) {
+                        result.error("bad_args", "sourcePath is required", null)
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        result.success(readVideoMetadata(sourcePath))
+                    } catch (error: Exception) {
+                        result.error("metadata_failed", error.message, null)
+                    }
+                }
                 "setKeepScreenOn" -> {
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     setKeepScreenOn(enabled)
@@ -188,6 +202,62 @@ class MainActivity : FlutterActivity() {
         }
 
         return "DCIM/$safeRelativeDir/$displayName"
+    }
+
+    private fun readVideoMetadata(sourcePath: String): Map<String, Any?> {
+        val source = File(sourcePath)
+        require(source.exists()) { "Source video does not exist: $sourcePath" }
+
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(source.absolutePath)
+            val durationMs = retriever.metadataLong(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val frameCount = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                retriever.metadataLong(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
+            } else {
+                null
+            }
+            val captureFps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                retriever.metadataDouble(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
+            } else {
+                null
+            }
+            val calculatedFps = if (
+                captureFps == null &&
+                frameCount != null &&
+                durationMs != null &&
+                durationMs > 0
+            ) {
+                frameCount.toDouble() * 1000.0 / durationMs.toDouble()
+            } else {
+                null
+            }
+
+            mapOf(
+                "width" to retriever.metadataInt(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
+                "height" to retriever.metadataInt(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
+                "durationMs" to durationMs,
+                "rotation" to retriever.metadataInt(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION),
+                "bitrate" to retriever.metadataLong(MediaMetadataRetriever.METADATA_KEY_BITRATE),
+                "frameCount" to frameCount,
+                "captureFrameRate" to captureFps,
+                "actualFps" to (captureFps ?: calculatedFps)
+            )
+        } finally {
+            retriever.release()
+        }
+    }
+
+    private fun MediaMetadataRetriever.metadataInt(keyCode: Int): Int? {
+        return extractMetadata(keyCode)?.toIntOrNull()
+    }
+
+    private fun MediaMetadataRetriever.metadataLong(keyCode: Int): Long? {
+        return extractMetadata(keyCode)?.toLongOrNull()
+    }
+
+    private fun MediaMetadataRetriever.metadataDouble(keyCode: Int): Double? {
+        return extractMetadata(keyCode)?.toDoubleOrNull()
     }
 
     private fun deleteThreeCamDcimVideos(): Int {

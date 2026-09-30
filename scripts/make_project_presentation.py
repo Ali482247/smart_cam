@@ -6,7 +6,6 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
@@ -44,6 +43,11 @@ WORD_COUNT = 1356
 PHRASE_COUNT = 916
 PHRASE_FIRST_ID = 1357
 PHRASE_LAST_ID = 2272
+DEMO_VIDEO_PATHS = [
+    Path(r"C:\Users\Aliakbar Abdullayev\Desktop\ДАТАСЕТ ДЕМО\2026-09-10_camera_01\signer_2_Адолат\1142_Farg_ona\1142_Farg_ona_a_1_device_1_20260910_161615_591.mp4"),
+    Path(r"C:\Users\Aliakbar Abdullayev\Desktop\ДАТАСЕТ ДЕМО\2026-09-10_camera_02\signer_2_Адолат\1142_Farg_ona\1142_Farg_ona_a_1_device_2_20260910_161615_591.mp4"),
+    Path(r"C:\Users\Aliakbar Abdullayev\Desktop\ДАТАСЕТ ДЕМО\2026-09-10_camera_03\signer_2_Адолат\1142_Farg_ona\1142_Farg_ona_a_1_device_3_20260910_161615_591.mp4"),
+]
 
 
 @dataclass
@@ -301,6 +305,8 @@ def make_workflow_diagram(slide, x, y):
 
 
 def make_daily_chart(path: Path):
+    from PIL import Image, ImageDraw
+
     data = [
         ("08.24", 1344, 5),
         ("08.25", 1275, 0),
@@ -314,57 +320,232 @@ def make_daily_chart(path: Path):
         ("09.17", 1334, 5),
         ("09.24", 1553, 10),
     ]
-    labels = [d[0] for d in data]
-    sessions = [d[1] for d in data]
-    problems = [d[2] for d in data]
-    ok = [s - p for s, p in zip(sessions, problems)]
-    plt.figure(figsize=(9.5, 3.55), dpi=160)
-    plt.bar(labels, ok, color=rgb_to_hex(COLORS["teal"]), label="OK")
-    plt.bar(labels, problems, bottom=ok, color=rgb_to_hex(COLORS["coral"]), label="проблемные")
-    plt.ylabel("сессии")
-    plt.grid(axis="y", alpha=0.22)
-    plt.legend(loc="upper left", frameon=False)
-    plt.title("Сессии по дням: 24.08-24.09")
-    plt.tight_layout()
-    plt.savefig(path, facecolor="white")
-    plt.close()
+    w, h = 1520, 568
+    margin_l, margin_r, margin_t, margin_b = 82, 32, 66, 74
+    img = Image.new("RGB", (w, h), "white")
+    draw = ImageDraw.Draw(img)
+    title_font = _load_font(30)
+    font = _load_font(19)
+    small = _load_font(16)
+    draw.text((margin_l, 22), "Сессии по дням: 24.08-24.09", fill=(30, 39, 46), font=title_font)
+    max_v = max(s for _, s, _ in data)
+    chart_w = w - margin_l - margin_r
+    chart_h = h - margin_t - margin_b
+    for tick in range(0, 1801, 300):
+        y = margin_t + chart_h - int(chart_h * tick / 1800)
+        draw.line((margin_l, y, w - margin_r, y), fill=(228, 232, 230), width=1)
+        draw.text((14, y - 10), str(tick), fill=(94, 105, 112), font=small)
+    bar_gap = 18
+    bar_w = (chart_w - bar_gap * (len(data) - 1)) / len(data)
+    for i, (label, total, problem) in enumerate(data):
+        x = margin_l + i * (bar_w + bar_gap)
+        ok = total - problem
+        ok_h = int(chart_h * ok / 1800)
+        pr_h = int(chart_h * problem / 1800)
+        y_ok = margin_t + chart_h - ok_h
+        draw.rectangle((x, y_ok, x + bar_w, margin_t + chart_h), fill=tuple(COLORS["teal"]))
+        if problem:
+            draw.rectangle((x, y_ok - pr_h, x + bar_w, y_ok), fill=tuple(COLORS["coral"]))
+        draw.text((x - 1, margin_t + chart_h + 12), label, fill=(94, 105, 112), font=small)
+    draw.rectangle((margin_l, margin_t, w - margin_r, margin_t + chart_h), outline=(218, 222, 219), width=2)
+    draw.rectangle((w - 310, 24, w - 292, 42), fill=tuple(COLORS["teal"]))
+    draw.text((w - 286, 21), "OK", fill=(30, 39, 46), font=small)
+    draw.rectangle((w - 220, 24, w - 202, 42), fill=tuple(COLORS["coral"]))
+    draw.text((w - 196, 21), "проблемные", fill=(30, 39, 46), font=small)
+    path.parent.mkdir(exist_ok=True)
+    img.save(path, quality=95)
 
 
 def make_fps_chart(path: Path):
+    from PIL import Image, ImageDraw
+
     days = ["06.15", "08.03", "08.05", "08.07", "08.13", "08.24", "08.26", "09.04", "09.05"]
     p05 = [28.66, 29.91, 26.80, 22.44, 21.81, 29.92, 29.92, 29.92, 29.92]
     med = [29.92, 29.92, 29.75, 29.67, 28.48, 29.92, 29.92, 29.92, 29.92]
-    colors = [rgb_to_hex(COLORS["coral"])] * 5 + [rgb_to_hex(COLORS["green"])] * 4
-    plt.figure(figsize=(8.8, 3.35), dpi=160)
-    plt.scatter(days, p05, s=85, c=colors, label="5-й процентиль")
-    plt.plot(days, med, color=rgb_to_hex(COLORS["blue"]), marker="o", label="медиана")
-    plt.axhline(29.92, color="#444444", linewidth=1, linestyle="--", alpha=0.6)
-    plt.ylim(20, 31)
-    plt.ylabel("FPS")
-    plt.grid(axis="y", alpha=0.22)
-    plt.xticks(rotation=30, ha="right")
-    plt.legend(loc="lower right", frameon=False)
-    plt.title("720p стабилизировал нижний хвост FPS")
-    plt.tight_layout()
-    plt.savefig(path, facecolor="white")
-    plt.close()
+    w, h = 1408, 536
+    margin_l, margin_r, margin_t, margin_b = 78, 36, 64, 72
+    img = Image.new("RGB", (w, h), "white")
+    draw = ImageDraw.Draw(img)
+    title_font = _load_font(30)
+    small = _load_font(16)
+    draw.text((margin_l, 22), "720p стабилизировал нижний хвост FPS", fill=(30, 39, 46), font=title_font)
+    chart_w = w - margin_l - margin_r
+    chart_h = h - margin_t - margin_b
+    y_min, y_max = 20, 31
+
+    def xy(i: int, val: float):
+        x = margin_l + int(chart_w * i / (len(days) - 1))
+        y = margin_t + chart_h - int(chart_h * (val - y_min) / (y_max - y_min))
+        return x, y
+
+    for tick in [20, 22, 24, 26, 28, 30]:
+        y = margin_t + chart_h - int(chart_h * (tick - y_min) / (y_max - y_min))
+        draw.line((margin_l, y, w - margin_r, y), fill=(228, 232, 230), width=1)
+        draw.text((28, y - 10), str(tick), fill=(94, 105, 112), font=small)
+    y_ref = xy(0, 29.92)[1]
+    for x in range(margin_l, w - margin_r, 16):
+        draw.line((x, y_ref, x + 8, y_ref), fill=(80, 80, 80), width=2)
+    med_pts = [xy(i, val) for i, val in enumerate(med)]
+    draw.line(med_pts, fill=tuple(COLORS["blue"]), width=4)
+    for i, val in enumerate(med):
+        x, y = xy(i, val)
+        draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill=tuple(COLORS["blue"]))
+    for i, val in enumerate(p05):
+        x, y = xy(i, val)
+        color = COLORS["coral"] if i < 5 else COLORS["green"]
+        draw.ellipse((x - 12, y - 12, x + 12, y + 12), fill=tuple(color))
+    for i, label in enumerate(days):
+        x, _ = xy(i, y_min)
+        draw.text((x - 24, margin_t + chart_h + 16), label, fill=(94, 105, 112), font=small)
+    draw.rectangle((margin_l, margin_t, w - margin_r, margin_t + chart_h), outline=(218, 222, 219), width=2)
+    draw.text((w - 312, h - 44), "точки: 5-й процентиль, линия: медиана", fill=(94, 105, 112), font=small)
+    path.parent.mkdir(exist_ok=True)
+    img.save(path, quality=95)
 
 
 def make_block_chart(path: Path):
+    from PIL import Image, ImageDraw
+
     labels = ["Слова", "Фразы", "Итого"]
     values = [WORD_COUNT, PHRASE_COUNT, WORD_COUNT + PHRASE_COUNT]
-    colors = [rgb_to_hex(COLORS["blue"]), rgb_to_hex(COLORS["green"]), rgb_to_hex(COLORS["teal"])]
-    plt.figure(figsize=(7.4, 3.15), dpi=160)
-    bars = plt.bar(labels, values, color=colors)
-    plt.ylabel("единицы корпуса")
-    plt.grid(axis="y", alpha=0.22)
-    for b, v in zip(bars, values):
-        plt.text(b.get_x() + b.get_width() / 2, v + 40, fmt_int(v), ha="center", fontsize=10)
-    plt.ylim(0, 2450)
-    plt.title("Структура корпуса: 1356 слов + 916 фраз")
-    plt.tight_layout()
-    plt.savefig(path, facecolor="white")
-    plt.close()
+    colors = [COLORS["blue"], COLORS["green"], COLORS["teal"]]
+    w, h = 1184, 504
+    margin_l, margin_r, margin_t, margin_b = 86, 42, 70, 74
+    img = Image.new("RGB", (w, h), "white")
+    draw = ImageDraw.Draw(img)
+    title_font = _load_font(31)
+    font = _load_font(22)
+    small = _load_font(17)
+    draw.text((margin_l, 24), "Структура корпуса: 1356 слов + 916 фраз", fill=(30, 39, 46), font=title_font)
+    chart_w = w - margin_l - margin_r
+    chart_h = h - margin_t - margin_b
+    max_v = 2400
+    for tick in [0, 600, 1200, 1800, 2400]:
+        y = margin_t + chart_h - int(chart_h * tick / max_v)
+        draw.line((margin_l, y, w - margin_r, y), fill=(228, 232, 230), width=1)
+        draw.text((22, y - 11), str(tick), fill=(94, 105, 112), font=small)
+    bar_w = 190
+    gap = (chart_w - bar_w * 3) / 2
+    for i, (label, value, color) in enumerate(zip(labels, values, colors)):
+        x = margin_l + i * (bar_w + gap)
+        bar_h = int(chart_h * value / max_v)
+        y = margin_t + chart_h - bar_h
+        draw.rectangle((x, y, x + bar_w, margin_t + chart_h), fill=tuple(color))
+        draw.text((x + 42, y - 32), fmt_int(value), fill=(30, 39, 46), font=font)
+        draw.text((x + 50, margin_t + chart_h + 16), label, fill=(94, 105, 112), font=font)
+    draw.rectangle((margin_l, margin_t, w - margin_r, margin_t + chart_h), outline=(218, 222, 219), width=2)
+    path.parent.mkdir(exist_ok=True)
+    img.save(path, quality=95)
+
+
+def _load_font(size: int):
+    from PIL import ImageFont
+
+    for font_path in [
+        Path(r"C:\Windows\Fonts\arial.ttf"),
+        Path(r"C:\Windows\Fonts\calibri.ttf"),
+        Path(r"C:\Windows\Fonts\segoeui.ttf"),
+    ]:
+        if font_path.exists():
+            return ImageFont.truetype(str(font_path), size)
+    return ImageFont.load_default()
+
+
+def _read_frame(video_path: Path, frame_index: int):
+    import cv2
+
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        return None
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+    ok, frame = cap.read()
+    cap.release()
+    if not ok:
+        return None
+    return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+
+def make_three_camera_assets(paths: list[Path], image_path: Path, video_path: Path) -> bool:
+    if len(paths) != 3 or not all(p.exists() for p in paths):
+        return False
+
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageDraw
+
+    caps = [cv2.VideoCapture(str(p)) for p in paths]
+    try:
+        if not all(cap.isOpened() for cap in caps):
+            return False
+        frame_counts = [int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) for cap in caps]
+        fps_values = [cap.get(cv2.CAP_PROP_FPS) or 29.92 for cap in caps]
+        min_frames = min(frame_counts)
+        fps = min(fps_values) if fps_values else 29.92
+    finally:
+        for cap in caps:
+            cap.release()
+
+    labels = ["Левая камера", "Центральная камера", "Правая камера"]
+    moment = 0.50
+    panel_w, panel_h = 330, 587
+    label_h = 42
+    gap = 22
+    margin = 30
+    title_h = 54
+    grid_w = margin * 2 + panel_w * 3 + gap * 2
+    grid_h = title_h + margin + panel_h + label_h + margin
+    canvas = Image.new("RGB", (grid_w, grid_h), (249, 248, 244))
+    draw = ImageDraw.Draw(canvas)
+    title_font = _load_font(26)
+    label_font = _load_font(18)
+    small_font = _load_font(14)
+    draw.text((margin, 16), "Пример одной записи: 1142 Farg'ona, три ракурса", fill=(30, 39, 46), font=title_font)
+    draw.text((grid_w - margin - 235, 23), "2026-09-10 / Адолат", fill=(94, 105, 112), font=small_font)
+
+    frame_index = min(max(0, int(min_frames * moment)), min_frames - 1)
+    timestamp = frame_index / fps
+    y = title_h + margin
+    for col, path in enumerate(paths):
+        frame = _read_frame(path, frame_index)
+        if frame is None:
+            continue
+        img = Image.fromarray(frame).resize((panel_w, panel_h), Image.Resampling.LANCZOS)
+        x = margin + col * (panel_w + gap)
+        canvas.paste(img, (x, y + label_h))
+        draw.rectangle((x, y, x + panel_w, y + label_h), fill=(38, 50, 56))
+        draw.text((x + 12, y + 10), labels[col], fill=(255, 255, 255), font=label_font)
+        draw.rectangle((x, y + label_h, x + panel_w, y + label_h + panel_h), outline=(218, 222, 219), width=2)
+    draw.text((margin, grid_h - 24), f"Кадр примерно на {timestamp:.1f} секунде записи", fill=(94, 105, 112), font=small_font)
+
+    image_path.parent.mkdir(exist_ok=True)
+    canvas.save(image_path, quality=95)
+
+    target_h = 640
+    target_w = 360
+    out_w = target_w * 3
+    out_h = target_h
+    writer = cv2.VideoWriter(str(video_path), cv2.VideoWriter_fourcc(*"mp4v"), min(fps, 30), (out_w, out_h))
+    if writer.isOpened():
+        readable = [cv2.VideoCapture(str(p)) for p in paths]
+        try:
+            for _ in range(min_frames):
+                panels = []
+                ok_all = True
+                for cap in readable:
+                    ok, frame = cap.read()
+                    if not ok:
+                        ok_all = False
+                        break
+                    panels.append(cv2.resize(frame, (target_w, target_h)))
+                if not ok_all:
+                    break
+                writer.write(np.hstack(panels))
+        finally:
+            writer.release()
+            for cap in readable:
+                cap.release()
+
+    return True
 
 
 def build_presentation(stats: LogStats):
@@ -372,9 +553,12 @@ def build_presentation(stats: LogStats):
     daily_chart = OUT_DIR / "daily_sessions.png"
     fps_chart = OUT_DIR / "fps_resolution.png"
     block_chart = OUT_DIR / "corpus_blocks.png"
+    demo_grid_image = OUT_DIR / "fargona_three_camera_grid.png"
+    demo_grid_video = OUT_DIR / "fargona_three_camera_grid.mp4"
     make_daily_chart(daily_chart)
     make_fps_chart(fps_chart)
     make_block_chart(block_chart)
+    has_demo_grid = make_three_camera_assets(DEMO_VIDEO_PATHS, demo_grid_image, demo_grid_video)
 
     prs = Presentation()
     prs.slide_width = WIDE_W
@@ -465,8 +649,43 @@ def build_presentation(stats: LogStats):
     add_table(s, Inches(0.85), Inches(3.05), [Inches(2.15), Inches(9.45)], Inches(0.52), rows, True, 10)
     notes.append(("3. Приложение от начала до конца", "Это сквозной слайд. Объяснить один цикл: импортировали список, выбрали сайнера, проверили телефоны, записали, сохранили, сразу проверили."))
 
+    if has_demo_grid:
+        s = new_slide("Визуальный пример: три ракурса", "Одна запись: 1142 Farg'ona, signer_2 Адолат, 10 сентября")
+        s.shapes.add_picture(str(demo_grid_image), Inches(0.72), Inches(1.42), width=Inches(8.25), height=Inches(5.2))
+        add_callout(
+            s,
+            Inches(9.32),
+            Inches(1.55),
+            Inches(2.95),
+            Inches(1.25),
+            "Что показывает грид",
+            ["три камеры снимают один и тот же жест", "ракурсы можно сравнивать рядом"],
+            COLORS["purple"],
+        )
+        add_callout(
+            s,
+            Inches(9.32),
+            Inches(3.05),
+            Inches(2.95),
+            Inches(1.25),
+            "Зачем это в защите",
+            ["не абстрактная схема", "видно реальный результат приложения"],
+            COLORS["teal"],
+        )
+        add_callout(
+            s,
+            Inches(9.32),
+            Inches(4.55),
+            Inches(2.95),
+            Inches(1.25),
+            "Отдельный файл",
+            ["side-by-side MP4 создан в presentation_assets", "можно открыть как видео"],
+            COLORS["green"],
+        )
+        notes.append(("4. Визуальный пример", "Показать этот слайд как живое доказательство: одна и та же запись хранится в трех файлах, и приложение связывает их по record, device и имени. Если нужно, открыть рядом созданный MP4-грид."))
+
     add_section("Блок 1", "Сбор слов: 1356 единиц", "Первый этап: сделать надежную систему для словаря, дублей и трех ракурсов", COLORS["blue"])
-    notes.append(("4. Блок 1", "Переход к первой части: на словах мы строили базовую механику приложения и закрывали самые опасные ошибки."))
+    notes.append(("Блок 1", "Переход к первой части: на словах мы строили базовую механику приложения и закрывали самые опасные ошибки."))
 
     s = new_slide("Задача сбора слов", "Нужно было не просто снять 1356 слов, а не потерять связь между видео и разметкой")
     add_metric_card(s, Inches(0.78), Inches(1.55), Inches(2.65), Inches(1.15), "1 356", "слов и служебных единиц", COLORS["blue"])
